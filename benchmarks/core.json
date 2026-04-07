@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "text": "If the battery is dead, the car will not start unless we jump it.",
+    "expected_block_types": ["condition", "exception", "outcome"],
+    "expected_relation_types": ["implies", "unless"]
+  },
+  {
+    "id": "case-002",
+    "text": "We should allow remote work if it improves productivity.",
+    "expected_block_types": ["condition", "goal"],
+    "expected_relation_types": ["implies"]
+  },
+  {
+    "id": "case-003",
+    "text": "The experiment failed because the reagent was contaminated.",
+    "expected_block_types": ["claim", "evidence"],
+    "expected_relation_types": ["supports"]
+  },
+  {
+    "id": "case-004",
+    "text": "A hypothesis means a testable explanation.",
+    "expected_block_types": ["claim", "definition"],
+    "expected_relation_types": ["defines"]
+  },
+  {
+    "id": "case-005",
+    "text": "What causes the lights to flicker?",
+    "expected_block_types": ["question"],
+    "expected_relation_types": []
+  },
+  {
+    "id": "case-006",
+    "text": "We must not share credentials.",
+    "expected_block_types": ["constraint"],
+    "expected_relation_types": []
+  },
+  {
+    "id": "case-007",
+    "text": "The model is fast but unreliable.",
+    "expected_block_types": ["claim", "claim"],
+    "expected_relation_types": ["qualifies"]
+  },
+  {
+    "id": "case-008",
+    "text": "Maybe the outage started after the deploy.",
+    "expected_block_types": ["claim"],
+    "expected_relation_types": []
+  },
+  {
+    "id": "case-009",
+    "text": "Access is allowed only if the user is authenticated.",
+    "expected_block_types": ["condition", "constraint"],
+    "expected_relation_types": ["implies"]
+  },
+  {
+    "id": "case-010",
+    "text": "The policy requires encryption at rest.",
+    "expected_block_types": ["constraint"],
+    "expected_relation_types": []
+  }
+]

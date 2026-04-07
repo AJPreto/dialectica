@@ -1,0 +1,73 @@
+{
+  "source_text": "If the battery is dead, the car will not start unless we jump it.",
+  "language": "en",
+  "parse_status": "ok",
+  "blocks": [
+    {
+      "id": "b1",
+      "type": "condition",
+      "text": "the battery is dead",
+      "canonical_text": "battery is dead",
+      "polarity": "positive",
+      "certainty": 0.97,
+      "tags": [
+        "battery",
+        "vehicle"
+      ],
+      "source_span": {
+        "start": 7,
+        "end": 26
+      }
+    },
+    {
+      "id": "b2",
+      "type": "outcome",
+      "text": "the car will not start",
+      "canonical_text": "car does not start",
+      "polarity": "negative",
+      "certainty": 0.97,
+      "tags": [
+        "car",
+        "start_failure"
+      ],
+      "source_span": {
+        "start": 28,
+        "end": 50
+      }
+    },
+    {
+      "id": "b3",
+      "type": "exception",
+      "text": "we jump it",
+      "canonical_text": "car is jump started",
+      "polarity": "positive",
+      "certainty": 0.95,
+      "tags": [
+        "jump_start"
+      ],
+      "source_span": {
+        "start": 58,
+        "end": 68
+      }
+    }
+  ],
+  "relations": [
+    {
+      "type": "implies",
+      "source": "b1",
+      "target": "b2",
+      "certainty": 0.96
+    },
+    {
+      "type": "unless",
+      "source": "b3",
+      "target": "b2",
+      "certainty": 0.95
+    }
+  ],
+  "ambiguities": [],
+  "metadata": {
+    "domain": "commonsense",
+    "version": "0.1.0"
+  }
+}

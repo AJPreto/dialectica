@@ -1,0 +1,142 @@
+{
+  "source_text": "If remote work improves productivity, we should allow it.",
+  "language": "en",
+  "parse_status": "ok",
+  "blocks": [
+    {
+      "id": "b1",
+      "type": "condition",
+      "text": "remote work improves productivity",
+      "canonical_text": "remote work improves productivity",
+      "polarity": "positive",
+      "certainty": 0.81,
+      "tags": [
+        "remote",
+        "work",
+        "productivity"
+      ]
+    },
+    {
+      "id": "b2",
+      "type": "goal",
+      "text": "we should allow remote work",
+      "canonical_text": "allow remote work",
+      "polarity": "positive",
+      "certainty": 0.76,
+      "tags": [
+        "allow",
+        "remote",
+        "work"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "implies",
+      "source": "b1",
+      "target": "b2",
+      "certainty": 0.79
+    }
+  ],
+  "ambiguities": [],
+  "encoding": {
+    "dialect": "tff",
+    "logic": {
+      "name": "typed_first_order",
+      "typed": true,
+      "higher_order": false,
+      "supports_arithmetic": false,
+      "supports_conditionals": false,
+      "supports_lets": false,
+      "notes": "TPTP-inspired export target for a natural-language-derived rule."
+    },
+    "signature": {
+      "types": [
+        {
+          "name": "$i",
+          "kind": "built_in"
+        }
+      ],
+      "predicates": [
+        {
+          "name": "improves_productivity",
+          "signature": "$i > $o",
+          "arity": 1,
+          "description": "Whether an option improves productivity."
+        },
+        {
+          "name": "allow_remote_work",
+          "signature": "$o",
+          "arity": 0,
+          "description": "Whether the policy allows remote work."
+        }
+      ],
+      "functions": [],
+      "constants": [
+        {
+          "name": "remote_work",
+          "signature": "$i",
+          "arity": 0,
+          "description": "The remote work arrangement under discussion."
+        }
+      ]
+    },
+    "annotated_formulae": [
+      {
+        "name": "policy_rule",
+        "language": "tff",
+        "role": "conjecture",
+        "linked_blocks": [
+          "b1",
+          "b2"
+        ],
+        "source": {
+          "kind": "parser",
+          "reference": "heuristic-v1",
+          "details": {
+            "strategy": "semantic-to-formal bridge"
+          }
+        },
+        "useful_info": [
+          {
+            "key": "origin",
+            "value": "natural-language parse"
+          },
+          {
+            "key": "deontic_modal",
+            "value": "should"
+          }
+        ],
+        "confidence": 0.71,
+        "formula": {
+          "kind": "binary",
+          "operator": "=>",
+          "left": {
+            "kind": "predicate",
+            "symbol": "improves_productivity",
+            "arguments": [
+              {
+                "kind": "constant",
+                "value": "remote_work",
+                "type": "$i"
+              }
+            ]
+          },
+          "right": {
+            "kind": "predicate",
+            "symbol": "allow_remote_work",
+            "arguments": []
+          },
+          "notes": "A practical approximation of a policy recommendation."
+        }
+      }
+    ],
+    "translation_notes": [
+      "The modal force of 'should' was preserved in useful_info rather than encoded directly in FOL.",
+      "The encoding is TPTP-inspired rather than strict theorem-prover syntax."
+    ]
+  },
+  "metadata": {
+    "version": "0.2.0"
+  }
+}

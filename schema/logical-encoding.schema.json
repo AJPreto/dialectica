@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dialectica.local/schema/logical-encoding.schema.json",
+  "title": "Dialectica TPTP-Inspired Logical Encoding",
+  "description": "A richer encoding layer for Dialectica that borrows TPTP ideas such as annotated formulae, roles, typed signatures, and provenance while remaining friendly to natural-language-derived intermediate representations.",
+  "$ref": "./logical-blocks.schema.json#/$defs/encoding"
+}
