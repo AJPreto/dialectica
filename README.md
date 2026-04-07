@@ -18,6 +18,7 @@ The repo now includes a runnable V1 prototype with:
 - a local parser CLI
 - a small HTTP API
 - a benchmark and evaluation harness
+- an end-to-end answer evaluation harness
 - schema, prompt, and sample output files
 
 The parser is heuristic in this first version so the project can run locally
@@ -26,34 +27,40 @@ the intermediate representation before swapping in an LLM-backed parser later.
 
 ## Quick start
 
-From the repo root, use one of these setup paths:
+From the repo root, use `uv` as the default workflow:
 
 ```bash
-$env:PYTHONPATH="src"
+uv sync
 ```
 
-Or install the package in editable mode:
+Then run commands with `uv run`:
 
 ```bash
-python -m pip install -e .
+uv run dialectica parse "If the battery is dead, the car will not start unless we jump it." --pretty
 ```
 
 ### Parse text from the CLI
 
 ```bash
-python -m dialectica parse "If the battery is dead, the car will not start unless we jump it." --pretty
+uv run dialectica parse "If the battery is dead, the car will not start unless we jump it." --pretty
 ```
 
 ### Print the canonical serialization
 
 ```bash
-python -m dialectica parse "The experiment failed because the reagent was contaminated." --canonical
+uv run dialectica parse "The experiment failed because the reagent was contaminated." --canonical
+```
+
+### Parse a multi-sentence document
+
+```bash
+uv run dialectica parse --document "Employees may access the lab only if they completed safety training. Alice completed safety training." --pretty
 ```
 
 ### Run the local API
 
 ```bash
-python -m dialectica serve --host 127.0.0.1 --port 8000
+uv run dialectica serve --host 127.0.0.1 --port 8000
 ```
 
 Then send a request:
@@ -67,7 +74,22 @@ curl -X POST http://127.0.0.1:8000/parse ^
 ### Run the benchmark harness
 
 ```bash
-python -m dialectica evaluate --dataset benchmarks/core.json --pretty
+uv run dialectica evaluate --dataset benchmarks/core.json --pretty
+```
+
+### Run the answer evaluation harness
+
+For a smoke test that exercises the full pipeline without an API call:
+
+```bash
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider oracle --pretty
+```
+
+For a real model comparison using the OpenAI Responses API:
+
+```bash
+$env:OPENAI_API_KEY="your_key_here"
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider openai --model gpt-5.4-mini --pretty
 ```
 
 ## Repo layout
@@ -78,10 +100,12 @@ python -m dialectica evaluate --dataset benchmarks/core.json --pretty
 - `src/dialectica/api.py`: stdlib HTTP API
 - `src/dialectica/cli.py`: command-line entry points
 - `benchmarks/core.json`: initial benchmark set
+- `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
 - `docs/tptp-inspired-encoding.md`: notes on the richer formal encoding
+- `docs/objective-evaluation.md`: how to test whether Dialectica improves correctness
 
 ## Core idea
 
@@ -235,6 +259,23 @@ Start here:
 - [encoding schema](./schema/logical-encoding.schema.json)
 - [encoding notes](./docs/tptp-inspired-encoding.md)
 - [sample encoding](./examples/sample-encoding.json)
+
+## Testing whether Dialectica helps
+
+The parser benchmark is not the main proof of value. The main test is whether
+the same model answers objective tasks more accurately when using Dialectica.
+
+The new answer evaluation harness compares:
+
+- `direct`
+- `structured`
+- `dialectica_parsed`
+- optionally `dialectica_gold` when gold logical forms are present
+
+See:
+
+- [objective evaluation guide](./docs/objective-evaluation.md)
+- [sample objective QA dataset](./benchmarks/objective_qa.sample.json)
 
 ## Example
 

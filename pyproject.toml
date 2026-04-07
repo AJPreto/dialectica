@@ -12,13 +12,19 @@ license = { file = "LICENSE" }
 authors = [
   { name = "Marti" }
 ]
+dependencies = []
 
 [project.scripts]
 dialectica = "dialectica.cli:main"
+
+[tool.uv]
+package = true
+
+[dependency-groups]
+dev = []
 
 [tool.setuptools]
 package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

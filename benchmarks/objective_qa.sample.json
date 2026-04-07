@@ -1,0 +1,238 @@
+[
+  {
+    "id": "task-001",
+    "context": "Employees may access the lab only if they completed safety training. Alice completed safety training.",
+    "question": "Can Alice access the lab?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "constraint",
+      "condition"
+    ],
+    "gold_blocks": [
+      "constraint",
+      "claim"
+    ],
+    "gold_relations": [
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "Employees may access the lab only if they completed safety training. Alice completed safety training.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "constraint",
+          "text": "employees may access the lab",
+          "canonical_text": "employees may access the lab",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "condition",
+          "text": "they completed safety training",
+          "canonical_text": "complete safety training",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "claim",
+          "text": "Alice completed safety training",
+          "canonical_text": "alice completed safety training",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b1"
+        }
+      ],
+      "ambiguities": []
+    },
+    "gold_question_logical_form": {
+      "source_text": "Can Alice access the lab?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "Can Alice access the lab",
+          "canonical_text": "can alice access the lab",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": []
+    },
+    "gold_encoding": {
+      "dialect": "tff"
+    }
+  },
+  {
+    "id": "task-002",
+    "context": "If the battery is dead, the car will not start unless it is jump-started. The battery is dead. The car was not jump-started.",
+    "question": "Will the car start?",
+    "gold_answer": "no",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "exception",
+      "negation"
+    ],
+    "gold_blocks": [
+      "condition",
+      "exception",
+      "outcome",
+      "claim",
+      "claim"
+    ],
+    "gold_relations": [
+      "implies",
+      "unless"
+    ],
+    "gold_logical_form": {
+      "source_text": "If the battery is dead, the car will not start unless it is jump-started. The battery is dead. The car was not jump-started.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "condition",
+          "text": "the battery is dead",
+          "canonical_text": "battery is dead",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "outcome",
+          "text": "the car will not start",
+          "canonical_text": "car will not start",
+          "polarity": "negative"
+        },
+        {
+          "id": "b3",
+          "type": "exception",
+          "text": "it is jump-started",
+          "canonical_text": "car is jump started",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "claim",
+          "text": "The battery is dead",
+          "canonical_text": "the battery is dead",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "claim",
+          "text": "The car was not jump-started",
+          "canonical_text": "the car was not jump started",
+          "polarity": "negative"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b1",
+          "target": "b2"
+        },
+        {
+          "type": "unless",
+          "source": "b3",
+          "target": "b2"
+        }
+      ],
+      "ambiguities": []
+    },
+    "gold_question_logical_form": {
+      "source_text": "Will the car start?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "Will the car start",
+          "canonical_text": "will the car start",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": []
+    },
+    "gold_encoding": {
+      "dialect": "tff"
+    }
+  },
+  {
+    "id": "task-003",
+    "context": "All certified operators may use the milling machine. Bruno is a certified operator.",
+    "question": "May Bruno use the milling machine?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "quantification",
+      "entailment"
+    ],
+    "gold_blocks": [
+      "constraint",
+      "claim"
+    ],
+    "gold_relations": [
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "All certified operators may use the milling machine. Bruno is a certified operator.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "constraint",
+          "text": "all certified operators may use the milling machine",
+          "canonical_text": "certified operators may use the milling machine",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "claim",
+          "text": "Bruno is a certified operator",
+          "canonical_text": "bruno is a certified operator",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b1"
+        }
+      ],
+      "ambiguities": []
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Bruno use the milling machine?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Bruno use the milling machine",
+          "canonical_text": "may bruno use the milling machine",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": []
+    },
+    "gold_encoding": {
+      "dialect": "fof"
+    }
+  }
+]

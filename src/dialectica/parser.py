@@ -147,8 +147,69 @@ def parse_text(text: str, language: str = "en") -> dict[str, Any]:
     return logical_form
 
 
+def parse_document(text: str, language: str = "en") -> dict[str, Any]:
+    """Parse a multi-sentence document by combining sentence-level parses."""
+    segments = _split_sentences(text)
+    if len(segments) <= 1:
+        return parse_text(text, language=language)
+
+    merged: dict[str, Any] = {
+        "source_text": text,
+        "language": language,
+        "parse_status": "ok",
+        "blocks": [],
+        "relations": [],
+        "ambiguities": [],
+        "metadata": {"parser": "heuristic-v1", "mode": "document", "segment_count": len(segments)},
+    }
+    block_counter = 0
+    ambiguity_counter = 0
+    status_priority = {"ok": 0, "underspecified": 1, "ambiguous": 2, "failed": 3}
+
+    for sentence_index, segment in enumerate(segments, start=1):
+        parsed = parse_text(segment, language=language)
+        if status_priority.get(parsed["parse_status"], 0) > status_priority.get(merged["parse_status"], 0):
+            merged["parse_status"] = parsed["parse_status"]
+
+        block_mapping: dict[str, str] = {}
+        for block in parsed.get("blocks", []):
+            block_counter += 1
+            new_id = f"b{block_counter}"
+            block_mapping[block["id"]] = new_id
+            copied_block = dict(block)
+            copied_block["id"] = new_id
+            copied_block.setdefault("tags", [])
+            copied_block["tags"] = [*copied_block["tags"], f"sentence_{sentence_index}"]
+            merged["blocks"].append(copied_block)
+
+        for relation in parsed.get("relations", []):
+            copied_relation = dict(relation)
+            copied_relation["source"] = block_mapping.get(relation["source"], relation["source"])
+            copied_relation["target"] = block_mapping.get(relation["target"], relation["target"])
+            merged["relations"].append(copied_relation)
+
+        for ambiguity in parsed.get("ambiguities", []):
+            ambiguity_counter += 1
+            copied_ambiguity = dict(ambiguity)
+            copied_ambiguity["id"] = f"a{ambiguity_counter}"
+            copied_ambiguity["affected_blocks"] = [
+                block_mapping.get(block_id, block_id) for block_id in ambiguity.get("affected_blocks", [])
+            ]
+            merged["ambiguities"].append(copied_ambiguity)
+
+    return merged
+
+
 def _normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip())
+
+
+def _split_sentences(text: str) -> list[str]:
+    cleaned = _normalize_text(text)
+    if not cleaned:
+        return []
+    parts = re.split(r"(?<=[.!?])\s+", cleaned)
+    return [part for part in parts if part]
 
 
 def _canonical_text(text: str) -> str:

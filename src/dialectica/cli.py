@@ -8,9 +8,11 @@ import sys
 from pathlib import Path
 
 from .api import run_server
+from .answer_eval import evaluate_answer_dataset, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
 from .evaluate import evaluate_dataset
-from .parser import parse_text
+from .parser import parse_document, parse_text
+from .providers import ProviderError
 from .validation import validate_logical_form
 
 
@@ -23,6 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     parse_parser.add_argument("--language", default="en")
     parse_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
     parse_parser.add_argument("--canonical", action="store_true", help="Print canonical serialization instead of JSON")
+    parse_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
 
     serve_parser = subparsers.add_parser("serve", help="Run the local HTTP API")
     serve_parser.add_argument("--host", default="127.0.0.1")
@@ -36,11 +39,33 @@ def main(argv: list[str] | None = None) -> int:
     )
     eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
 
+    answer_eval_parser = subparsers.add_parser("evaluate-answers", help="Run end-to-end answer evaluation")
+    answer_eval_parser.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "objective_qa.sample.json"),
+        help="Path to objective QA benchmark dataset JSON",
+    )
+    answer_eval_parser.add_argument(
+        "--provider",
+        default="oracle",
+        choices=("oracle", "openai"),
+        help="Model provider used to answer benchmark questions",
+    )
+    answer_eval_parser.add_argument("--model", help="Model name for the selected provider")
+    answer_eval_parser.add_argument(
+        "--include-gold-dialectica",
+        action="store_true",
+        help="Also run a Dialectica condition using gold logical forms when present in the dataset",
+    )
+    answer_eval_parser.add_argument("--output", help="Optional path to write the full JSON report")
+    answer_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
+
     args = parser.parse_args(argv)
 
     if args.command == "parse":
         text = args.text if args.text is not None else sys.stdin.read().strip()
-        logical_form = canonicalize_logical_form(parse_text(text, language=args.language))
+        parsed = parse_document(text, language=args.language) if args.document else parse_text(text, language=args.language)
+        logical_form = canonicalize_logical_form(parsed)
         errors = validate_logical_form(logical_form)
         if args.canonical:
             print(serialize_logical_form(logical_form))
@@ -60,5 +85,21 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=indent))
         return 0
 
-    return 1
+    if args.command == "evaluate-answers":
+        try:
+            report = evaluate_answer_dataset(
+                args.dataset,
+                provider_name=args.provider,
+                model=args.model,
+                include_gold_dialectica=args.include_gold_dialectica,
+            )
+        except ProviderError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        if args.output:
+            write_report(report, args.output)
+        indent = 2 if args.pretty else None
+        print(json.dumps(report, indent=indent))
+        return 0
 
+    return 1
