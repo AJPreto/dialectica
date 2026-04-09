@@ -17,6 +17,7 @@ class ProviderResponse:
     latency_seconds: float
     usage: dict[str, Any] | None = None
     raw: dict[str, Any] | None = None
+    iterations: int = 1
 
 
 class ProviderError(RuntimeError):
@@ -42,6 +43,7 @@ class OracleProvider(BaseProvider):
             latency_seconds=time.perf_counter() - start,
             usage=None,
             raw={"provider": "oracle"},
+            iterations=1,
         )
 
 
@@ -101,8 +103,9 @@ class OpenAIResponsesProvider(BaseProvider):
         return ProviderResponse(
             text=output_text,
             latency_seconds=latency,
-            usage=raw.get("usage"),
+            usage=_normalize_usage(raw.get("usage")),
             raw=raw,
+            iterations=1,
         )
 
 
@@ -133,3 +136,16 @@ def _extract_output_text(raw: dict[str, Any]) -> str:
         return "\n".join(chunks)
     raise ProviderError("OpenAI response did not contain output text.")
 
+
+def _normalize_usage(usage: dict[str, Any] | None) -> dict[str, int] | None:
+    if not isinstance(usage, dict):
+        return None
+    input_details = usage.get("input_tokens_details") or {}
+    output_details = usage.get("output_tokens_details") or {}
+    return {
+        "input_tokens": int(usage.get("input_tokens", 0) or 0),
+        "output_tokens": int(usage.get("output_tokens", 0) or 0),
+        "total_tokens": int(usage.get("total_tokens", 0) or 0),
+        "cached_tokens": int(input_details.get("cached_tokens", 0) or 0),
+        "reasoning_tokens": int(output_details.get("reasoning_tokens", 0) or 0),
+    }

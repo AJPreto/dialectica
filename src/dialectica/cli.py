@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from .api import run_server
-from .answer_eval import evaluate_answer_dataset, write_report
+from .answer_eval import evaluate_answer_dataset, write_performance_summary, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
 from .evaluate import evaluate_dataset
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
@@ -73,6 +73,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Also run a Dialectica condition using gold logical forms when present in the dataset",
     )
     answer_eval_parser.add_argument("--output", help="Optional path to write the full JSON report")
+    answer_eval_parser.add_argument(
+        "--performance-output",
+        help="Optional path to write a compact performance summary JSON file",
+    )
     answer_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
 
     args = parser.parse_args(argv)
@@ -135,8 +139,18 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         if args.output:
             write_report(report, args.output)
+            performance_output = args.performance_output or _derive_performance_path(args.output)
+            write_performance_summary(report["performance_summary"], performance_output)
+        elif args.performance_output:
+            write_performance_summary(report["performance_summary"], args.performance_output)
         indent = 2 if args.pretty else None
         print(json.dumps(report, indent=indent))
         return 0
 
     return 1
+
+
+def _derive_performance_path(output_path: str) -> str:
+    path = Path(output_path)
+    suffix = path.suffix or ".json"
+    return str(path.with_name(f"{path.stem}.performance{suffix}"))

@@ -32,6 +32,8 @@ class ConditionResult:
     gold: Any
     latency_seconds: float
     usage: dict[str, Any] | None
+    token_counts: dict[str, int]
+    iterations: int
     prompt: str
     instructions: str
     provider_raw: dict[str, Any] | None
@@ -49,6 +51,9 @@ def evaluate_answer_dataset(
     cases: list[dict[str, Any]] = []
 
     aggregate_correct: dict[str, list[bool]] = {}
+    aggregate_latency: dict[str, list[float]] = {}
+    aggregate_iterations: dict[str, list[int]] = {}
+    aggregate_tokens: dict[str, dict[str, int]] = {}
 
     for case in dataset:
         context_text = str(case.get("context", ""))
@@ -112,7 +117,13 @@ def evaluate_answer_dataset(
                 case.get("answer_type", "exact"),
                 choices=case.get("choices"),
             )
+            token_counts = _normalize_token_counts(response.usage)
             aggregate_correct.setdefault(name, []).append(bool(score["correct"]))
+            aggregate_latency.setdefault(name, []).append(response.latency_seconds)
+            aggregate_iterations.setdefault(name, []).append(response.iterations)
+            token_bucket = aggregate_tokens.setdefault(name, _empty_token_counts())
+            for key, value in token_counts.items():
+                token_bucket[key] += value
             condition_results.append(
                 ConditionResult(
                     name=name,
@@ -123,6 +134,8 @@ def evaluate_answer_dataset(
                     gold=score["gold"],
                     latency_seconds=response.latency_seconds,
                     usage=response.usage,
+                    token_counts=token_counts,
+                    iterations=response.iterations,
                     prompt=prompt,
                     instructions=instructions,
                     provider_raw=response.raw,
@@ -145,19 +158,38 @@ def evaluate_answer_dataset(
             }
         )
 
-    aggregates = {
-        name: {
+    aggregates = {}
+    for name, flags in aggregate_correct.items():
+        case_count = len(flags)
+        token_totals = aggregate_tokens.get(name, _empty_token_counts())
+        aggregates[name] = {
             "accuracy": mean(1.0 if flag else 0.0 for flag in flags) if flags else 0.0,
-            "case_count": len(flags),
+            "case_count": case_count,
+            "average_latency_seconds": mean(aggregate_latency.get(name, [0.0])) if case_count else 0.0,
+            "total_iterations": sum(aggregate_iterations.get(name, [])),
+            "average_iterations": mean(aggregate_iterations.get(name, [0])) if case_count else 0.0,
+            "total_input_tokens": token_totals["input_tokens"],
+            "total_output_tokens": token_totals["output_tokens"],
+            "total_tokens": token_totals["total_tokens"],
+            "total_cached_tokens": token_totals["cached_tokens"],
+            "total_reasoning_tokens": token_totals["reasoning_tokens"],
+            "average_input_tokens": (token_totals["input_tokens"] / case_count) if case_count else 0.0,
+            "average_output_tokens": (token_totals["output_tokens"] / case_count) if case_count else 0.0,
+            "average_total_tokens": (token_totals["total_tokens"] / case_count) if case_count else 0.0,
         }
-        for name, flags in aggregate_correct.items()
-    }
 
     return {
         "dataset_path": str(path),
         "provider": provider_name,
         "model": model,
         "aggregate": aggregates,
+        "performance_summary": build_performance_summary(
+            dataset_path=path,
+            provider=provider_name,
+            model=model,
+            cases=cases,
+            aggregates=aggregates,
+        ),
         "cases": cases,
     }
 
@@ -166,6 +198,48 @@ def write_report(report: dict[str, Any], output_path: str | Path) -> None:
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+
+def write_performance_summary(summary: dict[str, Any], output_path: str | Path) -> None:
+    destination = Path(output_path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+
+def build_performance_summary(
+    *,
+    dataset_path: str | Path,
+    provider: str,
+    model: str | None,
+    cases: list[dict[str, Any]],
+    aggregates: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "dataset_path": str(dataset_path),
+        "provider": provider,
+        "model": model,
+        "aggregate": aggregates,
+        "cases": [
+            {
+                "id": case["id"],
+                "question": case["question"],
+                "gold_answer": case["gold_answer"],
+                "conditions": [
+                    {
+                        "name": condition["name"],
+                        "correct": condition["correct"],
+                        "predicted": condition["predicted"],
+                        "gold": condition["gold"],
+                        "iterations": condition["iterations"],
+                        "latency_seconds": condition["latency_seconds"],
+                        "token_counts": condition["token_counts"],
+                    }
+                    for condition in case["conditions"]
+                ],
+            }
+            for case in cases
+        ],
+    }
 
 
 def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
@@ -177,3 +251,25 @@ def _maybe_get_gold_logical_form(case: dict[str, Any], field: str) -> dict[str, 
     if field not in case:
         return None
     return canonicalize_logical_form(case[field])
+
+
+def _normalize_token_counts(usage: dict[str, Any] | None) -> dict[str, int]:
+    if not isinstance(usage, dict):
+        return _empty_token_counts()
+    return {
+        "input_tokens": int(usage.get("input_tokens", 0) or 0),
+        "output_tokens": int(usage.get("output_tokens", 0) or 0),
+        "total_tokens": int(usage.get("total_tokens", 0) or 0),
+        "cached_tokens": int(usage.get("cached_tokens", 0) or 0),
+        "reasoning_tokens": int(usage.get("reasoning_tokens", 0) or 0),
+    }
+
+
+def _empty_token_counts() -> dict[str, int]:
+    return {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "reasoning_tokens": 0,
+    }

@@ -184,7 +184,7 @@ For a real model-backed run:
 
 ```bash
 $env:OPENAI_API_KEY="your_key_here"
-uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider openai --model gpt-5.4-mini --pretty
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider openai --model gpt-5-mini --output reports/openai_metrics.json --performance-output reports/openai_metrics.performance.json --pretty
 ```
 
 The `oracle` provider is just a smoke test for the harness. It is not a valid
