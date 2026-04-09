@@ -10,6 +10,12 @@ from pathlib import Path
 from .api import run_server
 from .answer_eval import evaluate_answer_dataset, write_performance_summary, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
+from .complexity import (
+    generate_complexity_dataset,
+    summarize_complexity_report,
+    write_complexity_dataset,
+    write_complexity_summary,
+)
 from .evaluate import evaluate_dataset
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .parser import parse_document, parse_text
@@ -63,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     answer_eval_parser.add_argument(
         "--provider",
         default="oracle",
-        choices=("oracle", "openai"),
+        choices=("oracle", "openai", "ollama"),
         help="Model provider used to answer benchmark questions",
     )
     answer_eval_parser.add_argument("--model", help="Model name for the selected provider")
@@ -78,6 +84,63 @@ def main(argv: list[str] | None = None) -> int:
         help="Optional path to write a compact performance summary JSON file",
     )
     answer_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
+
+    complexity_generate_parser = subparsers.add_parser(
+        "generate-complexity-benchmark",
+        help="Generate a synthetic complexity-sweep objective QA benchmark",
+    )
+    complexity_generate_parser.add_argument("--levels", type=int, default=6, help="Number of difficulty levels to generate")
+    complexity_generate_parser.add_argument(
+        "--scenarios-per-level",
+        type=int,
+        default=3,
+        help="Number of scenarios to generate at each level",
+    )
+    complexity_generate_parser.add_argument(
+        "--followups",
+        type=int,
+        default=3,
+        help="Number of follow-up questions to derive from each scenario",
+    )
+    complexity_generate_parser.add_argument("--seed", type=int, default=7, help="Deterministic random seed")
+    complexity_generate_parser.add_argument(
+        "--output",
+        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
+        help="Path to write the generated benchmark dataset",
+    )
+    complexity_generate_parser.add_argument("--pretty", action="store_true", help="Pretty-print the generated dataset")
+
+    complexity_eval_parser = subparsers.add_parser(
+        "evaluate-complexity-sweep",
+        help="Run answer evaluation and summarize results by complexity level",
+    )
+    complexity_eval_parser.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
+        help="Path to a generated complexity-sweep benchmark dataset JSON file",
+    )
+    complexity_eval_parser.add_argument(
+        "--provider",
+        default="oracle",
+        choices=("oracle", "openai", "ollama"),
+        help="Model provider used to answer benchmark questions",
+    )
+    complexity_eval_parser.add_argument("--model", help="Model name for the selected provider")
+    complexity_eval_parser.add_argument(
+        "--include-gold-dialectica",
+        action="store_true",
+        help="Also run Dialectica conditions using gold logical forms when present in the dataset",
+    )
+    complexity_eval_parser.add_argument("--output", help="Optional path to write the full JSON report")
+    complexity_eval_parser.add_argument(
+        "--performance-output",
+        help="Optional path to write a compact performance summary JSON file",
+    )
+    complexity_eval_parser.add_argument(
+        "--summary-output",
+        help="Optional path to write the level-by-level complexity summary JSON file",
+    )
+    complexity_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the complexity summary")
 
     args = parser.parse_args(argv)
 
@@ -147,6 +210,44 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=indent))
         return 0
 
+    if args.command == "generate-complexity-benchmark":
+        dataset = generate_complexity_dataset(
+            levels=args.levels,
+            scenarios_per_level=args.scenarios_per_level,
+            followups=args.followups,
+            seed=args.seed,
+        )
+        write_complexity_dataset(dataset, args.output)
+        indent = 2 if args.pretty else None
+        print(json.dumps(dataset, indent=indent))
+        return 0
+
+    if args.command == "evaluate-complexity-sweep":
+        try:
+            report = evaluate_answer_dataset(
+                args.dataset,
+                provider_name=args.provider,
+                model=args.model,
+                include_gold_dialectica=args.include_gold_dialectica,
+            )
+        except ProviderError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        summary = summarize_complexity_report(report)
+        if args.output:
+            write_report(report, args.output)
+            performance_output = args.performance_output or _derive_performance_path(args.output)
+            write_performance_summary(report["performance_summary"], performance_output)
+            summary_output = args.summary_output or _derive_summary_path(args.output)
+            write_complexity_summary(summary, summary_output)
+        elif args.performance_output:
+            write_performance_summary(report["performance_summary"], args.performance_output)
+        elif args.summary_output:
+            write_complexity_summary(summary, args.summary_output)
+        indent = 2 if args.pretty else None
+        print(json.dumps(summary, indent=indent))
+        return 0
+
     return 1
 
 
@@ -154,3 +255,9 @@ def _derive_performance_path(output_path: str) -> str:
     path = Path(output_path)
     suffix = path.suffix or ".json"
     return str(path.with_name(f"{path.stem}.performance{suffix}"))
+
+
+def _derive_summary_path(output_path: str) -> str:
+    path = Path(output_path)
+    suffix = path.suffix or ".json"
+    return str(path.with_name(f"{path.stem}.sweep{suffix}"))

@@ -110,6 +110,13 @@ with:
 - contradiction detection
 - multi-step rule application
 - retrieval with near-miss distractors
+- scaling context length and distractor load
+- repeated follow-up questions over the same scenario
+
+The important scaling question is not just whether Dialectica is more accurate
+on average. It is whether there is a complexity range where the compact
+encoding becomes smaller than the raw natural-language context while preserving
+enough structure to improve correctness.
 
 ## Dataset format
 
@@ -144,9 +151,15 @@ Optional fields for deeper analysis:
 Those let the harness compare:
 
 - `dialectica_parsed`: use the current parser output
+- `dialectica_compact`: use a denser proposition-aliased serialization
 - `dialectica_structural`: use parser output plus the structural fingerprint
+- `dialectica_structural_compact`: use the compact serialization plus the
+  structural fingerprint
 - `dialectica_gold`: use gold intermediate structure when available
+- `dialectica_gold_compact`: use gold compact structure when available
 - `dialectica_gold_structural`: use gold intermediate structure plus the
+  structural fingerprint
+- `dialectica_gold_structural_compact`: use gold compact structure plus the
   structural fingerprint
 
 That separation is valuable because it tells you whether failures come from the
@@ -189,6 +202,34 @@ uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json
 
 The `oracle` provider is just a smoke test for the harness. It is not a valid
 benchmark condition.
+
+For a no-cost local run with Ollama:
+
+```bash
+ollama pull qwen2.5:3b
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_metrics.json --performance-output reports/ollama_metrics.performance.json --pretty
+```
+
+Dialectica blocks remote Ollama endpoints by default. To preserve privacy, keep
+`OLLAMA_BASE_URL` pointed at `localhost`. Only set
+`DIALECTICA_ALLOW_REMOTE_OLLAMA=1` if you intentionally want to override that
+safety check.
+
+The repo also includes a synthetic scaling benchmark generator and a level-by-
+level sweep summary:
+
+```bash
+uv run dialectica generate-complexity-benchmark --levels 6 --scenarios-per-level 2 --followups 2 --output benchmarks/complexity_sweep.sample.json
+uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --pretty
+```
+
+That sweep summary reports:
+
+- accuracy by complexity level
+- token cost by complexity level
+- latency and iterations by complexity level
+- when the compact Dialectica encoding becomes smaller than the raw context
+- whether the full compact prompt ever becomes smaller than the direct prompt
 
 ## Retrieval experiment design
 
@@ -237,8 +278,9 @@ Without this, it will be hard to tell whether Dialectica itself is helping.
 2. Add objective QA benchmark files
 3. Add direct and structured baselines
 4. Add deterministic scoring
-5. Add retrieval benchmark
-6. Compare accuracy, not just elegance of representation
+5. Add a complexity sweep that scales rules, distractors, and follow-up depth
+6. Add retrieval benchmark
+7. Compare accuracy, token cost, and crossover points, not just elegance of representation
 
 ## Strongest possible version
 

@@ -1,0 +1,1732 @@
+[
+  {
+    "id": "cx-01-001-q1",
+    "scenario_id": "scenario-01-001",
+    "context": "According to the current facility record, Bruno completed frost orientation, as noted in the active compliance log for this shift. If Bruno completed frost orientation, then under the standing facility policy in effect for the current shift Bruno holds a frost badge. If Bruno holds a frost badge, then under the standing facility policy in effect for the current shift Bruno is cleared for the frost wing.",
+    "question": "Is Bruno cleared for the frost wing?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 1,
+      "family": "access_chain",
+      "variant": "entails",
+      "chain_length": 2,
+      "distractor_count": 0,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 2,
+      "context_sentence_count": 3
+    },
+    "gold_blocks": [
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "According to the current facility record, Bruno completed frost orientation, as noted in the active compliance log for this shift. If Bruno completed frost orientation, then under the standing facility policy in effect for the current shift Bruno holds a frost badge. If Bruno holds a frost badge, then under the standing facility policy in effect for the current shift Bruno is cleared for the frost wing.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "claim",
+          "text": "Bruno completed frost orientation",
+          "canonical_text": "bruno completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "condition",
+          "text": "Bruno completed frost orientation",
+          "canonical_text": "bruno completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "outcome",
+          "text": "Bruno holds a frost badge",
+          "canonical_text": "bruno holds a frost badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "condition",
+          "text": "Bruno holds a frost badge",
+          "canonical_text": "bruno holds a frost badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "outcome",
+          "text": "Bruno is cleared for the frost wing",
+          "canonical_text": "bruno is cleared for the frost wing",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b3"
+        },
+        {
+          "type": "implies",
+          "source": "b4",
+          "target": "b5"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 1,
+        "variant": "entails",
+        "chain_length": 2,
+        "distractor_count": 0
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "Is Bruno cleared for the frost wing?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "Is Bruno cleared for the frost wing",
+          "canonical_text": "is bruno cleared for the frost wing",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "entails",
+      "level": 1
+    }
+  },
+  {
+    "id": "cx-02-002-q1",
+    "scenario_id": "scenario-02-002",
+    "context": "According to the current facility record, Carla completed jade orientation, as noted in the active compliance log for this shift. If Levi completed granite orientation, then under the standing facility policy in effect for the current shift Levi holds a granite badge. If Carla completed jade orientation, then under the standing facility policy in effect for the current shift Carla holds a jade badge. According to the current facility record, Levi completed granite orientation, as noted in the active compliance log for this shift. If Carla holds a jade badge, then under the standing facility policy in effect for the current shift Carla is cleared for the jade wing. If Carla is cleared for the jade wing, then under the standing facility policy in effect for the current shift Carla may enter the jade workshop.",
+    "question": "May Carla enter the jade workshop?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 2,
+      "family": "access_chain",
+      "variant": "entails",
+      "chain_length": 3,
+      "distractor_count": 1,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 3,
+      "context_sentence_count": 6
+    },
+    "gold_blocks": [
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies",
+      "implies",
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "According to the current facility record, Carla completed jade orientation, as noted in the active compliance log for this shift. If Levi completed granite orientation, then under the standing facility policy in effect for the current shift Levi holds a granite badge. If Carla completed jade orientation, then under the standing facility policy in effect for the current shift Carla holds a jade badge. According to the current facility record, Levi completed granite orientation, as noted in the active compliance log for this shift. If Carla holds a jade badge, then under the standing facility policy in effect for the current shift Carla is cleared for the jade wing. If Carla is cleared for the jade wing, then under the standing facility policy in effect for the current shift Carla may enter the jade workshop.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "claim",
+          "text": "Carla completed jade orientation",
+          "canonical_text": "carla completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "condition",
+          "text": "Levi completed granite orientation",
+          "canonical_text": "levi completed granite orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "outcome",
+          "text": "Levi holds a granite badge",
+          "canonical_text": "levi holds a granite badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "condition",
+          "text": "Carla completed jade orientation",
+          "canonical_text": "carla completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "outcome",
+          "text": "Carla holds a jade badge",
+          "canonical_text": "carla holds a jade badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b6",
+          "type": "claim",
+          "text": "Levi completed granite orientation",
+          "canonical_text": "levi completed granite orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b7",
+          "type": "condition",
+          "text": "Carla holds a jade badge",
+          "canonical_text": "carla holds a jade badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b8",
+          "type": "outcome",
+          "text": "Carla is cleared for the jade wing",
+          "canonical_text": "carla is cleared for the jade wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b9",
+          "type": "condition",
+          "text": "Carla is cleared for the jade wing",
+          "canonical_text": "carla is cleared for the jade wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b10",
+          "type": "outcome",
+          "text": "Carla may enter the jade workshop",
+          "canonical_text": "carla may enter the jade workshop",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b3"
+        },
+        {
+          "type": "implies",
+          "source": "b4",
+          "target": "b5"
+        },
+        {
+          "type": "implies",
+          "source": "b7",
+          "target": "b8"
+        },
+        {
+          "type": "implies",
+          "source": "b9",
+          "target": "b10"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 2,
+        "variant": "entails",
+        "chain_length": 3,
+        "distractor_count": 1
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Carla enter the jade workshop?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Carla enter the jade workshop",
+          "canonical_text": "may carla enter the jade workshop",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "entails",
+      "level": 2
+    }
+  },
+  {
+    "id": "cx-03-003-q1",
+    "scenario_id": "scenario-03-003",
+    "context": "According to the current facility record, Dorian completed amber orientation, as noted in the active compliance log for this shift. According to the current facility record, Nolan did not complete ion orientation, as noted in the active compliance log for this shift. If Dorian completed amber orientation, then under the standing facility policy in effect for the current shift Dorian holds a amber badge. If Dorian holds a amber badge, then under the standing facility policy in effect for the current shift Dorian is cleared for the amber wing. If Dorian is cleared for the amber wing, then under the standing facility policy in effect for the current shift Dorian may enter the amber workshop. If Opal completed jade orientation, then under the standing facility policy in effect for the current shift Opal holds a jade badge. If Dorian may enter the amber workshop, then under the standing facility policy in effect for the current shift Dorian may operate the amber console. If Dorian is under amber suspension, then under the standing facility policy in effect for the current shift Dorian may not operate the amber console unless Dorian has a amber director waiver. According to the current facility record, Dorian is under amber suspension, as noted in the active compliance log for this shift. According to the current facility record, Opal completed jade orientation, as noted in the active compliance log for this shift. According to the current facility record, Dorian does not have a amber director waiver, as noted in the active compliance log for this shift. If Nolan completed ion orientation, then under the standing facility policy in effect for the current shift Nolan holds a ion badge.",
+    "question": "May Dorian operate the amber console?",
+    "gold_answer": "no",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "exception",
+      "negation",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 3,
+      "family": "access_chain",
+      "variant": "blocked",
+      "chain_length": 4,
+      "distractor_count": 2,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 4,
+      "context_sentence_count": 12
+    },
+    "gold_blocks": [
+      "claim",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "exception",
+      "claim",
+      "claim",
+      "claim",
+      "condition",
+      "outcome"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "unless",
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "According to the current facility record, Dorian completed amber orientation, as noted in the active compliance log for this shift. According to the current facility record, Nolan did not complete ion orientation, as noted in the active compliance log for this shift. If Dorian completed amber orientation, then under the standing facility policy in effect for the current shift Dorian holds a amber badge. If Dorian holds a amber badge, then under the standing facility policy in effect for the current shift Dorian is cleared for the amber wing. If Dorian is cleared for the amber wing, then under the standing facility policy in effect for the current shift Dorian may enter the amber workshop. If Opal completed jade orientation, then under the standing facility policy in effect for the current shift Opal holds a jade badge. If Dorian may enter the amber workshop, then under the standing facility policy in effect for the current shift Dorian may operate the amber console. If Dorian is under amber suspension, then under the standing facility policy in effect for the current shift Dorian may not operate the amber console unless Dorian has a amber director waiver. According to the current facility record, Dorian is under amber suspension, as noted in the active compliance log for this shift. According to the current facility record, Opal completed jade orientation, as noted in the active compliance log for this shift. According to the current facility record, Dorian does not have a amber director waiver, as noted in the active compliance log for this shift. If Nolan completed ion orientation, then under the standing facility policy in effect for the current shift Nolan holds a ion badge.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "claim",
+          "text": "Dorian completed amber orientation",
+          "canonical_text": "dorian completed amber orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "claim",
+          "text": "Nolan did not complete ion orientation",
+          "canonical_text": "nolan did not complete ion orientation",
+          "polarity": "negative"
+        },
+        {
+          "id": "b3",
+          "type": "condition",
+          "text": "Dorian completed amber orientation",
+          "canonical_text": "dorian completed amber orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "outcome",
+          "text": "Dorian holds a amber badge",
+          "canonical_text": "dorian holds a amber badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "condition",
+          "text": "Dorian holds a amber badge",
+          "canonical_text": "dorian holds a amber badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b6",
+          "type": "outcome",
+          "text": "Dorian is cleared for the amber wing",
+          "canonical_text": "dorian is cleared for the amber wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b7",
+          "type": "condition",
+          "text": "Dorian is cleared for the amber wing",
+          "canonical_text": "dorian is cleared for the amber wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b8",
+          "type": "outcome",
+          "text": "Dorian may enter the amber workshop",
+          "canonical_text": "dorian may enter the amber workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b9",
+          "type": "condition",
+          "text": "Opal completed jade orientation",
+          "canonical_text": "opal completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b10",
+          "type": "outcome",
+          "text": "Opal holds a jade badge",
+          "canonical_text": "opal holds a jade badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b11",
+          "type": "condition",
+          "text": "Dorian may enter the amber workshop",
+          "canonical_text": "dorian may enter the amber workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b12",
+          "type": "outcome",
+          "text": "Dorian may operate the amber console",
+          "canonical_text": "dorian may operate the amber console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b13",
+          "type": "condition",
+          "text": "Dorian is under amber suspension",
+          "canonical_text": "dorian is under amber suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b14",
+          "type": "outcome",
+          "text": "Dorian may not operate the amber console",
+          "canonical_text": "dorian may not operate the amber console",
+          "polarity": "negative"
+        },
+        {
+          "id": "b15",
+          "type": "exception",
+          "text": "Dorian has a amber director waiver",
+          "canonical_text": "dorian has a amber director waiver",
+          "polarity": "positive"
+        },
+        {
+          "id": "b16",
+          "type": "claim",
+          "text": "Dorian is under amber suspension",
+          "canonical_text": "dorian is under amber suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b17",
+          "type": "claim",
+          "text": "Opal completed jade orientation",
+          "canonical_text": "opal completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b18",
+          "type": "claim",
+          "text": "Dorian does not have a amber director waiver",
+          "canonical_text": "dorian does not have a amber director waiver",
+          "polarity": "negative"
+        },
+        {
+          "id": "b19",
+          "type": "condition",
+          "text": "Nolan completed ion orientation",
+          "canonical_text": "nolan completed ion orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b20",
+          "type": "outcome",
+          "text": "Nolan holds a ion badge",
+          "canonical_text": "nolan holds a ion badge",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b3",
+          "target": "b4"
+        },
+        {
+          "type": "implies",
+          "source": "b5",
+          "target": "b6"
+        },
+        {
+          "type": "implies",
+          "source": "b7",
+          "target": "b8"
+        },
+        {
+          "type": "implies",
+          "source": "b9",
+          "target": "b10"
+        },
+        {
+          "type": "implies",
+          "source": "b11",
+          "target": "b12"
+        },
+        {
+          "type": "implies",
+          "source": "b13",
+          "target": "b14"
+        },
+        {
+          "type": "unless",
+          "source": "b15",
+          "target": "b14"
+        },
+        {
+          "type": "implies",
+          "source": "b19",
+          "target": "b20"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 3,
+        "variant": "blocked",
+        "chain_length": 4,
+        "distractor_count": 2
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Dorian operate the amber console?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Dorian operate the amber console",
+          "canonical_text": "may dorian operate the amber console",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "blocked",
+      "level": 3
+    }
+  },
+  {
+    "id": "cx-04-004-q1",
+    "scenario_id": "scenario-04-004",
+    "context": "According to the current facility record, Elena completed frost orientation, as noted in the active compliance log for this shift. If Rhea completed meridian orientation, then under the standing facility policy in effect for the current shift Rhea holds a meridian badge. If Quinn completed lumen orientation, then under the standing facility policy in effect for the current shift Quinn holds a lumen badge. If Elena completed frost orientation, then under the standing facility policy in effect for the current shift Elena holds a frost badge. According to the current facility record, Quinn did not complete lumen orientation, as noted in the active compliance log for this shift. If Elena holds a frost badge, then under the standing facility policy in effect for the current shift Elena is cleared for the frost wing. If Elena is cleared for the frost wing, then under the standing facility policy in effect for the current shift Elena may enter the frost workshop. If Elena may enter the frost workshop, then under the standing facility policy in effect for the current shift Elena may operate the frost console. According to the current facility record, Rhea completed meridian orientation, as noted in the active compliance log for this shift. If Elena may operate the frost console, then under the standing facility policy in effect for the current shift Elena may access the frost vault. According to the current facility record, Priya completed kepler orientation, as noted in the active compliance log for this shift. If Priya completed kepler orientation, then under the standing facility policy in effect for the current shift Priya holds a kepler badge. If Elena is under frost suspension, then under the standing facility policy in effect for the current shift Elena may not access the frost vault unless Elena has a frost director waiver. According to the current facility record, Elena is not under frost suspension, as noted in the active compliance log for this shift.",
+    "question": "May Elena access the frost vault?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "exception",
+      "negation",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 4,
+      "family": "access_chain",
+      "variant": "entails",
+      "chain_length": 5,
+      "distractor_count": 3,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 5,
+      "context_sentence_count": 14
+    },
+    "gold_blocks": [
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "exception",
+      "claim"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "unless"
+    ],
+    "gold_logical_form": {
+      "source_text": "According to the current facility record, Elena completed frost orientation, as noted in the active compliance log for this shift. If Rhea completed meridian orientation, then under the standing facility policy in effect for the current shift Rhea holds a meridian badge. If Quinn completed lumen orientation, then under the standing facility policy in effect for the current shift Quinn holds a lumen badge. If Elena completed frost orientation, then under the standing facility policy in effect for the current shift Elena holds a frost badge. According to the current facility record, Quinn did not complete lumen orientation, as noted in the active compliance log for this shift. If Elena holds a frost badge, then under the standing facility policy in effect for the current shift Elena is cleared for the frost wing. If Elena is cleared for the frost wing, then under the standing facility policy in effect for the current shift Elena may enter the frost workshop. If Elena may enter the frost workshop, then under the standing facility policy in effect for the current shift Elena may operate the frost console. According to the current facility record, Rhea completed meridian orientation, as noted in the active compliance log for this shift. If Elena may operate the frost console, then under the standing facility policy in effect for the current shift Elena may access the frost vault. According to the current facility record, Priya completed kepler orientation, as noted in the active compliance log for this shift. If Priya completed kepler orientation, then under the standing facility policy in effect for the current shift Priya holds a kepler badge. If Elena is under frost suspension, then under the standing facility policy in effect for the current shift Elena may not access the frost vault unless Elena has a frost director waiver. According to the current facility record, Elena is not under frost suspension, as noted in the active compliance log for this shift.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "claim",
+          "text": "Elena completed frost orientation",
+          "canonical_text": "elena completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "condition",
+          "text": "Rhea completed meridian orientation",
+          "canonical_text": "rhea completed meridian orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "outcome",
+          "text": "Rhea holds a meridian badge",
+          "canonical_text": "rhea holds a meridian badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "condition",
+          "text": "Quinn completed lumen orientation",
+          "canonical_text": "quinn completed lumen orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "outcome",
+          "text": "Quinn holds a lumen badge",
+          "canonical_text": "quinn holds a lumen badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b6",
+          "type": "condition",
+          "text": "Elena completed frost orientation",
+          "canonical_text": "elena completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b7",
+          "type": "outcome",
+          "text": "Elena holds a frost badge",
+          "canonical_text": "elena holds a frost badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b8",
+          "type": "claim",
+          "text": "Quinn did not complete lumen orientation",
+          "canonical_text": "quinn did not complete lumen orientation",
+          "polarity": "negative"
+        },
+        {
+          "id": "b9",
+          "type": "condition",
+          "text": "Elena holds a frost badge",
+          "canonical_text": "elena holds a frost badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b10",
+          "type": "outcome",
+          "text": "Elena is cleared for the frost wing",
+          "canonical_text": "elena is cleared for the frost wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b11",
+          "type": "condition",
+          "text": "Elena is cleared for the frost wing",
+          "canonical_text": "elena is cleared for the frost wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b12",
+          "type": "outcome",
+          "text": "Elena may enter the frost workshop",
+          "canonical_text": "elena may enter the frost workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b13",
+          "type": "condition",
+          "text": "Elena may enter the frost workshop",
+          "canonical_text": "elena may enter the frost workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b14",
+          "type": "outcome",
+          "text": "Elena may operate the frost console",
+          "canonical_text": "elena may operate the frost console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b15",
+          "type": "claim",
+          "text": "Rhea completed meridian orientation",
+          "canonical_text": "rhea completed meridian orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b16",
+          "type": "condition",
+          "text": "Elena may operate the frost console",
+          "canonical_text": "elena may operate the frost console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b17",
+          "type": "outcome",
+          "text": "Elena may access the frost vault",
+          "canonical_text": "elena may access the frost vault",
+          "polarity": "positive"
+        },
+        {
+          "id": "b18",
+          "type": "claim",
+          "text": "Priya completed kepler orientation",
+          "canonical_text": "priya completed kepler orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b19",
+          "type": "condition",
+          "text": "Priya completed kepler orientation",
+          "canonical_text": "priya completed kepler orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b20",
+          "type": "outcome",
+          "text": "Priya holds a kepler badge",
+          "canonical_text": "priya holds a kepler badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b21",
+          "type": "condition",
+          "text": "Elena is under frost suspension",
+          "canonical_text": "elena is under frost suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b22",
+          "type": "outcome",
+          "text": "Elena may not access the frost vault",
+          "canonical_text": "elena may not access the frost vault",
+          "polarity": "negative"
+        },
+        {
+          "id": "b23",
+          "type": "exception",
+          "text": "Elena has a frost director waiver",
+          "canonical_text": "elena has a frost director waiver",
+          "polarity": "positive"
+        },
+        {
+          "id": "b24",
+          "type": "claim",
+          "text": "Elena is not under frost suspension",
+          "canonical_text": "elena is not under frost suspension",
+          "polarity": "negative"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b3"
+        },
+        {
+          "type": "implies",
+          "source": "b4",
+          "target": "b5"
+        },
+        {
+          "type": "implies",
+          "source": "b6",
+          "target": "b7"
+        },
+        {
+          "type": "implies",
+          "source": "b9",
+          "target": "b10"
+        },
+        {
+          "type": "implies",
+          "source": "b11",
+          "target": "b12"
+        },
+        {
+          "type": "implies",
+          "source": "b13",
+          "target": "b14"
+        },
+        {
+          "type": "implies",
+          "source": "b16",
+          "target": "b17"
+        },
+        {
+          "type": "implies",
+          "source": "b19",
+          "target": "b20"
+        },
+        {
+          "type": "implies",
+          "source": "b21",
+          "target": "b22"
+        },
+        {
+          "type": "unless",
+          "source": "b23",
+          "target": "b22"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 4,
+        "variant": "entails",
+        "chain_length": 5,
+        "distractor_count": 3
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Elena access the frost vault?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Elena access the frost vault",
+          "canonical_text": "may elena access the frost vault",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "entails",
+      "level": 4
+    }
+  },
+  {
+    "id": "cx-05-005-q1",
+    "scenario_id": "scenario-05-005",
+    "context": "If Soren completed amber orientation, then under the standing facility policy in effect for the current shift Soren holds a amber badge. If Alice completed delta orientation, then under the standing facility policy in effect for the current shift Alice holds a delta badge. According to the current facility record, Farid completed jade orientation, as noted in the active compliance log for this shift. If Farid completed jade orientation, then under the standing facility policy in effect for the current shift Farid holds a jade badge. If Farid holds a jade badge, then under the standing facility policy in effect for the current shift Farid is cleared for the jade wing. If Farid is cleared for the jade wing, then under the standing facility policy in effect for the current shift Farid may enter the jade workshop. If Farid may enter the jade workshop, then under the standing facility policy in effect for the current shift Farid may operate the jade console. According to the current facility record, Alice completed delta orientation, as noted in the active compliance log for this shift. If Farid may operate the jade console, then under the standing facility policy in effect for the current shift Farid may access the jade vault. If Farid may access the jade vault, then under the standing facility policy in effect for the current shift Farid may start the jade reactor. If Farid is under jade suspension, then under the standing facility policy in effect for the current shift Farid may not start the jade reactor unless Farid has a jade director waiver. If Talia completed cobalt orientation, then under the standing facility policy in effect for the current shift Talia holds a cobalt badge. According to the current facility record, Soren did not complete amber orientation, as noted in the active compliance log for this shift. According to the current facility record, Farid is under jade suspension, as noted in the active compliance log for this shift. According to the current facility record, Talia completed cobalt orientation, as noted in the active compliance log for this shift. According to the current facility record, Rhea completed meridian orientation, as noted in the active compliance log for this shift. According to the current facility record, Farid does not have a jade director waiver, as noted in the active compliance log for this shift. If Rhea completed meridian orientation, then under the standing facility policy in effect for the current shift Rhea holds a meridian badge.",
+    "question": "May Farid start the jade reactor?",
+    "gold_answer": "no",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "exception",
+      "negation",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 5,
+      "family": "access_chain",
+      "variant": "blocked",
+      "chain_length": 6,
+      "distractor_count": 4,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 6,
+      "context_sentence_count": 18
+    },
+    "gold_blocks": [
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "exception",
+      "condition",
+      "outcome",
+      "claim",
+      "claim",
+      "claim",
+      "claim",
+      "claim",
+      "condition",
+      "outcome"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "unless",
+      "implies",
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "If Soren completed amber orientation, then under the standing facility policy in effect for the current shift Soren holds a amber badge. If Alice completed delta orientation, then under the standing facility policy in effect for the current shift Alice holds a delta badge. According to the current facility record, Farid completed jade orientation, as noted in the active compliance log for this shift. If Farid completed jade orientation, then under the standing facility policy in effect for the current shift Farid holds a jade badge. If Farid holds a jade badge, then under the standing facility policy in effect for the current shift Farid is cleared for the jade wing. If Farid is cleared for the jade wing, then under the standing facility policy in effect for the current shift Farid may enter the jade workshop. If Farid may enter the jade workshop, then under the standing facility policy in effect for the current shift Farid may operate the jade console. According to the current facility record, Alice completed delta orientation, as noted in the active compliance log for this shift. If Farid may operate the jade console, then under the standing facility policy in effect for the current shift Farid may access the jade vault. If Farid may access the jade vault, then under the standing facility policy in effect for the current shift Farid may start the jade reactor. If Farid is under jade suspension, then under the standing facility policy in effect for the current shift Farid may not start the jade reactor unless Farid has a jade director waiver. If Talia completed cobalt orientation, then under the standing facility policy in effect for the current shift Talia holds a cobalt badge. According to the current facility record, Soren did not complete amber orientation, as noted in the active compliance log for this shift. According to the current facility record, Farid is under jade suspension, as noted in the active compliance log for this shift. According to the current facility record, Talia completed cobalt orientation, as noted in the active compliance log for this shift. According to the current facility record, Rhea completed meridian orientation, as noted in the active compliance log for this shift. According to the current facility record, Farid does not have a jade director waiver, as noted in the active compliance log for this shift. If Rhea completed meridian orientation, then under the standing facility policy in effect for the current shift Rhea holds a meridian badge.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "condition",
+          "text": "Soren completed amber orientation",
+          "canonical_text": "soren completed amber orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "outcome",
+          "text": "Soren holds a amber badge",
+          "canonical_text": "soren holds a amber badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "condition",
+          "text": "Alice completed delta orientation",
+          "canonical_text": "alice completed delta orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "outcome",
+          "text": "Alice holds a delta badge",
+          "canonical_text": "alice holds a delta badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "claim",
+          "text": "Farid completed jade orientation",
+          "canonical_text": "farid completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b6",
+          "type": "condition",
+          "text": "Farid completed jade orientation",
+          "canonical_text": "farid completed jade orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b7",
+          "type": "outcome",
+          "text": "Farid holds a jade badge",
+          "canonical_text": "farid holds a jade badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b8",
+          "type": "condition",
+          "text": "Farid holds a jade badge",
+          "canonical_text": "farid holds a jade badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b9",
+          "type": "outcome",
+          "text": "Farid is cleared for the jade wing",
+          "canonical_text": "farid is cleared for the jade wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b10",
+          "type": "condition",
+          "text": "Farid is cleared for the jade wing",
+          "canonical_text": "farid is cleared for the jade wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b11",
+          "type": "outcome",
+          "text": "Farid may enter the jade workshop",
+          "canonical_text": "farid may enter the jade workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b12",
+          "type": "condition",
+          "text": "Farid may enter the jade workshop",
+          "canonical_text": "farid may enter the jade workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b13",
+          "type": "outcome",
+          "text": "Farid may operate the jade console",
+          "canonical_text": "farid may operate the jade console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b14",
+          "type": "claim",
+          "text": "Alice completed delta orientation",
+          "canonical_text": "alice completed delta orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b15",
+          "type": "condition",
+          "text": "Farid may operate the jade console",
+          "canonical_text": "farid may operate the jade console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b16",
+          "type": "outcome",
+          "text": "Farid may access the jade vault",
+          "canonical_text": "farid may access the jade vault",
+          "polarity": "positive"
+        },
+        {
+          "id": "b17",
+          "type": "condition",
+          "text": "Farid may access the jade vault",
+          "canonical_text": "farid may access the jade vault",
+          "polarity": "positive"
+        },
+        {
+          "id": "b18",
+          "type": "outcome",
+          "text": "Farid may start the jade reactor",
+          "canonical_text": "farid may start the jade reactor",
+          "polarity": "positive"
+        },
+        {
+          "id": "b19",
+          "type": "condition",
+          "text": "Farid is under jade suspension",
+          "canonical_text": "farid is under jade suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b20",
+          "type": "outcome",
+          "text": "Farid may not start the jade reactor",
+          "canonical_text": "farid may not start the jade reactor",
+          "polarity": "negative"
+        },
+        {
+          "id": "b21",
+          "type": "exception",
+          "text": "Farid has a jade director waiver",
+          "canonical_text": "farid has a jade director waiver",
+          "polarity": "positive"
+        },
+        {
+          "id": "b22",
+          "type": "condition",
+          "text": "Talia completed cobalt orientation",
+          "canonical_text": "talia completed cobalt orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b23",
+          "type": "outcome",
+          "text": "Talia holds a cobalt badge",
+          "canonical_text": "talia holds a cobalt badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b24",
+          "type": "claim",
+          "text": "Soren did not complete amber orientation",
+          "canonical_text": "soren did not complete amber orientation",
+          "polarity": "negative"
+        },
+        {
+          "id": "b25",
+          "type": "claim",
+          "text": "Farid is under jade suspension",
+          "canonical_text": "farid is under jade suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b26",
+          "type": "claim",
+          "text": "Talia completed cobalt orientation",
+          "canonical_text": "talia completed cobalt orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b27",
+          "type": "claim",
+          "text": "Rhea completed meridian orientation",
+          "canonical_text": "rhea completed meridian orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b28",
+          "type": "claim",
+          "text": "Farid does not have a jade director waiver",
+          "canonical_text": "farid does not have a jade director waiver",
+          "polarity": "negative"
+        },
+        {
+          "id": "b29",
+          "type": "condition",
+          "text": "Rhea completed meridian orientation",
+          "canonical_text": "rhea completed meridian orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b30",
+          "type": "outcome",
+          "text": "Rhea holds a meridian badge",
+          "canonical_text": "rhea holds a meridian badge",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b1",
+          "target": "b2"
+        },
+        {
+          "type": "implies",
+          "source": "b3",
+          "target": "b4"
+        },
+        {
+          "type": "implies",
+          "source": "b6",
+          "target": "b7"
+        },
+        {
+          "type": "implies",
+          "source": "b8",
+          "target": "b9"
+        },
+        {
+          "type": "implies",
+          "source": "b10",
+          "target": "b11"
+        },
+        {
+          "type": "implies",
+          "source": "b12",
+          "target": "b13"
+        },
+        {
+          "type": "implies",
+          "source": "b15",
+          "target": "b16"
+        },
+        {
+          "type": "implies",
+          "source": "b17",
+          "target": "b18"
+        },
+        {
+          "type": "implies",
+          "source": "b19",
+          "target": "b20"
+        },
+        {
+          "type": "unless",
+          "source": "b21",
+          "target": "b20"
+        },
+        {
+          "type": "implies",
+          "source": "b22",
+          "target": "b23"
+        },
+        {
+          "type": "implies",
+          "source": "b29",
+          "target": "b30"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 5,
+        "variant": "blocked",
+        "chain_length": 6,
+        "distractor_count": 4
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Farid start the jade reactor?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Farid start the jade reactor",
+          "canonical_text": "may farid start the jade reactor",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "blocked",
+      "level": 5
+    }
+  },
+  {
+    "id": "cx-06-006-q1",
+    "scenario_id": "scenario-06-006",
+    "context": "According to the current facility record, Greta completed amber orientation, as noted in the active compliance log for this shift. If Bruno completed ember orientation, then under the standing facility policy in effect for the current shift Bruno holds a ember badge. According to the current facility record, Dorian completed granite orientation, as noted in the active compliance log for this shift. If Greta completed amber orientation, then under the standing facility policy in effect for the current shift Greta holds a amber badge. According to the current facility record, Carla completed frost orientation, as noted in the active compliance log for this shift. According to the current facility record, Alice did not complete delta orientation, as noted in the active compliance log for this shift. If Greta holds a amber badge, then under the standing facility policy in effect for the current shift Greta is cleared for the amber wing. If Greta is cleared for the amber wing, then under the standing facility policy in effect for the current shift Greta may enter the amber workshop. According to the current facility record, Bruno completed ember orientation, as noted in the active compliance log for this shift. If Talia completed cobalt orientation, then under the standing facility policy in effect for the current shift Talia holds a cobalt badge. If Greta may enter the amber workshop, then under the standing facility policy in effect for the current shift Greta may operate the amber console. If Greta may operate the amber console, then under the standing facility policy in effect for the current shift Greta may access the amber vault. If Greta may access the amber vault, then under the standing facility policy in effect for the current shift Greta may start the amber reactor. If Carla completed frost orientation, then under the standing facility policy in effect for the current shift Carla holds a frost badge. According to the current facility record, Talia completed cobalt orientation, as noted in the active compliance log for this shift. If Greta may start the amber reactor, then under the standing facility policy in effect for the current shift Greta may authorize the amber sequence. If Alice completed delta orientation, then under the standing facility policy in effect for the current shift Alice holds a delta badge. If Greta is under amber suspension, then under the standing facility policy in effect for the current shift Greta may not authorize the amber sequence unless Greta has a amber director waiver. If Dorian completed granite orientation, then under the standing facility policy in effect for the current shift Dorian holds a granite badge. According to the current facility record, Greta is not under amber suspension, as noted in the active compliance log for this shift.",
+    "question": "May Greta authorize the amber sequence?",
+    "gold_answer": "yes",
+    "answer_type": "boolean",
+    "phenomena": [
+      "condition",
+      "multi_hop",
+      "distractors",
+      "exception",
+      "negation",
+      "final_goal"
+    ],
+    "complexity": {
+      "level": 6,
+      "family": "access_chain",
+      "variant": "entails",
+      "chain_length": 7,
+      "distractor_count": 5,
+      "followup_index": 1,
+      "followup_count": 1,
+      "target_depth": 7,
+      "context_sentence_count": 20
+    },
+    "gold_blocks": [
+      "claim",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "claim",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "claim",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "condition",
+      "outcome",
+      "exception",
+      "condition",
+      "outcome",
+      "claim"
+    ],
+    "gold_relations": [
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "implies",
+      "unless",
+      "implies"
+    ],
+    "gold_logical_form": {
+      "source_text": "According to the current facility record, Greta completed amber orientation, as noted in the active compliance log for this shift. If Bruno completed ember orientation, then under the standing facility policy in effect for the current shift Bruno holds a ember badge. According to the current facility record, Dorian completed granite orientation, as noted in the active compliance log for this shift. If Greta completed amber orientation, then under the standing facility policy in effect for the current shift Greta holds a amber badge. According to the current facility record, Carla completed frost orientation, as noted in the active compliance log for this shift. According to the current facility record, Alice did not complete delta orientation, as noted in the active compliance log for this shift. If Greta holds a amber badge, then under the standing facility policy in effect for the current shift Greta is cleared for the amber wing. If Greta is cleared for the amber wing, then under the standing facility policy in effect for the current shift Greta may enter the amber workshop. According to the current facility record, Bruno completed ember orientation, as noted in the active compliance log for this shift. If Talia completed cobalt orientation, then under the standing facility policy in effect for the current shift Talia holds a cobalt badge. If Greta may enter the amber workshop, then under the standing facility policy in effect for the current shift Greta may operate the amber console. If Greta may operate the amber console, then under the standing facility policy in effect for the current shift Greta may access the amber vault. If Greta may access the amber vault, then under the standing facility policy in effect for the current shift Greta may start the amber reactor. If Carla completed frost orientation, then under the standing facility policy in effect for the current shift Carla holds a frost badge. According to the current facility record, Talia completed cobalt orientation, as noted in the active compliance log for this shift. If Greta may start the amber reactor, then under the standing facility policy in effect for the current shift Greta may authorize the amber sequence. If Alice completed delta orientation, then under the standing facility policy in effect for the current shift Alice holds a delta badge. If Greta is under amber suspension, then under the standing facility policy in effect for the current shift Greta may not authorize the amber sequence unless Greta has a amber director waiver. If Dorian completed granite orientation, then under the standing facility policy in effect for the current shift Dorian holds a granite badge. According to the current facility record, Greta is not under amber suspension, as noted in the active compliance log for this shift.",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "claim",
+          "text": "Greta completed amber orientation",
+          "canonical_text": "greta completed amber orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b2",
+          "type": "condition",
+          "text": "Bruno completed ember orientation",
+          "canonical_text": "bruno completed ember orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b3",
+          "type": "outcome",
+          "text": "Bruno holds a ember badge",
+          "canonical_text": "bruno holds a ember badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b4",
+          "type": "claim",
+          "text": "Dorian completed granite orientation",
+          "canonical_text": "dorian completed granite orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b5",
+          "type": "condition",
+          "text": "Greta completed amber orientation",
+          "canonical_text": "greta completed amber orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b6",
+          "type": "outcome",
+          "text": "Greta holds a amber badge",
+          "canonical_text": "greta holds a amber badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b7",
+          "type": "claim",
+          "text": "Carla completed frost orientation",
+          "canonical_text": "carla completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b8",
+          "type": "claim",
+          "text": "Alice did not complete delta orientation",
+          "canonical_text": "alice did not complete delta orientation",
+          "polarity": "negative"
+        },
+        {
+          "id": "b9",
+          "type": "condition",
+          "text": "Greta holds a amber badge",
+          "canonical_text": "greta holds a amber badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b10",
+          "type": "outcome",
+          "text": "Greta is cleared for the amber wing",
+          "canonical_text": "greta is cleared for the amber wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b11",
+          "type": "condition",
+          "text": "Greta is cleared for the amber wing",
+          "canonical_text": "greta is cleared for the amber wing",
+          "polarity": "positive"
+        },
+        {
+          "id": "b12",
+          "type": "outcome",
+          "text": "Greta may enter the amber workshop",
+          "canonical_text": "greta may enter the amber workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b13",
+          "type": "claim",
+          "text": "Bruno completed ember orientation",
+          "canonical_text": "bruno completed ember orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b14",
+          "type": "condition",
+          "text": "Talia completed cobalt orientation",
+          "canonical_text": "talia completed cobalt orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b15",
+          "type": "outcome",
+          "text": "Talia holds a cobalt badge",
+          "canonical_text": "talia holds a cobalt badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b16",
+          "type": "condition",
+          "text": "Greta may enter the amber workshop",
+          "canonical_text": "greta may enter the amber workshop",
+          "polarity": "positive"
+        },
+        {
+          "id": "b17",
+          "type": "outcome",
+          "text": "Greta may operate the amber console",
+          "canonical_text": "greta may operate the amber console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b18",
+          "type": "condition",
+          "text": "Greta may operate the amber console",
+          "canonical_text": "greta may operate the amber console",
+          "polarity": "positive"
+        },
+        {
+          "id": "b19",
+          "type": "outcome",
+          "text": "Greta may access the amber vault",
+          "canonical_text": "greta may access the amber vault",
+          "polarity": "positive"
+        },
+        {
+          "id": "b20",
+          "type": "condition",
+          "text": "Greta may access the amber vault",
+          "canonical_text": "greta may access the amber vault",
+          "polarity": "positive"
+        },
+        {
+          "id": "b21",
+          "type": "outcome",
+          "text": "Greta may start the amber reactor",
+          "canonical_text": "greta may start the amber reactor",
+          "polarity": "positive"
+        },
+        {
+          "id": "b22",
+          "type": "condition",
+          "text": "Carla completed frost orientation",
+          "canonical_text": "carla completed frost orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b23",
+          "type": "outcome",
+          "text": "Carla holds a frost badge",
+          "canonical_text": "carla holds a frost badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b24",
+          "type": "claim",
+          "text": "Talia completed cobalt orientation",
+          "canonical_text": "talia completed cobalt orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b25",
+          "type": "condition",
+          "text": "Greta may start the amber reactor",
+          "canonical_text": "greta may start the amber reactor",
+          "polarity": "positive"
+        },
+        {
+          "id": "b26",
+          "type": "outcome",
+          "text": "Greta may authorize the amber sequence",
+          "canonical_text": "greta may authorize the amber sequence",
+          "polarity": "positive"
+        },
+        {
+          "id": "b27",
+          "type": "condition",
+          "text": "Alice completed delta orientation",
+          "canonical_text": "alice completed delta orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b28",
+          "type": "outcome",
+          "text": "Alice holds a delta badge",
+          "canonical_text": "alice holds a delta badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b29",
+          "type": "condition",
+          "text": "Greta is under amber suspension",
+          "canonical_text": "greta is under amber suspension",
+          "polarity": "positive"
+        },
+        {
+          "id": "b30",
+          "type": "outcome",
+          "text": "Greta may not authorize the amber sequence",
+          "canonical_text": "greta may not authorize the amber sequence",
+          "polarity": "negative"
+        },
+        {
+          "id": "b31",
+          "type": "exception",
+          "text": "Greta has a amber director waiver",
+          "canonical_text": "greta has a amber director waiver",
+          "polarity": "positive"
+        },
+        {
+          "id": "b32",
+          "type": "condition",
+          "text": "Dorian completed granite orientation",
+          "canonical_text": "dorian completed granite orientation",
+          "polarity": "positive"
+        },
+        {
+          "id": "b33",
+          "type": "outcome",
+          "text": "Dorian holds a granite badge",
+          "canonical_text": "dorian holds a granite badge",
+          "polarity": "positive"
+        },
+        {
+          "id": "b34",
+          "type": "claim",
+          "text": "Greta is not under amber suspension",
+          "canonical_text": "greta is not under amber suspension",
+          "polarity": "negative"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implies",
+          "source": "b2",
+          "target": "b3"
+        },
+        {
+          "type": "implies",
+          "source": "b5",
+          "target": "b6"
+        },
+        {
+          "type": "implies",
+          "source": "b9",
+          "target": "b10"
+        },
+        {
+          "type": "implies",
+          "source": "b11",
+          "target": "b12"
+        },
+        {
+          "type": "implies",
+          "source": "b14",
+          "target": "b15"
+        },
+        {
+          "type": "implies",
+          "source": "b16",
+          "target": "b17"
+        },
+        {
+          "type": "implies",
+          "source": "b18",
+          "target": "b19"
+        },
+        {
+          "type": "implies",
+          "source": "b20",
+          "target": "b21"
+        },
+        {
+          "type": "implies",
+          "source": "b22",
+          "target": "b23"
+        },
+        {
+          "type": "implies",
+          "source": "b25",
+          "target": "b26"
+        },
+        {
+          "type": "implies",
+          "source": "b27",
+          "target": "b28"
+        },
+        {
+          "type": "implies",
+          "source": "b29",
+          "target": "b30"
+        },
+        {
+          "type": "unless",
+          "source": "b31",
+          "target": "b30"
+        },
+        {
+          "type": "implies",
+          "source": "b32",
+          "target": "b33"
+        }
+      ],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1",
+        "family": "access_chain",
+        "level": 6,
+        "variant": "entails",
+        "chain_length": 7,
+        "distractor_count": 5
+      }
+    },
+    "gold_question_logical_form": {
+      "source_text": "May Greta authorize the amber sequence?",
+      "language": "en",
+      "parse_status": "ok",
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "question",
+          "text": "May Greta authorize the amber sequence",
+          "canonical_text": "may greta authorize the amber sequence",
+          "polarity": "positive"
+        }
+      ],
+      "relations": [],
+      "ambiguities": [],
+      "metadata": {
+        "generator": "complexity-sweep-v1"
+      }
+    },
+    "gold_encoding": {
+      "dialect": "fof",
+      "generator": "complexity-sweep-v1",
+      "family": "access_chain",
+      "variant": "entails",
+      "level": 6
+    }
+  }
+]

@@ -19,6 +19,7 @@ The repo now includes a runnable V1 prototype with:
 - a small HTTP API
 - a benchmark and evaluation harness
 - an end-to-end answer evaluation harness
+- a synthetic complexity-sweep benchmark generator
 - schema, prompt, and sample output files
 
 The parser is heuristic in this first version so the project can run locally
@@ -104,16 +105,45 @@ $env:OPENAI_API_KEY="your_key_here"
 uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider openai --model gpt-5-mini --output reports/openai_metrics.json --performance-output reports/openai_metrics.performance.json --pretty
 ```
 
+For a no-cost local run with Ollama:
+
+```bash
+ollama pull qwen2.5:3b
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_metrics.json --performance-output reports/ollama_metrics.performance.json --pretty
+```
+
+The Ollama provider is localhost-only by default. It refuses non-local Ollama
+endpoints unless you explicitly set `DIALECTICA_ALLOW_REMOTE_OLLAMA=1`.
+
+### Generate a complexity-sweep benchmark
+
+```bash
+uv run dialectica generate-complexity-benchmark --levels 6 --scenarios-per-level 2 --followups 2 --output benchmarks/complexity_sweep.sample.json
+```
+
+### Evaluate a complexity sweep
+
+```bash
+uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --pretty
+```
+
+The complexity summary separates two crossover questions:
+
+- when the compact Dialectica encoding becomes smaller than the raw context
+- when the full compact prompt becomes smaller than the direct prompt
+
 ## Repo layout
 
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
+- `src/dialectica/complexity.py`: synthetic complexity benchmark generation and summaries
 - `src/dialectica/fingerprint.py`: Gödel-inspired structural fingerprint backend
 - `src/dialectica/validation.py`: lightweight validation
 - `src/dialectica/api.py`: stdlib HTTP API
 - `src/dialectica/cli.py`: command-line entry points
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
+- `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
@@ -284,14 +314,19 @@ The new answer evaluation harness compares:
 - `direct`
 - `structured`
 - `dialectica_parsed`
+- `dialectica_compact`
 - `dialectica_structural`
+- `dialectica_structural_compact`
 - optionally `dialectica_gold` when gold logical forms are present
+- optionally `dialectica_gold_compact` when gold logical forms are present
 - optionally `dialectica_gold_structural` when gold logical forms are present
+- optionally `dialectica_gold_structural_compact` when gold logical forms are present
 
 See:
 
 - [objective evaluation guide](./docs/objective-evaluation.md)
 - [sample objective QA dataset](./benchmarks/objective_qa.sample.json)
+- [sample complexity sweep](./benchmarks/complexity_sweep.sample.json)
 
 ## Structural fingerprint backend
 

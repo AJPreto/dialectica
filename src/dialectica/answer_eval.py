@@ -12,7 +12,9 @@ from .canonical import canonicalize_logical_form
 from .fingerprint import fingerprint_logical_form
 from .parser import parse_document, parse_text
 from .prompting import (
+    build_dialectica_compact_prompt,
     build_dialectica_prompt,
+    build_dialectica_structural_compact_prompt,
     build_dialectica_structural_prompt,
     build_direct_prompt,
     build_structured_prompt,
@@ -36,6 +38,10 @@ class ConditionResult:
     iterations: int
     prompt: str
     instructions: str
+    prompt_characters: int
+    prompt_words: int
+    instructions_characters: int
+    instructions_words: int
     provider_raw: dict[str, Any] | None
     parser_validation_errors: list[str]
 
@@ -72,6 +78,8 @@ def evaluate_answer_dataset(
         condition_specs.append(("structured", structured_instructions, structured_prompt, []))
         dialectica_instructions, dialectica_prompt = build_dialectica_prompt(case, context_form, question_form)
         condition_specs.append(("dialectica_parsed", dialectica_instructions, dialectica_prompt, parser_errors))
+        compact_instructions, compact_prompt = build_dialectica_compact_prompt(case, context_form, question_form)
+        condition_specs.append(("dialectica_compact", compact_instructions, compact_prompt, parser_errors))
         structural_instructions, structural_prompt = build_dialectica_structural_prompt(
             case,
             context_form,
@@ -80,6 +88,16 @@ def evaluate_answer_dataset(
             question_fingerprint,
         )
         condition_specs.append(("dialectica_structural", structural_instructions, structural_prompt, parser_errors))
+        structural_compact_instructions, structural_compact_prompt = build_dialectica_structural_compact_prompt(
+            case,
+            context_form,
+            question_form,
+            context_fingerprint,
+            question_fingerprint,
+        )
+        condition_specs.append(
+            ("dialectica_structural_compact", structural_compact_instructions, structural_compact_prompt, parser_errors)
+        )
 
         gold_context_form = _maybe_get_gold_logical_form(case, "gold_logical_form")
         gold_question_form = _maybe_get_gold_logical_form(case, "gold_question_logical_form")
@@ -91,6 +109,13 @@ def evaluate_answer_dataset(
                 use_gold=True,
             )
             condition_specs.append(("dialectica_gold", gold_instructions, gold_prompt, []))
+            gold_compact_instructions, gold_compact_prompt = build_dialectica_compact_prompt(
+                case,
+                gold_context_form,
+                gold_question_form,
+                use_gold=True,
+            )
+            condition_specs.append(("dialectica_gold_compact", gold_compact_instructions, gold_compact_prompt, []))
             gold_context_fingerprint = fingerprint_logical_form(gold_context_form)
             gold_question_fingerprint = fingerprint_logical_form(gold_question_form)
             gold_structural_instructions, gold_structural_prompt = build_dialectica_structural_prompt(
@@ -102,6 +127,22 @@ def evaluate_answer_dataset(
                 use_gold=True,
             )
             condition_specs.append(("dialectica_gold_structural", gold_structural_instructions, gold_structural_prompt, []))
+            gold_structural_compact_instructions, gold_structural_compact_prompt = build_dialectica_structural_compact_prompt(
+                case,
+                gold_context_form,
+                gold_question_form,
+                gold_context_fingerprint,
+                gold_question_fingerprint,
+                use_gold=True,
+            )
+            condition_specs.append(
+                (
+                    "dialectica_gold_structural_compact",
+                    gold_structural_compact_instructions,
+                    gold_structural_compact_prompt,
+                    [],
+                )
+            )
 
         condition_results: list[ConditionResult] = []
         for name, instructions, prompt, validation_errors in condition_specs:
@@ -138,6 +179,10 @@ def evaluate_answer_dataset(
                     iterations=response.iterations,
                     prompt=prompt,
                     instructions=instructions,
+                    prompt_characters=len(prompt),
+                    prompt_words=len(prompt.split()),
+                    instructions_characters=len(instructions),
+                    instructions_words=len(instructions.split()),
                     provider_raw=response.raw,
                     parser_validation_errors=validation_errors,
                 )
@@ -146,10 +191,13 @@ def evaluate_answer_dataset(
         cases.append(
             {
                 "id": case["id"],
+                "scenario_id": case.get("scenario_id"),
                 "context": context_text,
                 "question": question_text,
                 "gold_answer": case.get("gold_answer"),
                 "answer_type": case.get("answer_type", "exact"),
+                "phenomena": case.get("phenomena", []),
+                "complexity": case.get("complexity", {}),
                 "conditions": [asdict(result) for result in condition_results],
                 "parsed_context": context_form,
                 "parsed_question": question_form,
@@ -222,8 +270,10 @@ def build_performance_summary(
         "cases": [
             {
                 "id": case["id"],
+                "scenario_id": case.get("scenario_id"),
                 "question": case["question"],
                 "gold_answer": case["gold_answer"],
+                "complexity": case.get("complexity", {}),
                 "conditions": [
                     {
                         "name": condition["name"],
@@ -232,6 +282,10 @@ def build_performance_summary(
                         "gold": condition["gold"],
                         "iterations": condition["iterations"],
                         "latency_seconds": condition["latency_seconds"],
+                        "prompt_characters": condition["prompt_characters"],
+                        "prompt_words": condition["prompt_words"],
+                        "instructions_characters": condition["instructions_characters"],
+                        "instructions_words": condition["instructions_words"],
                         "token_counts": condition["token_counts"],
                     }
                     for condition in case["conditions"]
