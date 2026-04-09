@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from .canonical import serialize_logical_form
+from .fingerprint import summarize_fingerprint
 
 
 ANSWER_SCHEMA_INSTRUCTIONS = (
@@ -70,6 +71,46 @@ def build_dialectica_prompt(
     return instructions, "\n\n".join(sections)
 
 
+def build_dialectica_structural_prompt(
+    case: dict[str, Any],
+    context_form: dict[str, Any],
+    question_form: dict[str, Any],
+    context_fingerprint: dict[str, Any],
+    question_fingerprint: dict[str, Any],
+    use_gold: bool = False,
+) -> tuple[str, str]:
+    instructions = (
+        "You are solving a benchmark task using Dialectica with an auxiliary structural fingerprint. "
+        "Use the logical form as the primary representation and treat the structural fingerprint as a stable structural cue for constraints, relations, and exact logical shape. "
+        "If the fingerprint and source text appear to diverge, trust the source text conservatively. "
+        f"{ANSWER_SCHEMA_INSTRUCTIONS}"
+    )
+    sections = [
+        f"Mode: {'gold' if use_gold else 'parsed'} Dialectica representation with structural fingerprint",
+        _format_case(case),
+        "Context logical form JSON:",
+        json.dumps(context_form, indent=2),
+        "Context canonical serialization:",
+        serialize_logical_form(context_form),
+        "Context structural fingerprint summary:",
+        json.dumps(summarize_fingerprint(context_fingerprint), indent=2),
+        "Question logical form JSON:",
+        json.dumps(question_form, indent=2),
+        "Question canonical serialization:",
+        serialize_logical_form(question_form),
+        "Question structural fingerprint summary:",
+        json.dumps(summarize_fingerprint(question_fingerprint), indent=2),
+    ]
+    if case.get("gold_encoding"):
+        sections.extend(
+            [
+                "Formal encoding hints:",
+                json.dumps(case["gold_encoding"], indent=2),
+            ]
+        )
+    return instructions, "\n\n".join(sections)
+
+
 def _format_case(case: dict[str, Any]) -> str:
     parts = [f"Question ID: {case['id']}"]
     if case.get("context"):
@@ -81,4 +122,3 @@ def _format_case(case: dict[str, Any]) -> str:
     if case.get("choices"):
         parts.append("Choices: " + ", ".join(str(choice) for choice in case["choices"]))
     return "\n".join(parts)
-

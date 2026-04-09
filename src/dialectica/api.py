@@ -8,7 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .canonical import canonicalize_logical_form, serialize_logical_form
-from .parser import parse_text
+from .fingerprint import fingerprint_logical_form
+from .parser import parse_document, parse_text
 from .validation import validate_logical_form
 
 
@@ -30,12 +31,14 @@ class DialecticaHandler(BaseHTTPRequestHandler):
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "Expected JSON body with a non-empty 'text' field"})
             return
 
-        parsed = parse_text(str(payload["text"]), language=str(payload.get("language", "en")))
+        parse_fn = parse_document if bool(payload.get("document")) else parse_text
+        parsed = parse_fn(str(payload["text"]), language=str(payload.get("language", "en")))
         canonical = canonicalize_logical_form(parsed)
         errors = validate_logical_form(canonical)
         response: dict[str, Any] = {
             "logical_form": canonical,
             "canonical_text": serialize_logical_form(canonical),
+            "structural_fingerprint": fingerprint_logical_form(canonical),
             "validation_errors": errors,
         }
         self._write_json(HTTPStatus.OK, response)
@@ -66,4 +69,3 @@ def run_server(host: str = "127.0.0.1", port: int = 8000) -> None:
     server = ThreadingHTTPServer((host, port), DialecticaHandler)
     print(f"Dialectica API listening on http://{host}:{port}")
     server.serve_forever()
-

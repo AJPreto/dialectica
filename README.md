@@ -51,6 +51,18 @@ uv run dialectica parse "If the battery is dead, the car will not start unless w
 uv run dialectica parse "The experiment failed because the reagent was contaminated." --canonical
 ```
 
+### Build a structural fingerprint
+
+```bash
+uv run dialectica fingerprint "If the battery is dead, the car will not start unless we jump it." --summary --pretty
+```
+
+### Compare two structural fingerprints
+
+```bash
+uv run dialectica compare-fingerprints "The policy requires encryption at rest." "The policy does not require encryption at rest." --pretty
+```
+
 ### Parse a multi-sentence document
 
 ```bash
@@ -96,6 +108,7 @@ uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json
 
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
+- `src/dialectica/fingerprint.py`: Gödel-inspired structural fingerprint backend
 - `src/dialectica/validation.py`: lightweight validation
 - `src/dialectica/api.py`: stdlib HTTP API
 - `src/dialectica/cli.py`: command-line entry points
@@ -105,6 +118,7 @@ uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
 - `docs/tptp-inspired-encoding.md`: notes on the richer formal encoding
+- `docs/structural-fingerprint.md`: notes on the Gödel-inspired auxiliary backend
 - `docs/objective-evaluation.md`: how to test whether Dialectica improves correctness
 
 ## Core idea
@@ -270,12 +284,30 @@ The new answer evaluation harness compares:
 - `direct`
 - `structured`
 - `dialectica_parsed`
+- `dialectica_structural`
 - optionally `dialectica_gold` when gold logical forms are present
+- optionally `dialectica_gold_structural` when gold logical forms are present
 
 See:
 
 - [objective evaluation guide](./docs/objective-evaluation.md)
 - [sample objective QA dataset](./benchmarks/objective_qa.sample.json)
+
+## Structural fingerprint backend
+
+Dialectica now includes a Gödel-inspired structural fingerprint route that
+works alongside the logical route rather than replacing it.
+
+It is intended for:
+
+- structural retrieval experiments
+- exact-shape fingerprints
+- auxiliary prompt context
+- future hybrid embedding strategies
+
+Start here:
+
+- [structural fingerprint notes](./docs/structural-fingerprint.md)
 
 ## Example
 

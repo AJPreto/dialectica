@@ -9,8 +9,14 @@ from statistics import mean
 from typing import Any
 
 from .canonical import canonicalize_logical_form
+from .fingerprint import fingerprint_logical_form
 from .parser import parse_document, parse_text
-from .prompting import build_dialectica_prompt, build_direct_prompt, build_structured_prompt
+from .prompting import (
+    build_dialectica_prompt,
+    build_dialectica_structural_prompt,
+    build_direct_prompt,
+    build_structured_prompt,
+)
 from .providers import ProviderError, build_provider
 from .scoring import extract_answer_payload, score_answer
 from .validation import validate_logical_form
@@ -50,6 +56,8 @@ def evaluate_answer_dataset(
         language = str(case.get("language", "en"))
         context_form = canonicalize_logical_form(parse_document(context_text, language=language))
         question_form = canonicalize_logical_form(parse_text(question_text, language=language))
+        context_fingerprint = fingerprint_logical_form(context_form)
+        question_fingerprint = fingerprint_logical_form(question_form)
         parser_errors = validate_logical_form(context_form) + validate_logical_form(question_form)
 
         condition_specs: list[tuple[str, str, str, list[str]]] = []
@@ -59,6 +67,14 @@ def evaluate_answer_dataset(
         condition_specs.append(("structured", structured_instructions, structured_prompt, []))
         dialectica_instructions, dialectica_prompt = build_dialectica_prompt(case, context_form, question_form)
         condition_specs.append(("dialectica_parsed", dialectica_instructions, dialectica_prompt, parser_errors))
+        structural_instructions, structural_prompt = build_dialectica_structural_prompt(
+            case,
+            context_form,
+            question_form,
+            context_fingerprint,
+            question_fingerprint,
+        )
+        condition_specs.append(("dialectica_structural", structural_instructions, structural_prompt, parser_errors))
 
         gold_context_form = _maybe_get_gold_logical_form(case, "gold_logical_form")
         gold_question_form = _maybe_get_gold_logical_form(case, "gold_question_logical_form")
@@ -70,6 +86,17 @@ def evaluate_answer_dataset(
                 use_gold=True,
             )
             condition_specs.append(("dialectica_gold", gold_instructions, gold_prompt, []))
+            gold_context_fingerprint = fingerprint_logical_form(gold_context_form)
+            gold_question_fingerprint = fingerprint_logical_form(gold_question_form)
+            gold_structural_instructions, gold_structural_prompt = build_dialectica_structural_prompt(
+                case,
+                gold_context_form,
+                gold_question_form,
+                gold_context_fingerprint,
+                gold_question_fingerprint,
+                use_gold=True,
+            )
+            condition_specs.append(("dialectica_gold_structural", gold_structural_instructions, gold_structural_prompt, []))
 
         condition_results: list[ConditionResult] = []
         for name, instructions, prompt, validation_errors in condition_specs:
@@ -113,6 +140,8 @@ def evaluate_answer_dataset(
                 "conditions": [asdict(result) for result in condition_results],
                 "parsed_context": context_form,
                 "parsed_question": question_form,
+                "parsed_context_fingerprint": context_fingerprint,
+                "parsed_question_fingerprint": question_fingerprint,
             }
         )
 
@@ -148,4 +177,3 @@ def _maybe_get_gold_logical_form(case: dict[str, Any], field: str) -> dict[str, 
     if field not in case:
         return None
     return canonicalize_logical_form(case[field])
-

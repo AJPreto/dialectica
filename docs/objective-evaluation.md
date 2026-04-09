@@ -39,6 +39,9 @@ Use at least these three conditions:
 3. `Dialectica`
    The pipeline parses the input into blocks and optional formal encoding, then
    asks the model to answer using that representation.
+4. `Dialectica + structural fingerprint`
+   The pipeline uses the logical form plus the Gödel-inspired structural
+   fingerprint as auxiliary context.
 
 If Dialectica beats only the weak baseline, that is not strong evidence.
 If it beats the structured baseline too, the result is much more meaningful.
@@ -141,7 +144,10 @@ Optional fields for deeper analysis:
 Those let the harness compare:
 
 - `dialectica_parsed`: use the current parser output
+- `dialectica_structural`: use parser output plus the structural fingerprint
 - `dialectica_gold`: use gold intermediate structure when available
+- `dialectica_gold_structural`: use gold intermediate structure plus the
+  structural fingerprint
 
 That separation is valuable because it tells you whether failures come from the
 representation idea itself or from the parser recovering it imperfectly.

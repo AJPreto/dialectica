@@ -11,6 +11,7 @@ from .api import run_server
 from .answer_eval import evaluate_answer_dataset, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
 from .evaluate import evaluate_dataset
+from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .parser import parse_document, parse_text
 from .providers import ProviderError
 from .validation import validate_logical_form
@@ -26,6 +27,20 @@ def main(argv: list[str] | None = None) -> int:
     parse_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
     parse_parser.add_argument("--canonical", action="store_true", help="Print canonical serialization instead of JSON")
     parse_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
+
+    fingerprint_parser = subparsers.add_parser("fingerprint", help="Build a structural fingerprint from text")
+    fingerprint_parser.add_argument("text", nargs="?", help="Text to fingerprint. If omitted, stdin is used.")
+    fingerprint_parser.add_argument("--language", default="en")
+    fingerprint_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
+    fingerprint_parser.add_argument("--summary", action="store_true", help="Print a concise fingerprint summary")
+    fingerprint_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+
+    compare_parser = subparsers.add_parser("compare-fingerprints", help="Compare structural fingerprints for two texts")
+    compare_parser.add_argument("left", help="First text input")
+    compare_parser.add_argument("right", help="Second text input")
+    compare_parser.add_argument("--language", default="en")
+    compare_parser.add_argument("--document", action="store_true", help="Parse inputs as multi-sentence documents")
+    compare_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
 
     serve_parser = subparsers.add_parser("serve", help="Run the local HTTP API")
     serve_parser.add_argument("--host", default="127.0.0.1")
@@ -77,6 +92,28 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "serve":
         run_server(host=args.host, port=args.port)
+        return 0
+
+    if args.command == "fingerprint":
+        text = args.text if args.text is not None else sys.stdin.read().strip()
+        parsed = parse_document(text, language=args.language) if args.document else parse_text(text, language=args.language)
+        logical_form = canonicalize_logical_form(parsed)
+        fingerprint = fingerprint_logical_form(logical_form)
+        payload = summarize_fingerprint(fingerprint) if args.summary else fingerprint
+        indent = 2 if args.pretty else None
+        print(json.dumps(payload, indent=indent))
+        return 0
+
+    if args.command == "compare-fingerprints":
+        parse_fn = parse_document if args.document else parse_text
+        left_form = canonicalize_logical_form(parse_fn(args.left, language=args.language))
+        right_form = canonicalize_logical_form(parse_fn(args.right, language=args.language))
+        comparison = compare_fingerprints(
+            fingerprint_logical_form(left_form),
+            fingerprint_logical_form(right_form),
+        )
+        indent = 2 if args.pretty else None
+        print(json.dumps(comparison, indent=indent))
         return 0
 
     if args.command == "evaluate":
