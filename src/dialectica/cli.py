@@ -20,6 +20,7 @@ from .evaluate import evaluate_dataset
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .parser import parse_document, parse_text
 from .providers import ProviderError
+from .reporting import write_complexity_report_bundle
 from .validation import validate_logical_form
 
 
@@ -140,6 +141,14 @@ def main(argv: list[str] | None = None) -> int:
         "--summary-output",
         help="Optional path to write the level-by-level complexity summary JSON file",
     )
+    complexity_eval_parser.add_argument(
+        "--markdown-output",
+        help="Optional path to write a markdown report that embeds generated charts",
+    )
+    complexity_eval_parser.add_argument(
+        "--charts-dir",
+        help="Optional directory to write SVG charts for the markdown report",
+    )
     complexity_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the complexity summary")
 
     args = parser.parse_args(argv)
@@ -240,10 +249,39 @@ def main(argv: list[str] | None = None) -> int:
             write_performance_summary(report["performance_summary"], performance_output)
             summary_output = args.summary_output or _derive_summary_path(args.output)
             write_complexity_summary(summary, summary_output)
+            markdown_output = args.markdown_output or _derive_markdown_path(args.output)
+            charts_dir = args.charts_dir or _derive_charts_dir(args.output)
+            write_complexity_report_bundle(
+                performance_summary=report["performance_summary"],
+                sweep_summary=summary,
+                markdown_path=markdown_output,
+                charts_dir=charts_dir,
+            )
         elif args.performance_output:
             write_performance_summary(report["performance_summary"], args.performance_output)
+            if args.markdown_output:
+                write_complexity_report_bundle(
+                    performance_summary=report["performance_summary"],
+                    sweep_summary=summary,
+                    markdown_path=args.markdown_output,
+                    charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
+                )
         elif args.summary_output:
             write_complexity_summary(summary, args.summary_output)
+            if args.markdown_output:
+                write_complexity_report_bundle(
+                    performance_summary=report["performance_summary"],
+                    sweep_summary=summary,
+                    markdown_path=args.markdown_output,
+                    charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
+                )
+        elif args.markdown_output:
+            write_complexity_report_bundle(
+                performance_summary=report["performance_summary"],
+                sweep_summary=summary,
+                markdown_path=args.markdown_output,
+                charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
+            )
         indent = 2 if args.pretty else None
         print(json.dumps(summary, indent=indent))
         return 0
@@ -261,3 +299,13 @@ def _derive_summary_path(output_path: str) -> str:
     path = Path(output_path)
     suffix = path.suffix or ".json"
     return str(path.with_name(f"{path.stem}.sweep{suffix}"))
+
+
+def _derive_markdown_path(output_path: str) -> str:
+    path = Path(output_path)
+    return str(path.with_name(f"{path.stem}.report.md"))
+
+
+def _derive_charts_dir(output_path: str) -> str:
+    path = Path(output_path)
+    return str(path.with_name(f"{path.stem}.charts"))

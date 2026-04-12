@@ -1,18 +1,23 @@
 # Objective Evaluation
 
-The current benchmark in [evaluate.py](/c:/Users/marti/Documents/GitHub/dialectica/src/dialectica/evaluate.py)
-tests whether the parser produces plausible block and relation types. That is a
-useful diagnostic, but it does not answer the real question:
+The parser benchmark in [evaluate.py](/c:/Users/marti/Documents/GitHub/dialectica/src/dialectica/evaluate.py)
+is useful, but it is not the main proof of value.
 
-`Does using Dialectica produce more objectively correct answers than prompting directly?`
+The real question is:
 
-This document defines how to test that.
+`Does Dialectica improve objective correctness compared with answering the raw task directly?`
+
+This document defines the leaner benchmark setup now used in the repo.
 
 ## Success criterion
 
-Dialectica is successful if, on a fixed dataset with objectively scored answers,
-the Dialectica pipeline achieves higher answer accuracy than a direct-prompt
-baseline using the same underlying model.
+Dialectica is successful if, on a fixed dataset with deterministic scoring, an
+encoded-only condition beats or matches the direct baseline while improving at
+least one of these:
+
+- accuracy
+- token efficiency
+- scaling behavior as context size grows
 
 Primary metric:
 
@@ -20,31 +25,49 @@ Primary metric:
 
 Secondary metrics:
 
-- retrieval quality
-- parser fidelity
-- latency
 - token cost
+- latency
+- iterations
+- parser fidelity
+- retrieval quality
 
-## Important principle
+## Current condition set
 
-Do not compare only against a weak baseline like "just answer this".
-
-Use at least these three conditions:
+The repo now keeps only:
 
 1. `Direct`
-   The model receives the user prompt and answers directly.
-2. `Structured baseline`
-   The model is told to extract constraints or reason step by step, but without
-   Dialectica's explicit schema.
-3. `Dialectica`
-   The pipeline parses the input into blocks and optional formal encoding, then
-   asks the model to answer using that representation.
-4. `Dialectica + structural fingerprint`
-   The pipeline uses the logical form plus the Gödel-inspired structural
-   fingerprint as auxiliary context.
+   The model receives the raw context and raw question.
+2. `dialectica_compact`
+   The model receives only the compact encoded logical representation.
+3. `dialectica_filtered`
+   The model receives only the filtered compact representation.
+4. `dialectica_structural_compact`
+   The model receives the compact representation plus the structural
+   fingerprint.
+5. `dialectica_filtered_structural`
+   The model receives the filtered compact representation plus the structural
+   fingerprint.
 
-If Dialectica beats only the weak baseline, that is not strong evidence.
-If it beats the structured baseline too, the result is much more meaningful.
+Optional gold variants:
+
+- `dialectica_gold_compact`
+- `dialectica_gold_filtered`
+- `dialectica_gold_structural_compact`
+- `dialectica_gold_filtered_structural`
+
+Mixed raw-plus-augmented prompt paths were removed so the benchmark focuses on
+the comparison we actually care about: raw task versus encoded-only task.
+
+## Why this matters
+
+If a Dialectica condition still includes the raw task plus extra structure, it
+cannot really test the compression or filtering hypothesis fairly.
+
+The current setup makes the distinction explicit:
+
+- `direct` is the raw task
+- every Dialectica condition is encoded-only
+- `filtered` conditions also prune away irrelevant logical material
 
 ## What to measure
 
@@ -54,74 +77,46 @@ This is the main metric.
 
 Examples:
 
-- boolean answers: exact `true` or `false`
+- boolean answers: exact `yes` or `no`
 - multiple choice: exact option
-- math: exact final number or normalized expression
-- plans: pass a rule-based validator
+- math: exact normalized value
 - contradiction detection: exact label
 
 Avoid model-graded scoring whenever possible.
 
-### 2. Retrieval quality
+### 2. Token cost
 
-If embeddings are part of the system, evaluate retrieval separately before
-generation.
+Track:
 
-Useful metrics:
+- input tokens
+- output tokens
+- total tokens
 
-- Recall@k
-- MRR
-- nDCG
+This matters because one of the main hypotheses is that encoded-only prompting
+may scale better than raw prompting as contexts get larger.
 
-Then evaluate downstream answer accuracy with retrieved context included.
+### 3. Latency and iterations
 
-### 3. Parser fidelity
+Track:
 
-Keep the current structural benchmark because it helps diagnose failure modes.
-But treat it as a diagnostic metric, not the main outcome metric.
+- latency per condition
+- iterations per answer path
 
-## Best benchmark design
+Right now most conditions are single-call, but the metric is still useful when
+the pipeline gets more agentic later.
 
-The strongest benchmark for this project is a synthetic or semi-synthetic task
-set generated from hidden logical ground truth.
+### 4. Representation crossover
 
-### Why synthetic data is valuable
+Separate these two questions:
 
-If the task is generated from a known formal structure, then:
+1. When does the encoded representation become smaller than the raw context?
+2. When does the full encoded prompt become smaller than the direct prompt?
 
-- the correct answer is known exactly
-- the logical relations are known exactly
-- the dataset can target specific phenomena like negation or exceptions
-- the benchmark does not depend on subjective grading
-
-This is especially well aligned with Dialectica because the system is trying to
-recover structure from language.
-
-## Recommended task families
-
-Build tasks that stress the kinds of phenomena Dialectica is supposed to help
-with:
-
-- negation
-- conditionals
-- exceptions such as `unless`
-- quantified statements
-- goal versus constraint separation
-- contradiction detection
-- multi-step rule application
-- retrieval with near-miss distractors
-- scaling context length and distractor load
-- repeated follow-up questions over the same scenario
-
-The important scaling question is not just whether Dialectica is more accurate
-on average. It is whether there is a complexity range where the compact
-encoding becomes smaller than the raw natural-language context while preserving
-enough structure to improve correctness.
+The first crossover usually happens earlier than the second.
 
 ## Dataset format
 
-Create a second benchmark family for objective QA tasks. A good per-example
-format is:
+A good objective QA case looks like this:
 
 ```json
 {
@@ -131,83 +126,50 @@ format is:
   "gold_answer": "yes",
   "answer_type": "boolean",
   "phenomena": ["constraint", "condition"],
-  "gold_blocks": ["constraint", "condition", "claim"],
-  "gold_relations": ["implies"],
+  "gold_logical_form": {},
+  "gold_question_logical_form": {},
   "gold_encoding": {
     "dialect": "tff"
   }
 }
 ```
 
-The important field is `gold_answer`. That is what the main experiment should
-optimize for.
+The most important field is `gold_answer`.
 
-Optional fields for deeper analysis:
+Optional gold structure lets the harness separate:
 
-- `gold_logical_form`
-- `gold_question_logical_form`
-- `gold_encoding`
-
-Those let the harness compare:
-
-- `dialectica_parsed`: use the current parser output
-- `dialectica_compact`: use a denser proposition-aliased serialization
-- `dialectica_structural`: use parser output plus the structural fingerprint
-- `dialectica_structural_compact`: use the compact serialization plus the
-  structural fingerprint
-- `dialectica_gold`: use gold intermediate structure when available
-- `dialectica_gold_compact`: use gold compact structure when available
-- `dialectica_gold_structural`: use gold intermediate structure plus the
-  structural fingerprint
-- `dialectica_gold_structural_compact`: use gold compact structure plus the
-  structural fingerprint
-
-That separation is valuable because it tells you whether failures come from the
-representation idea itself or from the parser recovering it imperfectly.
+- representation quality
+- parser quality
 
 ## Experimental protocol
 
-For each task:
+For each case:
 
-1. Run the `Direct` prompt.
-2. Run the `Structured baseline`.
-3. Run the `Dialectica` pipeline.
-4. Score all outputs with the same deterministic checker.
-5. Save the prompt, parsed representation, final answer, score, latency, and tokens.
+1. Run `direct`.
+2. Run the encoded-only Dialectica variants.
+3. Score every answer with the same deterministic checker.
+4. Save prompts, answers, scores, token counts, and latency.
 
 Keep these fixed:
 
 - model version
-- temperature
-- max tokens
-- system prompt style
+- provider
 - answer format
-
-If one condition gets more context or more compute, record that explicitly.
+- scoring logic
 
 ## Current CLI support
 
-The repo now includes a runner for this workflow:
+Smoke test:
 
 ```bash
 uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider oracle --pretty
 ```
 
-For a real model-backed run:
-
-```bash
-$env:OPENAI_API_KEY="your_key_here"
-uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider openai --model gpt-5-mini --output reports/openai_metrics.json --performance-output reports/openai_metrics.performance.json --pretty
-```
-
-The `oracle` provider is just a smoke test for the harness. It is not a valid
-benchmark condition.
-
-For a no-cost local run with Ollama:
+Local Ollama run:
 
 ```bash
 ollama pull qwen2.5:3b
-uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_metrics.json --performance-output reports/ollama_metrics.performance.json --pretty
+uv run dialectica evaluate-answers --dataset benchmarks/objective_qa.sample.json --provider ollama --model qwen2.5:3b --pretty
 ```
 
 Dialectica blocks remote Ollama endpoints by default. To preserve privacy, keep
@@ -215,72 +177,81 @@ Dialectica blocks remote Ollama endpoints by default. To preserve privacy, keep
 `DIALECTICA_ALLOW_REMOTE_OLLAMA=1` if you intentionally want to override that
 safety check.
 
-The repo also includes a synthetic scaling benchmark generator and a level-by-
-level sweep summary:
+## Complexity sweep
+
+The repo also includes a synthetic scaling benchmark:
 
 ```bash
 uv run dialectica generate-complexity-benchmark --levels 6 --scenarios-per-level 2 --followups 2 --output benchmarks/complexity_sweep.sample.json
-uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --pretty
+uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --markdown-output reports/ollama_complexity.report.md --charts-dir reports/ollama_complexity.charts --pretty
 ```
 
-That sweep summary reports:
+That sweep reports:
 
 - accuracy by complexity level
 - token cost by complexity level
 - latency and iterations by complexity level
-- when the compact Dialectica encoding becomes smaller than the raw context
-- whether the full compact prompt ever becomes smaller than the direct prompt
+- representation crossover levels
+- prompt crossover levels
+- bar charts for the main metrics
+- a line plot of raw context size versus average total tokens
+
+## Recommended task families
+
+Build tasks that stress what Dialectica is supposed to help with:
+
+- negation
+- exceptions such as `unless`
+- multi-step rule application
+- distractor-heavy contexts
+- repeated follow-up questions over the same scenario
+- scaling context length
+
+The most important scaling question is not just whether Dialectica is better on
+average. It is whether filtered or encoded-only routes degrade more gracefully
+than raw prompting as task size increases.
 
 ## Retrieval experiment design
 
-If the end goal includes embeddings, use a separate corpus-query benchmark.
+If the end goal includes embeddings, evaluate retrieval separately.
 
 For each query:
 
 1. Retrieve with text-only embeddings.
-2. Retrieve with canonical Dialectica serialization.
-3. Retrieve with a hybrid score.
+2. Retrieve with Dialectica encodings.
+3. Retrieve with hybrid scores.
 4. Measure recall of the gold-supporting item.
-5. Measure answer accuracy after retrieval.
+5. Measure downstream answer accuracy after retrieval.
 
 The best retrieval benchmark includes distractors that differ only by:
 
 - negation
-- exception
+- exceptions
 - quantifier scope
-- similar wording with different logical meaning
-
-## Statistical testing
-
-Use paired comparisons, because each method answers the same tasks.
-
-Recommended:
-
-- exact-match accuracy
-- bootstrap confidence interval for accuracy difference
-- McNemar's test for paired wins and losses
+- structurally similar but logically different rules
 
 ## Failure analysis
 
 Separate failures into buckets:
 
 - parser error
+- filtering error
 - retrieval error
 - solver reasoning error
-- answer formatting error
+- formatting error
 - benchmark ambiguity
 
-Without this, it will be hard to tell whether Dialectica itself is helping.
+Without this, it is hard to tell whether the representation itself helped.
 
 ## Practical milestone order
 
-1. Keep the current parser-structure benchmark
-2. Add objective QA benchmark files
-3. Add direct and structured baselines
+1. Keep the parser-structure benchmark
+2. Keep the direct baseline
+3. Compare against encoded-only Dialectica variants
 4. Add deterministic scoring
-5. Add a complexity sweep that scales rules, distractors, and follow-up depth
-6. Add retrieval benchmark
-7. Compare accuracy, token cost, and crossover points, not just elegance of representation
+5. Add complexity sweeps
+6. Add retrieval benchmarks
+7. Compare accuracy, cost, and scaling behavior together
 
 ## Strongest possible version
 
@@ -290,7 +261,7 @@ benchmark is:
 1. generate hidden formal theories and queries
 2. verbalize them into natural language
 3. solve them symbolically to get the gold answer
-4. compare direct prompting against Dialectica-assisted prompting
+4. compare direct prompting against encoded-only Dialectica prompting
 
-That would let us test whether the intermediate representation actually recovers
-enough structure to improve objective correctness.
+That tests whether the intermediate representation recovers enough structure to
+improve objective correctness.

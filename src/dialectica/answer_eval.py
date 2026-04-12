@@ -9,15 +9,13 @@ from statistics import mean
 from typing import Any
 
 from .canonical import canonicalize_logical_form
+from .filtering import filter_logical_form
 from .fingerprint import fingerprint_logical_form
 from .parser import parse_document, parse_text
 from .prompting import (
     build_dialectica_compact_prompt,
-    build_dialectica_prompt,
     build_dialectica_structural_compact_prompt,
-    build_dialectica_structural_prompt,
     build_direct_prompt,
-    build_structured_prompt,
 )
 from .providers import ProviderError, build_provider
 from .scoring import extract_answer_payload, score_answer
@@ -67,27 +65,20 @@ def evaluate_answer_dataset(
         language = str(case.get("language", "en"))
         context_form = canonicalize_logical_form(parse_document(context_text, language=language))
         question_form = canonicalize_logical_form(parse_text(question_text, language=language))
+        filtered_context_form = filter_logical_form(context_form, question_form)
         context_fingerprint = fingerprint_logical_form(context_form)
+        filtered_context_fingerprint = fingerprint_logical_form(filtered_context_form)
         question_fingerprint = fingerprint_logical_form(question_form)
         parser_errors = validate_logical_form(context_form) + validate_logical_form(question_form)
+        filtered_parser_errors = validate_logical_form(filtered_context_form) + validate_logical_form(question_form)
 
         condition_specs: list[tuple[str, str, str, list[str]]] = []
         direct_instructions, direct_prompt = build_direct_prompt(case)
         condition_specs.append(("direct", direct_instructions, direct_prompt, []))
-        structured_instructions, structured_prompt = build_structured_prompt(case)
-        condition_specs.append(("structured", structured_instructions, structured_prompt, []))
-        dialectica_instructions, dialectica_prompt = build_dialectica_prompt(case, context_form, question_form)
-        condition_specs.append(("dialectica_parsed", dialectica_instructions, dialectica_prompt, parser_errors))
         compact_instructions, compact_prompt = build_dialectica_compact_prompt(case, context_form, question_form)
         condition_specs.append(("dialectica_compact", compact_instructions, compact_prompt, parser_errors))
-        structural_instructions, structural_prompt = build_dialectica_structural_prompt(
-            case,
-            context_form,
-            question_form,
-            context_fingerprint,
-            question_fingerprint,
-        )
-        condition_specs.append(("dialectica_structural", structural_instructions, structural_prompt, parser_errors))
+        filtered_instructions, filtered_prompt = build_dialectica_compact_prompt(case, filtered_context_form, question_form)
+        condition_specs.append(("dialectica_filtered", filtered_instructions, filtered_prompt, filtered_parser_errors))
         structural_compact_instructions, structural_compact_prompt = build_dialectica_structural_compact_prompt(
             case,
             context_form,
@@ -98,17 +89,26 @@ def evaluate_answer_dataset(
         condition_specs.append(
             ("dialectica_structural_compact", structural_compact_instructions, structural_compact_prompt, parser_errors)
         )
+        filtered_structural_instructions, filtered_structural_prompt = build_dialectica_structural_compact_prompt(
+            case,
+            filtered_context_form,
+            question_form,
+            filtered_context_fingerprint,
+            question_fingerprint,
+        )
+        condition_specs.append(
+            (
+                "dialectica_filtered_structural",
+                filtered_structural_instructions,
+                filtered_structural_prompt,
+                filtered_parser_errors,
+            )
+        )
 
         gold_context_form = _maybe_get_gold_logical_form(case, "gold_logical_form")
         gold_question_form = _maybe_get_gold_logical_form(case, "gold_question_logical_form")
         if include_gold_dialectica and gold_context_form and gold_question_form:
-            gold_instructions, gold_prompt = build_dialectica_prompt(
-                case,
-                gold_context_form,
-                gold_question_form,
-                use_gold=True,
-            )
-            condition_specs.append(("dialectica_gold", gold_instructions, gold_prompt, []))
+            gold_filtered_context_form = filter_logical_form(gold_context_form, gold_question_form)
             gold_compact_instructions, gold_compact_prompt = build_dialectica_compact_prompt(
                 case,
                 gold_context_form,
@@ -116,17 +116,18 @@ def evaluate_answer_dataset(
                 use_gold=True,
             )
             condition_specs.append(("dialectica_gold_compact", gold_compact_instructions, gold_compact_prompt, []))
-            gold_context_fingerprint = fingerprint_logical_form(gold_context_form)
-            gold_question_fingerprint = fingerprint_logical_form(gold_question_form)
-            gold_structural_instructions, gold_structural_prompt = build_dialectica_structural_prompt(
+            gold_filtered_compact_instructions, gold_filtered_compact_prompt = build_dialectica_compact_prompt(
                 case,
-                gold_context_form,
+                gold_filtered_context_form,
                 gold_question_form,
-                gold_context_fingerprint,
-                gold_question_fingerprint,
                 use_gold=True,
             )
-            condition_specs.append(("dialectica_gold_structural", gold_structural_instructions, gold_structural_prompt, []))
+            condition_specs.append(
+                ("dialectica_gold_filtered", gold_filtered_compact_instructions, gold_filtered_compact_prompt, [])
+            )
+            gold_context_fingerprint = fingerprint_logical_form(gold_context_form)
+            gold_filtered_context_fingerprint = fingerprint_logical_form(gold_filtered_context_form)
+            gold_question_fingerprint = fingerprint_logical_form(gold_question_form)
             gold_structural_compact_instructions, gold_structural_compact_prompt = build_dialectica_structural_compact_prompt(
                 case,
                 gold_context_form,
@@ -140,6 +141,22 @@ def evaluate_answer_dataset(
                     "dialectica_gold_structural_compact",
                     gold_structural_compact_instructions,
                     gold_structural_compact_prompt,
+                    [],
+                )
+            )
+            gold_filtered_structural_instructions, gold_filtered_structural_prompt = build_dialectica_structural_compact_prompt(
+                case,
+                gold_filtered_context_form,
+                gold_question_form,
+                gold_filtered_context_fingerprint,
+                gold_question_fingerprint,
+                use_gold=True,
+            )
+            condition_specs.append(
+                (
+                    "dialectica_gold_filtered_structural",
+                    gold_filtered_structural_instructions,
+                    gold_filtered_structural_prompt,
                     [],
                 )
             )
@@ -200,8 +217,10 @@ def evaluate_answer_dataset(
                 "complexity": case.get("complexity", {}),
                 "conditions": [asdict(result) for result in condition_results],
                 "parsed_context": context_form,
+                "filtered_context": filtered_context_form,
                 "parsed_question": question_form,
                 "parsed_context_fingerprint": context_fingerprint,
+                "filtered_context_fingerprint": filtered_context_fingerprint,
                 "parsed_question_fingerprint": question_fingerprint,
             }
         )

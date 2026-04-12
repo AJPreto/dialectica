@@ -78,10 +78,10 @@ uv run dialectica compare-fingerprints "If the battery is dead, the car will not
 
 The end-to-end evaluator now includes:
 
-- `dialectica_parsed`
-- `dialectica_structural`
-- optionally `dialectica_gold`
-- optionally `dialectica_gold_structural`
+- `dialectica_structural_compact`
+- `dialectica_filtered_structural`
+- optionally `dialectica_gold_structural_compact`
+- optionally `dialectica_gold_filtered_structural`
 
 This lets you test whether the auxiliary structural route helps compared with
-the current logic-only route.
+the current compact logic-only routes.

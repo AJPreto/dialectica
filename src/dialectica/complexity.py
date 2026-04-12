@@ -161,7 +161,9 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
     finalized_levels: dict[str, Any] = {}
     representation_crossover_levels: list[int] = []
     compact_inflection_levels: list[int] = []
+    filtered_inflection_levels: list[int] = []
     structural_compact_inflection_levels: list[int] = []
+    filtered_structural_inflection_levels: list[int] = []
 
     for level in sorted(levels):
         bucket = levels[level]
@@ -192,7 +194,9 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
 
         direct_summary = level_summary["conditions"].get("direct")
         compact_summary = level_summary["conditions"].get("dialectica_compact")
+        filtered_summary = level_summary["conditions"].get("dialectica_filtered")
         structural_compact_summary = level_summary["conditions"].get("dialectica_structural_compact")
+        filtered_structural_summary = level_summary["conditions"].get("dialectica_filtered_structural")
 
         if direct_summary and compact_summary:
             level_summary["direct_vs_dialectica_compact"] = {
@@ -221,6 +225,27 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
             ):
                 compact_inflection_levels.append(level)
 
+        if direct_summary and filtered_summary:
+            level_summary["direct_vs_dialectica_filtered"] = {
+                "accuracy_delta": round(
+                    filtered_summary["accuracy"] - direct_summary["accuracy"],
+                    6,
+                ),
+                "average_total_token_delta": round(
+                    filtered_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
+                    6,
+                ),
+                "average_prompt_character_delta": round(
+                    filtered_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
+                    6,
+                ),
+            }
+            if (
+                filtered_summary["accuracy"] >= direct_summary["accuracy"]
+                and filtered_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
+            ):
+                filtered_inflection_levels.append(level)
+
         if direct_summary and structural_compact_summary:
             level_summary["direct_vs_dialectica_structural_compact"] = {
                 "accuracy_delta": round(
@@ -242,6 +267,27 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
             ):
                 structural_compact_inflection_levels.append(level)
 
+        if direct_summary and filtered_structural_summary:
+            level_summary["direct_vs_dialectica_filtered_structural"] = {
+                "accuracy_delta": round(
+                    filtered_structural_summary["accuracy"] - direct_summary["accuracy"],
+                    6,
+                ),
+                "average_total_token_delta": round(
+                    filtered_structural_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
+                    6,
+                ),
+                "average_prompt_character_delta": round(
+                    filtered_structural_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
+                    6,
+                ),
+            }
+            if (
+                filtered_structural_summary["accuracy"] >= direct_summary["accuracy"]
+                and filtered_structural_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
+            ):
+                filtered_structural_inflection_levels.append(level)
+
         finalized_levels[str(level)] = level_summary
 
     return {
@@ -252,7 +298,9 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
         "candidate_representation_crossover_levels": representation_crossover_levels,
         "candidate_prompt_inflection_levels": {
             "dialectica_compact": compact_inflection_levels,
+            "dialectica_filtered": filtered_inflection_levels,
             "dialectica_structural_compact": structural_compact_inflection_levels,
+            "dialectica_filtered_structural": filtered_structural_inflection_levels,
         },
     }
 

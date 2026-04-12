@@ -124,7 +124,7 @@ uv run dialectica generate-complexity-benchmark --levels 6 --scenarios-per-level
 ### Evaluate a complexity sweep
 
 ```bash
-uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --pretty
+uv run dialectica evaluate-complexity-sweep --dataset benchmarks/complexity_sweep.sample.json --provider ollama --model qwen2.5:3b --output reports/ollama_complexity.json --performance-output reports/ollama_complexity.performance.json --summary-output reports/ollama_complexity.sweep.json --markdown-output reports/ollama_complexity.report.md --charts-dir reports/ollama_complexity.charts --pretty
 ```
 
 The complexity summary separates two crossover questions:
@@ -132,15 +132,26 @@ The complexity summary separates two crossover questions:
 - when the compact Dialectica encoding becomes smaller than the raw context
 - when the full compact prompt becomes smaller than the direct prompt
 
+The report bundle can also emit:
+
+- a markdown summary report
+- SVG bar charts for accuracy, tokens, latency, and iterations
+- an SVG line plot of raw context size versus average total tokens
+
+If you want a step-by-step explanation of what happens during a run, see
+[run walkthrough](./docs/run-walkthrough.md).
+
 ## Repo layout
 
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
 - `src/dialectica/complexity.py`: synthetic complexity benchmark generation and summaries
+- `src/dialectica/filtering.py`: question-conditioned logical-form pruning
 - `src/dialectica/fingerprint.py`: Gödel-inspired structural fingerprint backend
 - `src/dialectica/validation.py`: lightweight validation
 - `src/dialectica/api.py`: stdlib HTTP API
 - `src/dialectica/cli.py`: command-line entry points
+- `src/dialectica/reporting.py`: markdown and SVG report generation
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
@@ -150,6 +161,7 @@ The complexity summary separates two crossover questions:
 - `docs/tptp-inspired-encoding.md`: notes on the richer formal encoding
 - `docs/structural-fingerprint.md`: notes on the Gödel-inspired auxiliary backend
 - `docs/objective-evaluation.md`: how to test whether Dialectica improves correctness
+- `docs/run-walkthrough.md`: step-by-step explanation of what happens during a run
 
 ## Core idea
 
@@ -312,15 +324,14 @@ the same model answers objective tasks more accurately when using Dialectica.
 The new answer evaluation harness compares:
 
 - `direct`
-- `structured`
-- `dialectica_parsed`
 - `dialectica_compact`
-- `dialectica_structural`
+- `dialectica_filtered`
 - `dialectica_structural_compact`
-- optionally `dialectica_gold` when gold logical forms are present
+- `dialectica_filtered_structural`
 - optionally `dialectica_gold_compact` when gold logical forms are present
-- optionally `dialectica_gold_structural` when gold logical forms are present
+- optionally `dialectica_gold_filtered` when gold logical forms are present
 - optionally `dialectica_gold_structural_compact` when gold logical forms are present
+- optionally `dialectica_gold_filtered_structural` when gold logical forms are present
 
 See:
 
