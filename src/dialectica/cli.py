@@ -22,9 +22,10 @@ from .evaluate import evaluate_dataset
 from .explainer import explain_reasoning
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .translator import translate_text
+from .v2_eval import evaluate_v2_comparison, write_v2_report
 from .parser import parse_document, parse_text
 from .providers import ProviderError
-from .reporting import write_complexity_report_bundle
+from .reporting import write_complexity_report_bundle, write_v2_report_bundle
 from .validation import validate_logical_form
 
 
@@ -164,6 +165,34 @@ def main(argv: list[str] | None = None) -> int:
         help="Optional directory to write SVG charts for the markdown report",
     )
     complexity_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the complexity summary")
+
+    v2_eval_parser = subparsers.add_parser(
+        "evaluate-v2",
+        help="Compare direct prompting, V1 filtered encoding, and the experimental V2 Horn backend",
+    )
+    v2_eval_parser.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "v2_reasoning.sample.json"),
+        help="Path to a V2-compatible comparison benchmark JSON file",
+    )
+    v2_eval_parser.add_argument(
+        "--provider",
+        default="ollama",
+        choices=("oracle", "openai", "ollama"),
+        help="Model provider used for the direct and V1 filtered baselines",
+    )
+    v2_eval_parser.add_argument("--model", help="Model name for the selected provider")
+    v2_eval_parser.add_argument("--output", help="Optional path to write the full JSON comparison report")
+    v2_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the comparison report")
+
+    v2_render_parser = subparsers.add_parser(
+        "render-v2-report",
+        help="Render charts and a markdown summary from an existing V2 comparison JSON report",
+    )
+    v2_render_parser.add_argument("--report", required=True, help="Path to an existing V2 comparison JSON report")
+    v2_render_parser.add_argument("--markdown-output", help="Optional markdown output path")
+    v2_render_parser.add_argument("--charts-dir", help="Optional charts output directory")
+    v2_render_parser.add_argument("--pretty", action="store_true", help="Pretty-print the render manifest")
 
     args = parser.parse_args(argv)
 
@@ -316,6 +345,34 @@ def main(argv: list[str] | None = None) -> int:
             )
         indent = 2 if args.pretty else None
         print(json.dumps(summary, indent=indent))
+        return 0
+
+    if args.command == "evaluate-v2":
+        try:
+            report = evaluate_v2_comparison(
+                args.dataset,
+                provider_name=args.provider,
+                model=args.model,
+            )
+        except ProviderError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        if args.output:
+            write_v2_report(report, args.output)
+        indent = 2 if args.pretty else None
+        print(json.dumps(report, indent=indent))
+        return 0
+
+    if args.command == "render-v2-report":
+        with Path(args.report).open("r", encoding="utf-8") as handle:
+            report = json.load(handle)
+        bundle = write_v2_report_bundle(
+            report=report,
+            markdown_path=args.markdown_output or _derive_markdown_path(args.report),
+            charts_dir=args.charts_dir or _derive_charts_dir(args.report),
+        )
+        indent = 2 if args.pretty else None
+        print(json.dumps(bundle, indent=indent))
         return 0
 
     return 1

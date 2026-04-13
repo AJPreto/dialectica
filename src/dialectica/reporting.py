@@ -12,6 +12,7 @@ PREFERRED_CONDITION_ORDER = [
     "dialectica_filtered",
     "dialectica_structural_compact",
     "dialectica_filtered_structural",
+    "v2_horn",
 ]
 
 DISPLAY_LABELS = {
@@ -20,6 +21,7 @@ DISPLAY_LABELS = {
     "dialectica_filtered": "Filtered",
     "dialectica_structural_compact": "Structural Compact",
     "dialectica_filtered_structural": "Filtered Structural",
+    "v2_horn": "V2 Horn",
     "dialectica_gold_compact": "Gold Compact",
     "dialectica_gold_filtered": "Gold Filtered",
     "dialectica_gold_structural_compact": "Gold Structural Compact",
@@ -149,6 +151,110 @@ def write_complexity_report_bundle(
     }
 
 
+def write_v2_report_bundle(
+    *,
+    report: dict[str, Any],
+    markdown_path: str | Path,
+    charts_dir: str | Path,
+) -> dict[str, str]:
+    markdown_destination = Path(markdown_path)
+    charts_destination = Path(charts_dir)
+    markdown_destination.parent.mkdir(parents=True, exist_ok=True)
+    charts_destination.mkdir(parents=True, exist_ok=True)
+
+    conditions = _ordered_conditions(report.get("aggregate", {}))
+    accuracy_chart = charts_destination / "accuracy.svg"
+    token_chart = charts_destination / "total_tokens.svg"
+    latency_chart = charts_destination / "latency.svg"
+    correctness_chart = charts_destination / "correctness_by_case.svg"
+    token_trend_chart = charts_destination / "tokens_vs_context_size.svg"
+
+    accuracy_values = [
+        float(report.get("aggregate", {}).get(condition, {}).get("accuracy", 0.0) or 0.0)
+        for condition in conditions
+    ]
+    token_values = [
+        float(report.get("aggregate", {}).get(condition, {}).get("average_total_tokens", 0.0) or 0.0)
+        for condition in conditions
+    ]
+    latency_values = [
+        float(report.get("aggregate", {}).get(condition, {}).get("average_latency_seconds", 0.0) or 0.0)
+        for condition in conditions
+    ]
+
+    accuracy_chart.write_text(
+        _bar_chart_svg(
+            title="V2 Comparison Accuracy",
+            labels=[_display_label(condition) for condition in conditions],
+            values=accuracy_values,
+            y_label="Accuracy",
+            percent=True,
+        ),
+        encoding="utf-8",
+    )
+    token_chart.write_text(
+        _bar_chart_svg(
+            title="V2 Comparison Average Total Tokens",
+            labels=[_display_label(condition) for condition in conditions],
+            values=token_values,
+            y_label="Average total tokens",
+        ),
+        encoding="utf-8",
+    )
+    latency_chart.write_text(
+        _bar_chart_svg(
+            title="V2 Comparison Average Latency",
+            labels=[_display_label(condition) for condition in conditions],
+            values=latency_values,
+            y_label="Seconds",
+        ),
+        encoding="utf-8",
+    )
+    correctness_chart.write_text(
+        _line_chart_svg(
+            title="Correctness by Case",
+            x_label="Case index",
+            y_label="Correct (1=yes, 0=no)",
+            series=_build_v2_correctness_series(report, conditions),
+        ),
+        encoding="utf-8",
+    )
+    token_trend_chart.write_text(
+        _line_chart_svg(
+            title="Context Size vs Total Tokens",
+            x_label="Context characters",
+            y_label="Total tokens",
+            series=_build_v2_token_series(report, conditions),
+        ),
+        encoding="utf-8",
+    )
+
+    markdown_destination.write_text(
+        _v2_markdown(
+            report=report,
+            markdown_path=markdown_destination,
+            chart_paths={
+                "accuracy": accuracy_chart,
+                "tokens": token_chart,
+                "latency": latency_chart,
+                "correctness": correctness_chart,
+                "trend": token_trend_chart,
+            },
+            conditions=conditions,
+        ),
+        encoding="utf-8",
+    )
+
+    return {
+        "markdown": str(markdown_destination),
+        "accuracy_chart": str(accuracy_chart),
+        "token_chart": str(token_chart),
+        "latency_chart": str(latency_chart),
+        "correctness_chart": str(correctness_chart),
+        "token_trend_chart": str(token_trend_chart),
+    }
+
+
 def _ordered_conditions(aggregate: dict[str, Any]) -> list[str]:
     keys = [key for key in aggregate if not key.startswith("dialectica_gold")]
     ordered = [key for key in PREFERRED_CONDITION_ORDER if key in keys]
@@ -181,6 +287,50 @@ def _build_token_trend_series(sweep_summary: dict[str, Any]) -> list[dict[str, A
         series.append(
             {
                 "label": _display_label(condition_name),
+                "color": COLORS[index % len(COLORS)],
+                "points": points,
+            }
+        )
+    return series
+
+
+def _build_v2_correctness_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
+    cases = report.get("cases", [])
+    series: list[dict[str, Any]] = []
+    for index, condition in enumerate(conditions):
+        points: list[tuple[float, float]] = []
+        for case_index, case in enumerate(cases, start=1):
+            condition_map = {item["name"]: item for item in case.get("conditions", [])}
+            current = condition_map.get(condition, {})
+            points.append((float(case_index), 1.0 if current.get("correct") else 0.0))
+        series.append(
+            {
+                "label": _display_label(condition),
+                "color": COLORS[index % len(COLORS)],
+                "points": points,
+            }
+        )
+    return series
+
+
+def _build_v2_token_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
+    cases = report.get("cases", [])
+    series: list[dict[str, Any]] = []
+    for index, condition in enumerate(conditions):
+        points: list[tuple[float, float]] = []
+        for case in cases:
+            condition_map = {item["name"]: item for item in case.get("conditions", [])}
+            current = condition_map.get(condition, {})
+            points.append(
+                (
+                    float(len(str(case.get("context", "")))),
+                    float(current.get("token_counts", {}).get("total_tokens", 0) or 0),
+                )
+            )
+        points.sort(key=lambda item: item[0])
+        series.append(
+            {
+                "label": _display_label(condition),
                 "color": COLORS[index % len(COLORS)],
                 "points": points,
             }
@@ -263,6 +413,80 @@ def _complexity_markdown(
             "",
         ]
     )
+
+    return "\n".join(lines)
+
+
+def _v2_markdown(
+    *,
+    report: dict[str, Any],
+    markdown_path: Path,
+    chart_paths: dict[str, Path],
+    conditions: list[str],
+) -> str:
+    relative_chart = {name: path.relative_to(markdown_path.parent).as_posix() for name, path in chart_paths.items()}
+    lines = [
+        "# V2 Comparison Report",
+        "",
+        f"- Dataset: `{report.get('dataset_path')}`",
+        f"- Provider: `{report.get('provider')}`",
+        f"- Model: `{report.get('model')}`",
+        "",
+        "## Charts",
+        "",
+        "### Accuracy",
+        f"![Accuracy chart]({relative_chart['accuracy']})",
+        "",
+        "### Average total tokens",
+        f"![Token chart]({relative_chart['tokens']})",
+        "",
+        "### Average latency",
+        f"![Latency chart]({relative_chart['latency']})",
+        "",
+        "### Correctness by case",
+        f"![Correctness chart]({relative_chart['correctness']})",
+        "",
+        "### Context size vs total tokens",
+        f"![Token trend chart]({relative_chart['trend']})",
+        "",
+        "## Aggregate Summary",
+        "",
+        "| Condition | Accuracy | Avg tokens | Avg latency (s) |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+
+    aggregate = report.get("aggregate", {})
+    for condition in conditions:
+        current = aggregate.get(condition, {})
+        lines.append(
+            "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} |".format(
+                label=_display_label(condition),
+                accuracy=float(current.get("accuracy", 0.0) or 0.0),
+                tokens=float(current.get("average_total_tokens", 0.0) or 0.0),
+                latency=float(current.get("average_latency_seconds", 0.0) or 0.0),
+            )
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Case Summary",
+            "",
+            "| Case | Direct | Filtered | V2 Horn | Gold |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for case in report.get("cases", []):
+        condition_map = {item["name"]: item for item in case.get("conditions", [])}
+        lines.append(
+            "| {case_id} | {direct} | {filtered} | {v2} | {gold} |".format(
+                case_id=case.get("id", ""),
+                direct=_status_label(condition_map.get("direct", {}).get("correct")),
+                filtered=_status_label(condition_map.get("dialectica_filtered", {}).get("correct")),
+                v2=_status_label(condition_map.get("v2_horn", {}).get("correct")),
+                gold=case.get("gold_answer", ""),
+            )
+        )
 
     return "\n".join(lines)
 
@@ -402,3 +626,7 @@ def _line_chart_svg(*, title: str, x_label: str, y_label: str, series: list[dict
 
 def _display_label(condition_name: str) -> str:
     return DISPLAY_LABELS.get(condition_name, condition_name.replace("_", " ").title())
+
+
+def _status_label(value: Any) -> str:
+    return "ok" if bool(value) else "miss"
