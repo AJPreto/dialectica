@@ -138,11 +138,22 @@ The report bundle can also emit:
 - SVG bar charts for accuracy, tokens, latency, and iterations
 - an SVG line plot of raw context size versus average total tokens
 
+### Run the experimental V2 neuro-symbolic path
+
+```bash
+uv run dialectica v2-run "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --pretty
+```
+
 If you want a step-by-step explanation of what happens during a run, see
 [run walkthrough](./docs/run-walkthrough.md).
 
 ## Repo layout
 
+- `src/dialectica/ir.py`: hybrid AST for the experimental V2 path
+- `src/dialectica/translator.py`: controlled natural-language translator for V2
+- `src/dialectica/compiler.py`: V2 export dispatcher
+- `src/dialectica/engine.py`: deterministic Horn-style reasoning engine
+- `src/dialectica/explainer.py`: V2 natural-language explanation layer
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
 - `src/dialectica/complexity.py`: synthetic complexity benchmark generation and summaries
@@ -162,6 +173,8 @@ If you want a step-by-step explanation of what happens during a run, see
 - `docs/structural-fingerprint.md`: notes on the Gödel-inspired auxiliary backend
 - `docs/objective-evaluation.md`: how to test whether Dialectica improves correctness
 - `docs/run-walkthrough.md`: step-by-step explanation of what happens during a run
+- `docs/v2-neurosymbolic.md`: experimental V2 design and CLI usage
+- `docs/v2-encoding-comparison.md`: practical comparison of V2 export targets
 
 ## Core idea
 
@@ -441,6 +454,26 @@ Instead, version one should aim to be useful for:
 - retrieving relevant prior reasoning
 - surfacing contradictions
 - carrying forward explicit constraints
+
+## Experimental V2 path
+
+Dialectica now also includes an experimental V2 path that keeps V1 intact while
+adding:
+
+- a hybrid AST with formal core, residue, provenance, and exportability
+- a pluggable encoding layer
+- a deterministic Horn-style reasoning backend
+- a natural-language explanation layer
+
+The default end-to-end V2 backend is Horn-style because it is deterministic,
+explainable, and cheap to run locally. The same AST also exports to a FOL-style
+artifact for comparison, and to a partial SMT-oriented path for future
+arithmetic work.
+
+Start here:
+
+- [V2 neuro-symbolic overview](./docs/v2-neurosymbolic.md)
+- [V2 encoding comparison](./docs/v2-encoding-comparison.md)
 
 ## Next implementation steps
 

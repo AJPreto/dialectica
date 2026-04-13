@@ -1,0 +1,6 @@
+{
+  "id": "v2-uncertain-fact",
+  "text": "Maybe Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge. Does Alice hold an amber badge?",
+  "expected_answer": "not_entailed"
+}
+

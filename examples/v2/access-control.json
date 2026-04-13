@@ -1,0 +1,6 @@
+{
+  "id": "v2-access-control",
+  "text": "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?",
+  "expected_answer": "entailed"
+}
+

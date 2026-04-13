@@ -10,14 +10,18 @@ from pathlib import Path
 from .api import run_server
 from .answer_eval import evaluate_answer_dataset, write_performance_summary, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
+from .compiler import compile_hybrid_document, compiled_document_to_dict
 from .complexity import (
     generate_complexity_dataset,
     summarize_complexity_report,
     write_complexity_dataset,
     write_complexity_summary,
 )
+from .engine import reason_over_horn_program
 from .evaluate import evaluate_dataset
+from .explainer import explain_reasoning
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
+from .translator import translate_text
 from .parser import parse_document, parse_text
 from .providers import ProviderError
 from .reporting import write_complexity_report_bundle
@@ -48,6 +52,16 @@ def main(argv: list[str] | None = None) -> int:
     compare_parser.add_argument("--language", default="en")
     compare_parser.add_argument("--document", action="store_true", help="Parse inputs as multi-sentence documents")
     compare_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+
+    v2_parser = subparsers.add_parser("v2-run", help="Run the experimental V2 neuro-symbolic pipeline")
+    v2_parser.add_argument("text", nargs="?", help="Context text. If omitted, stdin is used.")
+    v2_parser.add_argument("--query", help="Optional separate query. If omitted, the last question in the text is used.")
+    v2_parser.add_argument(
+        "--targets",
+        default="horn,fol,smt",
+        help="Comma-separated export targets to compile, default: horn,fol,smt",
+    )
+    v2_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
 
     serve_parser = subparsers.add_parser("serve", help="Run the local HTTP API")
     serve_parser.add_argument("--host", default="127.0.0.1")
@@ -190,6 +204,24 @@ def main(argv: list[str] | None = None) -> int:
         )
         indent = 2 if args.pretty else None
         print(json.dumps(comparison, indent=indent))
+        return 0
+
+    if args.command == "v2-run":
+        text = args.text if args.text is not None else sys.stdin.read().strip()
+        targets = tuple(part.strip() for part in args.targets.split(",") if part.strip())
+        document = translate_text(text, query=args.query)
+        compiled_document, compiled_outputs = compile_hybrid_document(document, targets=targets)
+        horn_program = compiled_outputs.get("horn", {}).get("artifact", {})
+        reasoning = reason_over_horn_program(horn_program)
+        explanation = explain_reasoning(compiled_document, reasoning)
+        payload = {
+            "hybrid_document": compiled_document_to_dict(compiled_document),
+            "compiled": compiled_outputs,
+            "reasoning": reasoning.to_dict(),
+            "explanation": explanation,
+        }
+        indent = 2 if args.pretty else None
+        print(json.dumps(payload, indent=indent))
         return 0
 
     if args.command == "evaluate":
