@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import re
-from dataclasses import replace
 
 from .ir import (
     Atom,
     Comparison,
+    Conjunction,
     Constant,
+    Disjunction,
     ExportRecord,
     HybridDocument,
     HybridStatement,
+    Implication,
     Negation,
     NumberLiteral,
     Provenance,
@@ -37,17 +39,19 @@ _UNCERTAINTY_MARKERS = ("maybe", "perhaps", "probably", "possibly")
 _MODALITY_MARKERS = ("may", "can", "must", "should")
 _TEMPORAL_MARKERS = ("currently", "for now", "this shift", "today", "later")
 _UNRESOLVED_REFERENCES = {"he", "she", "they", "them", "it", "this", "that", "these", "those"}
+_SEMICOLON_SPLIT_PATTERN = re.compile(r";")
+_CONJUNCTION_SPLIT_PATTERN = re.compile(r"\band\b", re.I)
 
 
 def translate_text(text: str, query: str | None = None) -> HybridDocument:
     """Translate raw text into the experimental hybrid AST."""
     statements: list[HybridStatement] = []
     statement_counter = 0
-    segments = _split_sentences_with_spans(text)
+    prepared_context = _prepare_context_units(text)
     query_text = query
 
-    for sentence_index, (fragment, start, end) in enumerate(segments, start=1):
-        cleaned = _normalize(fragment)
+    for unit in prepared_context["units"]:
+        cleaned = unit["fragment"]
         if not cleaned:
             continue
         if cleaned.endswith("?") and query_text is None:
@@ -57,14 +61,15 @@ def translate_text(text: str, query: str | None = None) -> HybridDocument:
         statement = _translate_sentence(
             cleaned,
             statement_id=f"s{statement_counter}",
-            sentence_id=f"ctx-{sentence_index}",
+            sentence_id=unit["sentence_id"],
             source_text=text,
-            start=start,
-            end=end,
+            start=unit["start"],
+            end=unit["end"],
         )
         statements.append(statement)
 
     if query_text:
+        query_text = _normalize(query_text)
         statement_counter += 1
         statements.append(
             _translate_sentence(
@@ -85,8 +90,113 @@ def translate_text(text: str, query: str | None = None) -> HybridDocument:
             "path": "experimental-v2",
             "translator": "controlled-heuristic-v2",
             "statement_count": len(statements),
+            "pretranslation": prepared_context["metadata"],
         },
     )
+
+
+def _prepare_context_units(text: str) -> dict[str, object]:
+    raw_segments = _split_sentences_with_spans(text)
+    units: list[dict[str, object]] = []
+    decomposition_events: list[dict[str, object]] = []
+    removed_duplicates: list[dict[str, object]] = []
+    seen_keys: dict[str, str] = {}
+    candidate_count = 0
+
+    for sentence_index, (fragment, start, end) in enumerate(raw_segments, start=1):
+        decomposed_units, events = _decompose_context_fragment(
+            fragment,
+            start=start,
+            end=end,
+            sentence_index=sentence_index,
+        )
+        decomposition_events.extend(events)
+        for unit in decomposed_units:
+            candidate_count += 1
+            cleaned = _normalize(str(unit["fragment"]))
+            if not cleaned:
+                continue
+            unit["fragment"] = cleaned
+            redundancy_key = _redundancy_key(cleaned)
+            duplicate_of = seen_keys.get(redundancy_key)
+            if duplicate_of is not None:
+                removed_duplicates.append(
+                    {
+                        "fragment": cleaned,
+                        "duplicate_of": duplicate_of,
+                        "sentence_id": unit["sentence_id"],
+                        "span": {"start": unit["start"], "end": unit["end"]},
+                    }
+                )
+                continue
+            seen_keys[redundancy_key] = str(unit["sentence_id"])
+            units.append(unit)
+
+    return {
+        "units": units,
+        "metadata": {
+            "original_sentence_count": len(raw_segments),
+            "candidate_unit_count": candidate_count,
+            "kept_unit_count": len(units),
+            "duplicate_unit_count": len(removed_duplicates),
+            "decomposition_count": len(decomposition_events),
+            "removed_duplicates": removed_duplicates,
+            "decomposition_events": decomposition_events,
+        },
+    }
+
+
+def _decompose_context_fragment(
+    fragment: str,
+    *,
+    start: int,
+    end: int,
+    sentence_index: int,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    base_units = [{"fragment": fragment, "start": start, "end": end}]
+    events: list[dict[str, object]] = []
+
+    semicolon_units = _split_units_on_pattern(
+        base_units,
+        pattern=_SEMICOLON_SPLIT_PATTERN,
+        strategy="semicolon",
+    )
+    if semicolon_units != base_units:
+        events.append(
+            {
+                "strategy": "semicolon",
+                "source_fragment": _normalize(fragment),
+                "emitted_fragments": [_normalize(str(unit["fragment"])) for unit in semicolon_units],
+            }
+        )
+    working_units = semicolon_units
+
+    if not _is_query_fragment(fragment) and not _looks_like_rule_fragment(fragment):
+        conjunction_units = _split_units_on_pattern(
+            working_units,
+            pattern=_CONJUNCTION_SPLIT_PATTERN,
+            strategy="explicit_conjunction",
+        )
+        if conjunction_units != working_units:
+            events.append(
+                {
+                    "strategy": "explicit_conjunction",
+                    "source_fragment": _normalize(fragment),
+                    "emitted_fragments": [_normalize(str(unit["fragment"])) for unit in conjunction_units],
+                }
+            )
+        working_units = conjunction_units
+
+    numbered_units: list[dict[str, object]] = []
+    for clause_index, unit in enumerate(working_units, start=1):
+        sentence_id = f"ctx-{sentence_index}" if len(working_units) == 1 else f"ctx-{sentence_index}.{clause_index}"
+        numbered_units.append(
+            {
+                **unit,
+                "sentence_id": sentence_id,
+            }
+        )
+    return numbered_units, events
 
 
 def _translate_sentence(
@@ -180,13 +290,22 @@ def _parse_rule(sentence: str) -> RuleCore | None:
     match = _RULE_PATTERN.match(sentence)
     if not match:
         return None
-    body = tuple(filter(None, (_parse_clause(part) for part in _split_conjuncts(match.group("body")))))
     head = _parse_clause(match.group("head"))
     exception_text = match.group("exception")
     exceptions = tuple(filter(None, (_parse_clause(part) for part in _split_conjuncts(exception_text or ""))))
-    if not body or head is None:
+    if head is None:
         return None
-    return RuleCore(head=head, body=body, exceptions=exceptions)
+    antecedent = _parse_rule_antecedent(match.group("body"))
+    if antecedent is None:
+        return None
+    if isinstance(antecedent, Conjunction) and all(isinstance(item, (Atom, Comparison)) for item in antecedent.conjuncts):
+        body = tuple(antecedent.conjuncts)
+        return RuleCore(head=head, body=body, exceptions=exceptions)
+    if isinstance(antecedent, (Atom, Comparison)):
+        return RuleCore(head=head, body=(antecedent,), exceptions=exceptions)
+    if exceptions:
+        return None
+    return Implication(antecedent=antecedent, consequent=head)
 
 
 def _parse_universal_rule(sentence: str) -> RuleCore | None:
@@ -209,6 +328,10 @@ def _parse_universal_rule(sentence: str) -> RuleCore | None:
 
 def _parse_query(sentence: str):
     normalized = _normalize(sentence.rstrip("?"))
+    if normalized.casefold().startswith("is "):
+        comparison = _parse_comparison(normalized[3:])
+        if comparison is not None:
+            return comparison
     query_matchers = (
         (re.compile(r"^(?:may|can) (?P<subject>.+?) (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _query_modal_atom),
         (re.compile(r"^does (?P<subject>.+?) (?P<lemma>\w+)(?: (?P<object>.+))?$", re.I), _query_verb_atom),
@@ -329,7 +452,8 @@ def _query_has_atom(match: re.Match[str]) -> Atom:
 
 
 def _action_atom(subject_term, modal: str, action_text: str) -> Atom:
-    return Atom(predicate=_predicate_slug(f"{modal} {action_text}"), arguments=(subject_term,))
+    canonical_modal = "may" if modal in {"may", "can"} else modal
+    return Atom(predicate=_predicate_slug(f"{canonical_modal} {action_text}"), arguments=(subject_term,))
 
 
 def _state_atom(subject_term, state_text: str) -> Atom:
@@ -403,11 +527,148 @@ def _split_sentences_with_spans(text: str) -> list[tuple[str, int, int]]:
     return segments
 
 
+def _split_units_on_pattern(
+    units: list[dict[str, object]],
+    *,
+    pattern: re.Pattern[str],
+    strategy: str,
+) -> list[dict[str, object]]:
+    split_units: list[dict[str, object]] = []
+    changed = False
+    for unit in units:
+        fragment = str(unit["fragment"])
+        pieces = _piece_units_from_pattern(
+            fragment,
+            start=int(unit["start"]),
+            end=int(unit["end"]),
+            pattern=pattern,
+            strategy=strategy,
+        )
+        if pieces is None:
+            split_units.append(unit)
+            continue
+        changed = True
+        split_units.extend(pieces)
+    return split_units if changed else units
+
+
+def _piece_units_from_pattern(
+    fragment: str,
+    *,
+    start: int,
+    end: int,
+    pattern: re.Pattern[str],
+    strategy: str,
+) -> list[dict[str, object]] | None:
+    matches = list(pattern.finditer(fragment))
+    if not matches:
+        return None
+
+    pieces: list[dict[str, object]] = []
+    cursor = 0
+    for match in matches:
+        piece = _build_piece_unit(fragment, start, cursor, match.start())
+        if piece is not None:
+            pieces.append(piece)
+        cursor = match.end()
+    final_piece = _build_piece_unit(fragment, start, cursor, len(fragment))
+    if final_piece is not None:
+        pieces.append(final_piece)
+
+    if len(pieces) <= 1:
+        return None
+
+    if strategy == "semicolon":
+        if not all(_is_articulate_fragment(str(piece["fragment"])) for piece in pieces):
+            return None
+    elif strategy == "explicit_conjunction":
+        if not all(_is_standalone_fact_fragment(str(piece["fragment"])) for piece in pieces):
+            return None
+
+    return pieces
+
+
+def _build_piece_unit(fragment: str, start_offset: int, left: int, right: int) -> dict[str, object] | None:
+    raw_piece = fragment[left:right]
+    leading_trim = len(raw_piece) - len(raw_piece.lstrip(" \t\r\n,;"))
+    trailing_trim = len(raw_piece) - len(raw_piece.rstrip(" \t\r\n,;"))
+    trimmed = raw_piece.strip(" \t\r\n,;")
+    if not trimmed:
+        return None
+    piece_start = start_offset + left + leading_trim
+    piece_end = start_offset + right - trailing_trim
+    return {"fragment": trimmed, "start": piece_start, "end": piece_end}
+
+
+def _is_query_fragment(fragment: str) -> bool:
+    return _normalize(fragment).endswith("?")
+
+
+def _looks_like_rule_fragment(fragment: str) -> bool:
+    normalized = _normalize(fragment).rstrip(".?!")
+    return _parse_rule(normalized) is not None or _parse_universal_rule(normalized) is not None
+
+
+def _is_articulate_fragment(fragment: str) -> bool:
+    normalized = _normalize(fragment)
+    if not normalized:
+        return False
+    working = normalized.rstrip(".?!")
+    if normalized.endswith("?"):
+        return _parse_query(working) is not None
+    return any(
+        parser(working) is not None
+        for parser in (_parse_rule, _parse_universal_rule, _parse_comparison, _parse_clause)
+    )
+
+
+def _is_standalone_fact_fragment(fragment: str) -> bool:
+    normalized = _normalize(fragment)
+    if not normalized or normalized.endswith("?"):
+        return False
+    if _looks_like_rule_fragment(normalized):
+        return False
+    working = normalized.rstrip(".?!")
+    return _parse_clause(working) is not None or _parse_comparison(working) is not None
+
+
+def _redundancy_key(fragment: str) -> str:
+    normalized = _normalize(fragment)
+    kind = "query" if normalized.endswith("?") else "statement"
+    return f"{kind}:{normalized.casefold().rstrip('.?!')}"
+
+
 def _split_conjuncts(text: str) -> list[str]:
     normalized = _normalize(text)
     if not normalized:
         return []
     return [part.strip() for part in re.split(r"\band\b", normalized, flags=re.I) if part.strip()]
+
+
+def _parse_rule_antecedent(text: str):
+    normalized = _normalize(text)
+    if not normalized:
+        return None
+
+    disjuncts = _split_on_keyword(normalized, "or")
+    if len(disjuncts) > 1:
+        items = tuple(item for item in (_parse_rule_antecedent(part) for part in disjuncts) if item is not None)
+        if len(items) == len(disjuncts):
+            return Disjunction(disjuncts=items)
+        return None
+
+    conjuncts = _split_on_keyword(normalized, "and")
+    if len(conjuncts) > 1:
+        items = tuple(item for item in (_parse_rule_antecedent(part) for part in conjuncts) if item is not None)
+        if len(items) == len(conjuncts):
+            return Conjunction(conjuncts=items)
+        return None
+
+    return _parse_clause(normalized) or _parse_comparison(normalized)
+
+
+def _split_on_keyword(text: str, keyword: str) -> list[str]:
+    return [part.strip() for part in re.split(rf"\b{re.escape(keyword)}\b", text, flags=re.I) if part.strip()]
 
 
 def _predicate_slug(text: str) -> str:

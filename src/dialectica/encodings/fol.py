@@ -9,11 +9,17 @@ from ..ir import (
     ArithmeticExpression,
     Atom,
     Comparison,
+    Conjunction,
     Constant,
+    Disjunction,
     ExportRecord,
+    FormalCore,
     HybridDocument,
+    HybridStatement,
+    Implication,
     Negation,
     NumberLiteral,
+    Quantified,
     RuleCore,
     Variable,
 )
@@ -28,16 +34,37 @@ class FOLExporter(BaseExporter):
         predicate_names: set[str] = set()
         constant_names: set[str] = set()
         notes: list[str] = []
+        program = {
+            "dialect": "fol-safe-fragment",
+            "facts": [],
+            "rules": [],
+            "query": None,
+            "skipped": [],
+        }
 
         for statement in document.statements:
-            record, formula = self._compile_statement(statement)
+            record, formula, program_entry = self._compile_statement(statement)
             records[statement.id] = record
-            if formula is None:
-                continue
-            formulas.append(formula)
-            _collect_signature(formula["formula"], predicate_names, constant_names)
-            if record.status != "exact":
+            if formula is not None:
+                formulas.append(formula)
+                _collect_signature(formula["formula"], predicate_names, constant_names)
+            if record.notes:
                 notes.extend(record.notes)
+
+            if statement.kind == "query" and program_entry is not None:
+                program["query"] = program_entry
+            elif statement.kind == "fact" and program_entry is not None:
+                program["facts"].append(program_entry)
+            elif statement.kind == "rule" and program_entry is not None:
+                program["rules"].append(program_entry)
+            elif program_entry is None and record.status != "exact":
+                program["skipped"].append(
+                    {
+                        "statement_id": statement.id,
+                        "status": record.status,
+                        "notes": record.notes,
+                    }
+                )
 
         signature = {
             "types": [{"name": "$i", "kind": "built_in"}],
@@ -74,6 +101,7 @@ class FOLExporter(BaseExporter):
             "signature": signature,
             "annotated_formulae": formulas,
             "translation_notes": _dedupe(notes),
+            "program": program,
         }
         return CompilationResult(
             target=self.target,
@@ -83,46 +111,185 @@ class FOLExporter(BaseExporter):
             statement_records=records,
         )
 
-    def _compile_statement(self, statement) -> tuple[ExportRecord, dict[str, Any] | None]:
+    def _compile_statement(self, statement: HybridStatement) -> tuple[ExportRecord, dict[str, Any] | None, dict[str, Any] | None]:
         notes = _residue_notes(statement)
         core = statement.formal_core
         if core is None:
-            return ExportRecord(target=self.target, status="unsupported", notes=[*notes, "No formal core to export."]), None
+            return ExportRecord(target=self.target, status="unsupported", notes=[*notes, "No formal core to export."]), None, None
 
-        status = "partial" if _requires_partial_export(statement) else "exact"
-        if isinstance(core, Comparison) and core.operator not in {"=", "!="}:
-            notes.append("Non-equality comparison was preserved in the AST but not emitted in the first FOL exporter.")
-            return ExportRecord(target=self.target, status="unsupported", notes=notes), None
-
+        safe_for_program = not _requires_partial_export(statement)
+        status = "partial" if not safe_for_program else "exact"
         formula = _formula_node(core)
         if formula is None:
             return ExportRecord(
                 target=self.target,
                 status="unsupported",
                 notes=[*notes, "The FOL exporter could not compile this formal core."],
-            ), None
+            ), None, None
 
-        role = "conjecture" if statement.kind == "query" else "axiom"
+        program_entry = _program_entry(statement)
         if isinstance(core, RuleCore) and core.exceptions:
             status = "partial"
-            notes.append("Rule exceptions were exported as explicit negated guards, which is only a partial match for defeasible unless semantics.")
-        return ExportRecord(target=self.target, status=status, notes=notes), {
-            "name": statement.id,
-            "language": "fof",
-            "role": role,
-            "linked_blocks": [],
-            "source": {
-                "kind": "parser",
-                "reference": "experimental-v2-translator",
-                "details": {"sentence_id": statement.provenance.sentence_id},
+            notes.append(
+                "Rule exceptions were exported as guarded blockers in the machine program, which is only a partial match for richer defeasible semantics."
+            )
+        if isinstance(core, Comparison) and core.operator not in {"=", "!=", ">=", "<=", ">", "<"}:
+            status = "unsupported"
+            notes.append("The comparison operator is not part of the current safe FOL fragment.")
+            program_entry = None
+        if not safe_for_program or status == "unsupported":
+            program_entry = None
+
+        role = "conjecture" if statement.kind == "query" else "axiom"
+        return (
+            ExportRecord(target=self.target, status=status, notes=notes),
+            {
+                "name": statement.id,
+                "language": "fof",
+                "role": role,
+                "linked_blocks": [],
+                "source": {
+                    "kind": "parser",
+                    "reference": "experimental-v2-translator",
+                    "details": {"sentence_id": statement.provenance.sentence_id},
+                },
+                "useful_info": [{"key": "source_fragment", "value": statement.provenance.fragment}],
+                "confidence": statement.semantic_residue.confidence,
+                "formula": formula,
             },
-            "useful_info": [{"key": "source_fragment", "value": statement.provenance.fragment}],
-            "confidence": statement.semantic_residue.confidence,
-            "formula": formula,
+            program_entry,
+        )
+
+
+def _program_entry(statement: HybridStatement) -> dict[str, Any] | None:
+    core = statement.formal_core
+    if core is None:
+        return None
+    if statement.kind == "fact":
+        literal = _literal_program_node_from_formula(core)
+        if literal is None:
+            return None
+        return {"statement_id": statement.id, "literal": literal}
+    if statement.kind == "query":
+        literal = _literal_program_node_from_formula(core)
+        if literal is None:
+            return None
+        return {"statement_id": statement.id, "literal": literal}
+    if statement.kind == "rule":
+        normalized = _normalize_rule_core(core)
+        if normalized is None:
+            return None
+        head = _literal_program_node_from_formula(normalized["head"])
+        if head is None:
+            return None
+        branches = []
+        for branch in _antecedent_branches(normalized["antecedent"]):
+            branch_literals = []
+            for formula in branch:
+                literal = _literal_program_node_from_formula(formula)
+                if literal is None:
+                    return None
+                branch_literals.append(literal)
+            branches.append(branch_literals)
+        exceptions = []
+        for item in normalized["exceptions"]:
+            literal = _literal_program_node_from_formula(item)
+            if literal is None:
+                return None
+            exceptions.append(literal)
+        return {
+            "statement_id": statement.id,
+            "head": head,
+            "branches": branches or [[]],
+            "exceptions": exceptions,
         }
+    return None
 
 
-def _formula_node(core):
+def _normalize_rule_core(core: FormalCore) -> dict[str, Any] | None:
+    if isinstance(core, RuleCore):
+        antecedent = _make_conjunction(core.body)
+        return {
+            "head": core.head,
+            "antecedent": antecedent,
+            "exceptions": list(core.exceptions),
+        }
+    if isinstance(core, Implication):
+        return {
+            "head": core.consequent,
+            "antecedent": core.antecedent,
+            "exceptions": [],
+        }
+    if isinstance(core, Quantified):
+        if core.quantifier != "forall":
+            return None
+        return _normalize_rule_core(core.body)
+    return None
+
+
+def _antecedent_branches(formula: FormalCore | None) -> list[list[FormalCore]]:
+    if formula is None:
+        return [[]]
+    if isinstance(formula, Conjunction):
+        branches = [[]]
+        for conjunct in formula.conjuncts:
+            child_branches = _antecedent_branches(conjunct)
+            branches = [current + child for current in branches for child in child_branches]
+        return branches
+    if isinstance(formula, Disjunction):
+        branches: list[list[FormalCore]] = []
+        for disjunct in formula.disjuncts:
+            branches.extend(_antecedent_branches(disjunct))
+        return branches
+    if isinstance(formula, Quantified) and formula.quantifier == "forall":
+        return _antecedent_branches(formula.body)
+    if _literal_program_node_from_formula(formula) is not None:
+        return [[formula]]
+    return []
+
+
+def _literal_program_node_from_formula(core: FormalCore) -> dict[str, Any] | None:
+    if isinstance(core, Atom):
+        return {"sign": "positive", "atom": _atom_program_node(core)}
+    if isinstance(core, Negation):
+        if isinstance(core.operand, Atom):
+            return {"sign": "negative", "atom": _atom_program_node(core.operand)}
+        if isinstance(core.operand, Comparison):
+            return {"sign": "negative", "atom": _comparison_program_node(core.operand)}
+        return None
+    if isinstance(core, Comparison):
+        return {"sign": "positive", "atom": _comparison_program_node(core)}
+    return None
+
+
+def _atom_program_node(atom: Atom) -> dict[str, Any]:
+    return {
+        "node_type": "Atom",
+        "predicate": atom.predicate,
+        "arguments": [_term_program_node(argument) for argument in atom.arguments],
+    }
+
+
+def _comparison_program_node(comparison: Comparison) -> dict[str, Any]:
+    return {
+        "node_type": "Comparison",
+        "operator": comparison.operator,
+        "left": _term_program_node(comparison.left),
+        "right": _term_program_node(comparison.right),
+    }
+
+
+def _term_program_node(term) -> dict[str, Any]:
+    if isinstance(term, Constant):
+        return {"node_type": "Constant", "name": term.name, "sort": term.sort}
+    if isinstance(term, Variable):
+        return {"node_type": "Variable", "name": term.name, "sort": term.sort}
+    if isinstance(term, NumberLiteral):
+        return {"node_type": "NumberLiteral", "value": term.value}
+    return {"node_type": "Constant", "name": str(term), "sort": None}
+
+
+def _formula_node(core: FormalCore):
     if isinstance(core, Atom):
         return {
             "kind": "predicate",
@@ -139,27 +306,54 @@ def _formula_node(core):
             return {"kind": "equality", "left": _term_node(core.left), "right": _term_node(core.right)}
         if core.operator == "!=":
             return {"kind": "inequality", "left": _term_node(core.left), "right": _term_node(core.right)}
-        return None
-    if isinstance(core, RuleCore):
-        antecedent = None
-        parts = [_formula_node(item) for item in core.body]
+        return {
+            "kind": "predicate",
+            "symbol": f"cmp_{_comparison_symbol(core.operator)}",
+            "arguments": [_term_node(core.left), _term_node(core.right)],
+        }
+    if isinstance(core, Conjunction):
+        parts = [_formula_node(item) for item in core.conjuncts]
         if any(part is None for part in parts):
             return None
-        antecedent_parts = [part for part in parts if part is not None]
-        for exception in core.exceptions:
-            exception_node = _formula_node(Negation(exception))
-            if exception_node is not None:
-                antecedent_parts.append(exception_node)
-        if not antecedent_parts:
-            antecedent = {"kind": "literal", "value": True}
-        elif len(antecedent_parts) == 1:
-            antecedent = antecedent_parts[0]
-        else:
-            antecedent = _binary_chain("&", antecedent_parts)
-        head_node = _formula_node(core.head)
-        if head_node is None:
+        return _binary_chain("&", [part for part in parts if part is not None])
+    if isinstance(core, Disjunction):
+        parts = [_formula_node(item) for item in core.disjuncts]
+        if any(part is None for part in parts):
             return None
-        implication = {"kind": "binary", "operator": "=>", "left": antecedent, "right": head_node}
+        return _binary_chain("|", [part for part in parts if part is not None])
+    if isinstance(core, Implication):
+        left = _formula_node(core.antecedent)
+        right = _formula_node(core.consequent)
+        if left is None or right is None:
+            return None
+        return {"kind": "binary", "operator": "=>", "left": left, "right": right}
+    if isinstance(core, Quantified):
+        body = _formula_node(core.body)
+        if body is None:
+            return None
+        quantifier = "!" if core.quantifier == "forall" else "?"
+        return {
+            "kind": "quantified",
+            "quantifier": quantifier,
+            "variables": [{"name": variable.name, "type": "$i"} for variable in core.variables],
+            "body": body,
+        }
+    if isinstance(core, RuleCore):
+        normalized = _normalize_rule_core(core)
+        if normalized is None:
+            return None
+        head = _formula_node(normalized["head"])
+        antecedent = _formula_node(normalized["antecedent"]) if normalized["antecedent"] is not None else {"kind": "literal", "value": True}
+        if head is None or antecedent is None:
+            return None
+        if normalized["exceptions"]:
+            guarded_parts = [antecedent]
+            for exception in normalized["exceptions"]:
+                exception_node = _formula_node(Negation(exception))
+                if exception_node is not None:
+                    guarded_parts.append(exception_node)
+            antecedent = _binary_chain("&", guarded_parts)
+        implication = {"kind": "binary", "operator": "=>", "left": antecedent, "right": head}
         if core.variables:
             return {
                 "kind": "quantified",
@@ -188,6 +382,8 @@ def _term_node(term):
 
 
 def _binary_chain(operator: str, nodes: list[dict[str, Any]]) -> dict[str, Any]:
+    if not nodes:
+        return {"kind": "literal", "value": True}
     current = nodes[0]
     for node in nodes[1:]:
         current = {"kind": "binary", "operator": operator, "left": current, "right": node}
@@ -219,10 +415,11 @@ def _collect_signature(node: dict[str, Any], predicates: set[str], constants: se
         elif isinstance(value, dict):
             _collect_signature(value, predicates, constants)
     for item in node.get("variables", []):
-        _collect_signature(item, predicates, constants) if isinstance(item, dict) else None
+        if isinstance(item, dict):
+            _collect_signature(item, predicates, constants)
 
 
-def _residue_notes(statement) -> list[str]:
+def _residue_notes(statement: HybridStatement) -> list[str]:
     residue = statement.semantic_residue
     notes: list[str] = []
     if residue.modality:
@@ -231,12 +428,18 @@ def _residue_notes(statement) -> list[str]:
         notes.append(f"Uncertainty markers preserved outside the formal core: {', '.join(residue.uncertainty)}.")
     if residue.attribution:
         notes.append(f"Attribution preserved outside the formal core: {', '.join(residue.attribution)}.")
+    if residue.temporal_vagueness:
+        notes.append(f"Temporal vagueness preserved outside the formal core: {', '.join(residue.temporal_vagueness)}.")
     if residue.unresolved_references:
         notes.append(f"Unresolved references remain in residue: {', '.join(residue.unresolved_references)}.")
+    if residue.non_formalized_fragments:
+        notes.append("Some source fragments were intentionally left outside the formal core.")
+    if residue.ambiguity:
+        notes.append(f"Ambiguity notes remain explicit: {', '.join(residue.ambiguity)}.")
     return notes
 
 
-def _requires_partial_export(statement) -> bool:
+def _requires_partial_export(statement: HybridStatement) -> bool:
     residue = statement.semantic_residue
     return any(
         (
@@ -259,3 +462,22 @@ def _dedupe(items: list[str]) -> list[str]:
         seen.add(item)
         deduped.append(item)
     return deduped
+
+
+def _comparison_symbol(operator: str) -> str:
+    return {
+        "=": "eq",
+        "!=": "neq",
+        ">=": "gte",
+        "<=": "lte",
+        ">": "gt",
+        "<": "lt",
+    }.get(operator, "cmp")
+
+
+def _make_conjunction(items: tuple[Any, ...]) -> FormalCore | None:
+    if not items:
+        return None
+    if len(items) == 1:
+        return items[0]
+    return Conjunction(conjuncts=items)

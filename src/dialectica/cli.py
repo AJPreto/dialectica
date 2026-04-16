@@ -17,9 +17,9 @@ from .complexity import (
     write_complexity_dataset,
     write_complexity_summary,
 )
-from .engine import reason_over_horn_program
+from .engine import reason_over_fol_program, reason_over_horn_program
 from .evaluate import evaluate_dataset
-from .explainer import explain_reasoning
+from .explainer import explain_fol_reasoning, explain_reasoning
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .translator import translate_text
 from .v2_eval import evaluate_v2_comparison, write_v2_report
@@ -61,6 +61,12 @@ def main(argv: list[str] | None = None) -> int:
         "--targets",
         default="horn,fol,smt",
         help="Comma-separated export targets to compile, default: horn,fol,smt",
+    )
+    v2_parser.add_argument(
+        "--reasoner",
+        default="horn",
+        choices=("horn", "fol"),
+        help="Reasoning backend to run over the compiled outputs, default: horn",
     )
     v2_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
 
@@ -183,6 +189,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     v2_eval_parser.add_argument("--model", help="Model name for the selected provider")
     v2_eval_parser.add_argument("--output", help="Optional path to write the full JSON comparison report")
+    v2_eval_parser.add_argument("--markdown-output", help="Optional path to write a markdown V2 report")
+    v2_eval_parser.add_argument("--charts-dir", help="Optional directory to write SVG charts for the V2 report")
     v2_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the comparison report")
 
     v2_render_parser = subparsers.add_parser(
@@ -237,13 +245,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "v2-run":
         text = args.text if args.text is not None else sys.stdin.read().strip()
-        targets = tuple(part.strip() for part in args.targets.split(",") if part.strip())
+        requested_targets = [part.strip() for part in args.targets.split(",") if part.strip()]
+        if args.reasoner not in requested_targets:
+            requested_targets.append(args.reasoner)
+        targets = tuple(requested_targets)
         document = translate_text(text, query=args.query)
         compiled_document, compiled_outputs = compile_hybrid_document(document, targets=targets)
-        horn_program = compiled_outputs.get("horn", {}).get("artifact", {})
-        reasoning = reason_over_horn_program(horn_program)
-        explanation = explain_reasoning(compiled_document, reasoning)
+        if args.reasoner == "fol":
+            reasoning = reason_over_fol_program(compiled_outputs.get("fol", {}).get("artifact", {}).get("program", {}))
+            explanation = explain_fol_reasoning(compiled_document, reasoning)
+        else:
+            reasoning = reason_over_horn_program(compiled_outputs.get("horn", {}).get("artifact", {}))
+            explanation = explain_reasoning(compiled_document, reasoning)
         payload = {
+            "reasoner": args.reasoner,
             "hybrid_document": compiled_document_to_dict(compiled_document),
             "compiled": compiled_outputs,
             "reasoning": reasoning.to_dict(),
@@ -359,6 +374,17 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         if args.output:
             write_v2_report(report, args.output)
+            write_v2_report_bundle(
+                report=report,
+                markdown_path=args.markdown_output or _derive_markdown_path(args.output),
+                charts_dir=args.charts_dir or _derive_charts_dir(args.output),
+            )
+        elif args.markdown_output:
+            write_v2_report_bundle(
+                report=report,
+                markdown_path=args.markdown_output,
+                charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
+            )
         indent = 2 if args.pretty else None
         print(json.dumps(report, indent=indent))
         return 0

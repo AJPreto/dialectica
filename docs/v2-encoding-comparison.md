@@ -15,7 +15,7 @@ This document records the practical V2 encoding decision.
 Dialectica V2 uses:
 
 - `horn` as the default end-to-end backend
-- `fol` as the main comparison/export path
+- `fol` as the broader comparison and proof path
 - `smt` as an experimental partial export target for future arithmetic work
 
 ## Why Horn wins first
@@ -34,6 +34,8 @@ once:
 FOL is still valuable because it is a better target for:
 
 - quantification
+- explicit negation and contradiction-aware proof
+- disjunctive antecedents and broader clause shapes
 - eventual theorem-prover integration
 - comparing the same AST against a richer formalization
 - checking whether a sentence is only partially Horn-compilable
@@ -64,6 +66,5 @@ The practical milestone order is:
 
 1. stabilize the shared AST
 2. benchmark Horn end-to-end on controlled tasks
-3. compare Horn and FOL exports on the same AST
+3. compare Horn and FOL proof paths on the same AST
 4. add SMT-oriented cases once arithmetic translation is reliable
-

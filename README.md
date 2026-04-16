@@ -152,7 +152,7 @@ If you want a step-by-step explanation of what happens during a run, see
 - `src/dialectica/ir.py`: hybrid AST for the experimental V2 path
 - `src/dialectica/translator.py`: controlled natural-language translator for V2
 - `src/dialectica/compiler.py`: V2 export dispatcher
-- `src/dialectica/engine.py`: deterministic Horn-style reasoning engine
+- `src/dialectica/engine.py`: deterministic Horn and broader FOL-style reasoning engines
 - `src/dialectica/explainer.py`: V2 natural-language explanation layer
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
@@ -166,6 +166,9 @@ If you want a step-by-step explanation of what happens during a run, see
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
+- `benchmarks/v2_reasoning.sample.json`: small V2 smoke-test benchmark
+- `benchmarks/v2_reasoning.expanded.json`: richer curated V2 diagnostic benchmark
+- `benchmarks/v2_reasoning.messy.json`: longer and noisier Tier 2 V2 benchmark
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
@@ -175,6 +178,7 @@ If you want a step-by-step explanation of what happens during a run, see
 - `docs/run-walkthrough.md`: step-by-step explanation of what happens during a run
 - `docs/v2-neurosymbolic.md`: experimental V2 design and CLI usage
 - `docs/v2-encoding-comparison.md`: practical comparison of V2 export targets
+- `docs/v2-benchmark-suite.md`: V2 benchmark philosophy, categories, metrics, and usage
 
 ## Core idea
 
@@ -351,6 +355,7 @@ See:
 - [objective evaluation guide](./docs/objective-evaluation.md)
 - [sample objective QA dataset](./benchmarks/objective_qa.sample.json)
 - [sample complexity sweep](./benchmarks/complexity_sweep.sample.json)
+- [V2 benchmark suite](./docs/v2-benchmark-suite.md)
 
 ## Structural fingerprint backend
 
@@ -460,25 +465,42 @@ Instead, version one should aim to be useful for:
 Dialectica now also includes an experimental V2 path that keeps V1 intact while
 adding:
 
+- conservative redundancy removal before translation
+- high-confidence decomposition into smaller articulated units
 - a hybrid AST with formal core, residue, provenance, and exportability
 - a pluggable encoding layer
 - a deterministic Horn-style reasoning backend
+- a broader skeptical FOL-style reasoning backend over the exact exported core
 - a natural-language explanation layer
 
 The default end-to-end V2 backend is Horn-style because it is deterministic,
 explainable, and cheap to run locally. The same AST also exports to a FOL-style
-artifact for comparison, and to a partial SMT-oriented path for future
+artifact that now has a matching proof path for the safe compiled fragment, and
+to a partial SMT-oriented path for future
 arithmetic work.
 
 Start here:
 
 - [V2 neuro-symbolic overview](./docs/v2-neurosymbolic.md)
 - [V2 encoding comparison](./docs/v2-encoding-comparison.md)
+- [V2 benchmark suite](./docs/v2-benchmark-suite.md)
+
+Run the expanded V2 benchmark locally:
+
+```bash
+uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+```
+
+Run the messier Tier 2 V2 benchmark locally:
+
+```bash
+uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.messy.qwen2.5.json --markdown-output reports/v2_comparison.messy.qwen2.5.report.md --charts-dir reports/v2_comparison.messy.qwen2.5.charts --pretty
+```
 
 ## Next implementation steps
 
 - Replace or augment the heuristic parser with an LLM-backed parser
-- Expand the benchmark set to 25 to 50 varied utterances
+- Broaden contradiction, negation, and arithmetic coverage in the V2 translator
 - Add embedding generation for raw text and canonical graph serializations
 - Add hybrid retrieval experiments and scoring
 - Measure whether logical retrieval beats text-only retrieval for selected tasks

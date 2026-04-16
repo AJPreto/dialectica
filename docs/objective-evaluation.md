@@ -9,6 +9,9 @@ The real question is:
 
 This document defines the leaner benchmark setup now used in the repo.
 
+For the dedicated neuro-symbolic benchmark centered on the experimental Horn
+path, see [v2-benchmark-suite.md](./v2-benchmark-suite.md).
+
 ## Success criterion
 
 Dialectica is successful if, on a fixed dataset with deterministic scoring, an
@@ -176,6 +179,23 @@ Dialectica blocks remote Ollama endpoints by default. To preserve privacy, keep
 `OLLAMA_BASE_URL` pointed at `localhost`. Only set
 `DIALECTICA_ALLOW_REMOTE_OLLAMA=1` if you intentionally want to override that
 safety check.
+
+## V2-specific comparison
+
+The repo also has a dedicated V2 comparison runner:
+
+```bash
+uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+```
+
+That benchmark adds:
+
+- category-wise accuracy
+- difficulty-wise accuracy
+- paraphrase stability
+- contradiction and negation diagnostics
+- exportability diagnostics for the V2 path
+- explanation-faithfulness proxies
 
 ## Complexity sweep
 

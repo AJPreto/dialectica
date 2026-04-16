@@ -147,11 +147,14 @@ def _residue_notes(statement: HybridStatement) -> list[str]:
     notes: list[str] = []
     if residue.uncertainty:
         notes.append(f"Uncertainty markers present: {', '.join(residue.uncertainty)}.")
+    if residue.attribution:
+        notes.append(f"Attribution markers present: {', '.join(residue.attribution)}.")
     if residue.ambiguity:
         notes.append(f"Ambiguity notes present: {', '.join(residue.ambiguity)}.")
+    if residue.temporal_vagueness:
+        notes.append(f"Temporal vagueness present: {', '.join(residue.temporal_vagueness)}.")
     if residue.unresolved_references:
         notes.append(f"Unresolved references present: {', '.join(residue.unresolved_references)}.")
     if residue.non_formalized_fragments:
         notes.append("Some source fragments could not be formalized safely.")
     return notes
-

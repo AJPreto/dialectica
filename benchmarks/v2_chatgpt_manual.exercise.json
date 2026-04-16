@@ -1,0 +1,37 @@
+[
+  {
+    "id": "v2x-manual-chat-001",
+    "difficulty": "adversarial",
+    "category": "negation",
+    "categories": [
+      "negation",
+      "conjunction_disjunction",
+      "contradiction_detection"
+    ],
+    "paraphrase_group": null,
+    "context": "If Bruno holds a cobalt badge or Bruno has temporary clearance, then Bruno may enter the calibration room. If Bruno may enter the calibration room and Bruno is not under safety suspension, then Bruno may start the calibration console. Bruno holds a cobalt badge. Bruno is under safety suspension. Bruno is not under safety suspension.",
+    "question": "May Bruno start the calibration console?",
+    "gold_answer": "no",
+    "expected_answer": "no",
+    "answer_type": "boolean",
+    "phenomena": [
+      "disjunction",
+      "explicit_negation",
+      "contradiction",
+      "skeptical_reasoning"
+    ],
+    "expected_horn_answer": "not_entailed",
+    "expected_inference_success": false,
+    "expected_contradiction_flag": true,
+    "expected_exportability": {
+      "horn": "unsupported",
+      "fol": "exact",
+      "smt": "unsupported"
+    },
+    "expected_reasoning_depth": 2,
+    "expected_failure_mode": "manual_external_chat_exercise",
+    "expected_behavior": "A conservative logical answer is no, because the conclusion depends on a contradicted premise about whether Bruno is under safety suspension.",
+    "manual_prompt_path": "prompts/external-chat-benchmark.md",
+    "response_template_path": "examples/v2/external-chat-response.template.json"
+  }
+]

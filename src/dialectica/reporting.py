@@ -13,6 +13,7 @@ PREFERRED_CONDITION_ORDER = [
     "dialectica_structural_compact",
     "dialectica_filtered_structural",
     "v2_horn",
+    "v2_fol",
 ]
 
 DISPLAY_LABELS = {
@@ -22,6 +23,7 @@ DISPLAY_LABELS = {
     "dialectica_structural_compact": "Structural Compact",
     "dialectica_filtered_structural": "Filtered Structural",
     "v2_horn": "V2 Horn",
+    "v2_fol": "V2 FOL",
     "dialectica_gold_compact": "Gold Compact",
     "dialectica_gold_filtered": "Gold Filtered",
     "dialectica_gold_structural_compact": "Gold Structural Compact",
@@ -168,6 +170,8 @@ def write_v2_report_bundle(
     latency_chart = charts_destination / "latency.svg"
     correctness_chart = charts_destination / "correctness_by_case.svg"
     token_trend_chart = charts_destination / "tokens_vs_context_size.svg"
+    category_chart = charts_destination / "category_accuracy.svg"
+    difficulty_chart = charts_destination / "difficulty_accuracy.svg"
 
     accuracy_values = [
         float(report.get("aggregate", {}).get(condition, {}).get("accuracy", 0.0) or 0.0)
@@ -228,6 +232,26 @@ def write_v2_report_bundle(
         ),
         encoding="utf-8",
     )
+    category_chart.write_text(
+        _grouped_bar_chart_svg(
+            title="Category Accuracy by Mode",
+            group_labels=list(report.get("category_summary", {}).keys()),
+            series=_build_grouped_accuracy_series(report.get("category_summary", {}), conditions),
+            y_label="Accuracy",
+            percent=True,
+        ),
+        encoding="utf-8",
+    )
+    difficulty_chart.write_text(
+        _grouped_bar_chart_svg(
+            title="Difficulty Accuracy by Mode",
+            group_labels=list(report.get("difficulty_summary", {}).keys()),
+            series=_build_grouped_accuracy_series(report.get("difficulty_summary", {}), conditions),
+            y_label="Accuracy",
+            percent=True,
+        ),
+        encoding="utf-8",
+    )
 
     markdown_destination.write_text(
         _v2_markdown(
@@ -239,6 +263,8 @@ def write_v2_report_bundle(
                 "latency": latency_chart,
                 "correctness": correctness_chart,
                 "trend": token_trend_chart,
+                "category": category_chart,
+                "difficulty": difficulty_chart,
             },
             conditions=conditions,
         ),
@@ -252,6 +278,8 @@ def write_v2_report_bundle(
         "latency_chart": str(latency_chart),
         "correctness_chart": str(correctness_chart),
         "token_trend_chart": str(token_trend_chart),
+        "category_chart": str(category_chart),
+        "difficulty_chart": str(difficulty_chart),
     }
 
 
@@ -333,6 +361,22 @@ def _build_v2_token_series(report: dict[str, Any], conditions: list[str]) -> lis
                 "label": _display_label(condition),
                 "color": COLORS[index % len(COLORS)],
                 "points": points,
+            }
+        )
+    return series
+
+
+def _build_grouped_accuracy_series(summary: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
+    series: list[dict[str, Any]] = []
+    for index, condition in enumerate(conditions):
+        values: list[float] = []
+        for group_data in summary.values():
+            values.append(float(group_data.get("modes", {}).get(condition, {}).get("accuracy", 0.0) or 0.0))
+        series.append(
+            {
+                "label": _display_label(condition),
+                "color": COLORS[index % len(COLORS)],
+                "values": values,
             }
         )
     return series
@@ -425,12 +469,18 @@ def _v2_markdown(
     conditions: list[str],
 ) -> str:
     relative_chart = {name: path.relative_to(markdown_path.parent).as_posix() for name, path in chart_paths.items()}
+    comparison_table = report.get("comparison_table", [])
+    diagnostics = report.get("diagnostics", {})
+    category_summary = report.get("category_summary", {})
+    difficulty_summary = report.get("difficulty_summary", {})
+    error_report = report.get("error_report", [])
     lines = [
         "# V2 Comparison Report",
         "",
         f"- Dataset: `{report.get('dataset_path')}`",
         f"- Provider: `{report.get('provider')}`",
         f"- Model: `{report.get('model')}`",
+        f"- Cases: `{len(report.get('cases', []))}`",
         "",
         "## Charts",
         "",
@@ -449,42 +499,122 @@ def _v2_markdown(
         "### Context size vs total tokens",
         f"![Token trend chart]({relative_chart['trend']})",
         "",
-        "## Aggregate Summary",
+        "### Category accuracy",
+        f"![Category accuracy chart]({relative_chart['category']})",
         "",
-        "| Condition | Accuracy | Avg tokens | Avg latency (s) |",
-        "| --- | ---: | ---: | ---: |",
+        "### Difficulty accuracy",
+        f"![Difficulty accuracy chart]({relative_chart['difficulty']})",
+        "",
+        "## Comparison Table",
+        "",
+        "| Condition | Accuracy | Avg tokens | Avg latency (s) | Negation | Exceptions | Contradictions | Paraphrase stability | Avg depth solved |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
 
-    aggregate = report.get("aggregate", {})
-    for condition in conditions:
-        current = aggregate.get(condition, {})
+    if comparison_table:
+        for row in comparison_table:
+            lines.append(
+                "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} | {negation:.3f} | {exceptions:.3f} | {contradictions:.3f} | {paraphrase:.3f} | {depth:.2f} |".format(
+                    label=row.get("label", row.get("mode", "")),
+                    accuracy=float(row.get("accuracy", 0.0) or 0.0),
+                    tokens=float(row.get("average_total_tokens", 0.0) or 0.0),
+                    latency=float(row.get("average_latency_seconds", 0.0) or 0.0),
+                    negation=float(row.get("negation_score", 0.0) or 0.0),
+                    exceptions=float(row.get("exception_score", 0.0) or 0.0),
+                    contradictions=float(row.get("contradiction_score", 0.0) or 0.0),
+                    paraphrase=float(row.get("paraphrase_stability", 0.0) or 0.0),
+                    depth=float(row.get("average_reasoning_depth_solved", 0.0) or 0.0),
+                )
+            )
+    else:
+        aggregate = report.get("aggregate", {})
+        for condition in conditions:
+            current = aggregate.get(condition, {})
+            lines.append(
+                "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} | 0.000 | 0.000 | 0.000 | 0.000 | 0.00 |".format(
+                    label=_display_label(condition),
+                    accuracy=float(current.get("accuracy", 0.0) or 0.0),
+                    tokens=float(current.get("average_total_tokens", 0.0) or 0.0),
+                    latency=float(current.get("average_latency_seconds", 0.0) or 0.0),
+                )
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Key Diagnostics",
+            "",
+            "- V2 contradiction-flag match rate: `{:.3f}`".format(
+                float(diagnostics.get("contradiction_sensitivity", {}).get("v2_horn_flag_match_rate", 0.0) or 0.0)
+            ),
+            "- V2 explanation faithfulness proxy: `{:.3f}`".format(
+                float(diagnostics.get("explanation_faithfulness_proxy", {}).get("v2_horn", {}).get("pass_rate", 0.0) or 0.0)
+            ),
+            "- Horn export expectation match rate: `{:.3f}`".format(
+                float(diagnostics.get("export_success_rate", {}).get("by_target", {}).get("horn", {}).get("expectation_match_rate", 0.0) or 0.0)
+            ),
+            "",
+            "## Category Summary",
+            "",
+            "| Category | Cases | Direct | Compact | Filtered | Filtered Structural | V2 Horn | V2 FOL |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for category, payload in category_summary.items():
         lines.append(
-            "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} |".format(
-                label=_display_label(condition),
-                accuracy=float(current.get("accuracy", 0.0) or 0.0),
-                tokens=float(current.get("average_total_tokens", 0.0) or 0.0),
-                latency=float(current.get("average_latency_seconds", 0.0) or 0.0),
+            "| {category} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
+                category=category,
+                cases=int(payload.get("case_count", 0) or 0),
+                direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
+                compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
+                filtered=float(payload.get("modes", {}).get("dialectica_filtered", {}).get("accuracy", 0.0) or 0.0),
+                filtered_struct=float(payload.get("modes", {}).get("dialectica_filtered_structural", {}).get("accuracy", 0.0) or 0.0),
+                v2_horn=float(payload.get("modes", {}).get("v2_horn", {}).get("accuracy", 0.0) or 0.0),
+                v2_fol=float(payload.get("modes", {}).get("v2_fol", {}).get("accuracy", 0.0) or 0.0),
             )
         )
 
     lines.extend(
         [
             "",
-            "## Case Summary",
+            "## Difficulty Summary",
             "",
-            "| Case | Direct | Filtered | V2 Horn | Gold |",
-            "| --- | --- | --- | --- | --- |",
+            "| Difficulty | Cases | Direct | Compact | Filtered | Filtered Structural | V2 Horn | V2 FOL |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for case in report.get("cases", []):
-        condition_map = {item["name"]: item for item in case.get("conditions", [])}
+    for difficulty, payload in difficulty_summary.items():
         lines.append(
-            "| {case_id} | {direct} | {filtered} | {v2} | {gold} |".format(
-                case_id=case.get("id", ""),
-                direct=_status_label(condition_map.get("direct", {}).get("correct")),
-                filtered=_status_label(condition_map.get("dialectica_filtered", {}).get("correct")),
-                v2=_status_label(condition_map.get("v2_horn", {}).get("correct")),
-                gold=case.get("gold_answer", ""),
+            "| {difficulty} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
+                difficulty=difficulty,
+                cases=int(payload.get("case_count", 0) or 0),
+                direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
+                compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
+                filtered=float(payload.get("modes", {}).get("dialectica_filtered", {}).get("accuracy", 0.0) or 0.0),
+                filtered_struct=float(payload.get("modes", {}).get("dialectica_filtered_structural", {}).get("accuracy", 0.0) or 0.0),
+                v2_horn=float(payload.get("modes", {}).get("v2_horn", {}).get("accuracy", 0.0) or 0.0),
+                v2_fol=float(payload.get("modes", {}).get("v2_fol", {}).get("accuracy", 0.0) or 0.0),
+            )
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Error Report",
+            "",
+            "| Case | Mode | Category | Predicted | Gold | Expected failure mode |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for entry in error_report[:30]:
+        lines.append(
+            "| {case_id} | {mode} | {category} | {predicted} | {gold} | {failure} |".format(
+                case_id=entry.get("case_id", ""),
+                mode=_display_label(str(entry.get("mode", ""))),
+                category=entry.get("category", ""),
+                predicted=entry.get("predicted", ""),
+                gold=entry.get("gold", ""),
+                failure=entry.get("expected_failure_mode", "") or "",
             )
         )
 
@@ -542,6 +672,84 @@ def _bar_chart_svg(*, title: str, labels: list[str], values: list[float], y_labe
         label_y = height - margin_bottom + 24
         parts.append(
             f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{label}</text>'
+        )
+
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def _grouped_bar_chart_svg(
+    *,
+    title: str,
+    group_labels: list[str],
+    series: list[dict[str, Any]],
+    y_label: str,
+    percent: bool = False,
+) -> str:
+    width = 1200
+    height = 620
+    margin_left = 90
+    margin_right = 60
+    margin_top = 60
+    margin_bottom = 190
+    plot_width = width - margin_left - margin_right
+    plot_height = height - margin_top - margin_bottom
+    all_values = [value for entry in series for value in entry.get("values", [])]
+    max_value = max(all_values, default=0.0)
+    scale_max = max_value if max_value > 0 else 1.0
+    if percent:
+        scale_max = max(scale_max, 1.0)
+
+    group_count = max(len(group_labels), 1)
+    series_count = max(len(series), 1)
+    slot_width = plot_width / group_count
+    group_width = slot_width * 0.82
+    gap_width = group_width * 0.08
+    bar_width = max((group_width - gap_width) / series_count, 8.0)
+    y_ticks = 5
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
+        '<rect width="100%" height="100%" fill="#fffdf8" />',
+        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{title}</text>',
+        f'<line x1="{margin_left}" y1="{height - margin_bottom}" x2="{width - margin_right}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
+        f'<line x1="{margin_left}" y1="{margin_top}" x2="{margin_left}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
+        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{y_label}</text>',
+    ]
+
+    for tick_index in range(y_ticks + 1):
+        value = scale_max * tick_index / y_ticks
+        y = height - margin_bottom - (plot_height * tick_index / y_ticks)
+        label = f"{value:.2f}" if percent or scale_max < 10 else f"{value:.0f}"
+        parts.append(f'<line x1="{margin_left}" y1="{y}" x2="{width - margin_right}" y2="{y}" stroke="#e6e0d4" stroke-width="1" />')
+        parts.append(
+            f'<text x="{margin_left - 10}" y="{y + 5}" text-anchor="end" font-size="12" font-family="Segoe UI, sans-serif" fill="#555">{label}</text>'
+        )
+
+    for group_index, label in enumerate(group_labels):
+        group_x = margin_left + slot_width * group_index + (slot_width - group_width) / 2
+        for series_index, entry in enumerate(series):
+            values = entry.get("values", [])
+            value = float(values[group_index] if group_index < len(values) else 0.0)
+            x = group_x + series_index * bar_width
+            bar_height = 0 if scale_max == 0 else (value / scale_max) * plot_height
+            y = height - margin_bottom - bar_height
+            color = entry.get("color", COLORS[series_index % len(COLORS)])
+            parts.append(f'<rect x="{x:.2f}" y="{y:.2f}" width="{bar_width - 2:.2f}" height="{bar_height:.2f}" fill="{color}" rx="3" />')
+        label_x = group_x + group_width / 2
+        label_y = height - margin_bottom + 24
+        parts.append(
+            f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{label}</text>'
+        )
+
+    legend_x = margin_left
+    legend_y = height - 90
+    for index, entry in enumerate(series):
+        color = entry.get("color", COLORS[index % len(COLORS)])
+        x = legend_x + index * 190
+        parts.append(f'<rect x="{x}" y="{legend_y - 12}" width="18" height="18" fill="{color}" rx="2" />')
+        parts.append(
+            f'<text x="{x + 26}" y="{legend_y + 2}" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{entry.get("label", "")}</text>'
         )
 
     parts.append("</svg>")
