@@ -9,6 +9,21 @@ from typing import Any
 
 BOOLEAN_TRUE = {"yes", "true", "1", "allowed", "correct"}
 BOOLEAN_FALSE = {"no", "false", "0", "not allowed", "incorrect"}
+TERNARY_UNKNOWN = {
+    "unknown",
+    "undetermined",
+    "uncertain",
+    "cannot determine",
+    "can't determine",
+    "cannot tell",
+    "can't tell",
+    "insufficient information",
+    "insufficient info",
+    "not enough information",
+    "not enough info",
+    "unclear",
+    "maybe",
+}
 
 
 def score_answer(answer: str, gold_answer: Any, answer_type: str, choices: list[str] | None = None) -> dict[str, Any]:
@@ -31,6 +46,14 @@ def normalize_answer(value: Any, answer_type: str, choices: list[str] | None = N
             return "yes"
         if text in BOOLEAN_FALSE:
             return "no"
+        return None
+    if answer_type == "ternary":
+        if text in BOOLEAN_TRUE:
+            return "yes"
+        if text in BOOLEAN_FALSE:
+            return "no"
+        if text in TERNARY_UNKNOWN:
+            return "unknown"
         return None
     if answer_type == "multiple_choice":
         if not choices:
@@ -84,4 +107,3 @@ def extract_answer_payload(text: str) -> dict[str, str]:
 
 def _normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().casefold())
-

@@ -5,7 +5,7 @@ These prompts are intentionally minimal for ChatGPT web reliability.
 Instructions:
 - Start a fresh chat if the current one has been flaky.
 - Copy one case at a time.
-- Ask for a one-word answer only: `yes` or `no`.
+- Ask for a one-word answer only: `yes`, `no`, or `unknown`.
 - When you have the results, paste them back into the response template in `examples/v2/external-chat-pack-response.template.json`.
 
 ## case-001
@@ -16,6 +16,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice holds an amber badge. Alice completed amber orientation.
 
@@ -29,6 +31,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Bruno holds a cobalt badge or Bruno has temporary clearance, then Bruno may enter the calibration room. Bruno holds a cobalt badge.
 
@@ -42,6 +46,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Alice does not hold an amber badge.
 
@@ -57,6 +63,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice may enter the amber workshop. Alice completed amber orientation. Alice may not enter the amber workshop.
 
@@ -72,6 +80,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation. Alice is suspended.
 
@@ -85,6 +95,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: batch size = 4.
 

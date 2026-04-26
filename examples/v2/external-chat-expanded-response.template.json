@@ -2,6 +2,7 @@
   "source": "chatgpt-chat",
   "model": "",
   "notes": "",
+  "allowed_answers": ["yes", "no", "unknown"],
   "results": [
     {
       "benchmark_id": "v2x-imp-001",

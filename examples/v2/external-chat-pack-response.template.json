@@ -2,6 +2,7 @@
   "source": "chatgpt-chat",
   "model": "ChatGPT-5.4",
   "notes": "This is a sample response for the external chat pack benchmark. The results are based on the model's performance on the provided cases.",
+  "allowed_answers": ["yes", "no", "unknown"],
   "results": [
     {
       "benchmark_id": "v2x-manual-pack-001",
@@ -21,12 +22,12 @@
     {
       "benchmark_id": "v2x-manual-pack-004",
       "prompt_label": "case-004",
-      "answer": "no"
+      "answer": "unknown"
     },
     {
       "benchmark_id": "v2x-manual-pack-005",
       "prompt_label": "case-005",
-      "answer": "no"
+      "answer": "unknown"
     },
     {
       "benchmark_id": "v2x-manual-pack-006",

@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from dialectica.reporting import write_v2_report_bundle
+from dialectica.scoring import normalize_answer
 from dialectica.v2_eval import evaluate_v2_comparison
 
 
@@ -183,6 +184,42 @@ class V2BenchmarkTests(unittest.TestCase):
             self.assertTrue(markdown_path.exists())
             self.assertTrue((charts_dir / "category_accuracy.svg").exists())
             self.assertIn("markdown", manifest)
+
+    def test_ternary_unknown_answers_are_supported(self) -> None:
+        self.assertEqual(normalize_answer("cannot determine", "ternary"), "unknown")
+
+        dataset = [
+            {
+                "id": "case-unknown",
+                "difficulty": "medium",
+                "category": "simple_implication",
+                "categories": ["simple_implication"],
+                "context": "If Alice completed amber orientation, then Alice holds an amber badge. Bruno completed amber orientation.",
+                "question": "Does Alice hold an amber badge?",
+                "gold_answer": "unknown",
+                "answer_type": "ternary",
+                "choices": ["yes", "no", "unknown"],
+                "expected_answer": "unknown",
+                "expected_horn_answer": "not_entailed",
+                "expected_inference_success": True,
+                "expected_contradiction_flag": False,
+                "expected_exportability": {"horn": "exact", "fol": "exact", "smt": "unsupported"},
+                "expected_reasoning_depth": 1,
+                "expected_failure_mode": None,
+                "expected_behavior": "The missing antecedent match should leave the answer unknown.",
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / "dataset.json"
+            dataset_path.write_text(json.dumps(dataset), encoding="utf-8")
+            report = evaluate_v2_comparison(dataset_path, provider_name="oracle")
+
+            self.assertEqual(report["cases"][0]["answer_type"], "ternary")
+            self.assertEqual(report["cases"][0]["choices"], ["yes", "no", "unknown"])
+            v2_horn = next(condition for condition in report["cases"][0]["conditions"] if condition["name"] == "v2_horn")
+            self.assertEqual(v2_horn["predicted"], "unknown")
+            self.assertTrue(v2_horn["correct"])
 
 
 if __name__ == "__main__":

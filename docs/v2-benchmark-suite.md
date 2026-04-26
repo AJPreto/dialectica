@@ -42,6 +42,12 @@ The benchmark now has two curated tiers:
   Longer and noisier reasoning problems. These keep the same controlled
   logic targets while adding distractors, memo-like framing, and more context
   clutter around the critical facts and rules.
+  The messy tier now uses a tri-valued answer policy: `yes`, `no`, or `unknown`.
+  `unknown` is used when the context leaves the answer unsupported, conflicted,
+  ambiguous, or otherwise underdetermined.
+  Under the current entailment-based evaluation, `A unless B` does not license `A`
+  unless the blocker is ruled out explicitly; absence of evidence for `B` is not
+  evidence that `B` is false.
 
 The purpose of the messy tier is to probe the next question:
 

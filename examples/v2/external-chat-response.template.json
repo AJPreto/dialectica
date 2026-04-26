@@ -2,6 +2,7 @@
   "benchmark_id": "v2x-manual-chat-001",
   "source": "chatgpt-chat",
   "model": "",
+  "allowed_answers": ["yes", "no", "unknown"],
   "answer": "",
   "justification": ""
 }

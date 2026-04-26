@@ -1,0 +1,93 @@
+{
+  "source": "chatgpt-chat",
+  "model": "",
+  "notes": "",
+  "allowed_answers": ["yes", "no", "unknown"],
+  "results": [
+    {
+      "benchmark_id": "v2m-chain-001",
+      "prompt_label": "case-001",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-chain-002",
+      "prompt_label": "case-002",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-chain-003",
+      "prompt_label": "case-003",
+      "answer": "unknown"
+    },
+    {
+      "benchmark_id": "v2m-exc-001",
+      "prompt_label": "case-004",
+      "answer": "no"
+    },
+    {
+      "benchmark_id": "v2m-exc-002",
+      "prompt_label": "case-005",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-exc-003",
+      "prompt_label": "case-006",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-ctr-001",
+      "prompt_label": "case-007",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-neg-001",
+      "prompt_label": "case-008",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-att-001",
+      "prompt_label": "case-009",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-amb-001",
+      "prompt_label": "case-010",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-unc-001",
+      "prompt_label": "case-011",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-disj-001",
+      "prompt_label": "case-012",
+      "answer": "unknown"
+    },
+    {
+      "benchmark_id": "v2m-var-001",
+      "prompt_label": "case-013",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-var-002",
+      "prompt_label": "case-014",
+      "answer": "no"
+    },
+    {
+      "benchmark_id": "v2m-num-001",
+      "prompt_label": "case-015",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-num-002",
+      "prompt_label": "case-016",
+      "answer": "yes"
+    },
+    {
+      "benchmark_id": "v2m-mixed-001",
+      "prompt_label": "case-017",
+      "answer": "no"
+    }
+  ]
+}

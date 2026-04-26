@@ -8,7 +8,7 @@ Rules:
 - Use this exact shape:
 
 ```json
-{"answer":"yes or no","justification":"1-3 short sentences"}
+{"answer":"yes, no, or unknown","justification":"1-3 short sentences"}
 ```
 
 Context:

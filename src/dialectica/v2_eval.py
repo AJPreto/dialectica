@@ -109,6 +109,7 @@ def evaluate_v2_comparison(
                 "question": case["question"],
                 "gold_answer": case["gold_answer"],
                 "answer_type": case["answer_type"],
+                "choices": case["choices"],
                 "difficulty": case["difficulty"],
                 "category": case["category"],
                 "categories": case["categories"],
@@ -194,6 +195,7 @@ def _normalize_case(raw_case: dict[str, Any]) -> dict[str, Any]:
         "gold_answer": gold_answer,
         "expected_answer": expected_answer,
         "answer_type": str(raw_case.get("answer_type", "boolean")),
+        "choices": [str(choice) for choice in raw_case.get("choices", [])],
         "language": str(raw_case.get("language", "en")),
         "difficulty": str(raw_case.get("difficulty", "unspecified")),
         "category": str(raw_case.get("category", normalized_categories[0])),
@@ -224,7 +226,7 @@ def _run_model_condition(
         metadata={"gold_answer": case["gold_answer"], "case_id": case["id"], "condition": name},
     )
     payload = extract_answer_payload(response.text)
-    score = score_answer(payload["answer"], case["gold_answer"], case["answer_type"])
+    score = score_answer(payload["answer"], case["gold_answer"], case["answer_type"], choices=case.get("choices"))
     usage = response.usage or {}
     return {
         "name": name,
@@ -257,7 +259,7 @@ def _run_v2_horn_condition(case: dict[str, Any]) -> dict[str, Any]:
     reasoning = reason_over_horn_program(compiled["horn"]["artifact"])
     explanation = explain_reasoning(compiled_document, reasoning)
     normalized_answer = _normalize_v2_answer(reasoning.answer, answer_type=case["answer_type"])
-    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"])
+    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
     compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
     contradiction = _detect_contradictions(compiled_document)
     explanation_proxy = _score_explanation_proxy(
@@ -311,7 +313,7 @@ def _run_v2_fol_condition(case: dict[str, Any]) -> dict[str, Any]:
     reasoning = reason_over_fol_program(compiled["fol"]["artifact"].get("program", {}))
     explanation = explain_fol_reasoning(compiled_document, reasoning)
     normalized_answer = _normalize_v2_answer(reasoning.answer, answer_type=case["answer_type"])
-    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"])
+    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
     compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
     contradiction = _detect_contradictions(compiled_document)
     return {
@@ -341,6 +343,12 @@ def _run_v2_fol_condition(case: dict[str, Any]) -> dict[str, Any]:
 def _normalize_v2_answer(answer: str, *, answer_type: str) -> str:
     if answer_type == "boolean":
         return "yes" if answer == "entailed" else "no"
+    if answer_type == "ternary":
+        if answer == "entailed":
+            return "yes"
+        if answer == "refuted":
+            return "no"
+        return "unknown"
     return answer
 
 

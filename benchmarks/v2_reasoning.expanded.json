@@ -47,9 +47,10 @@
     "paraphrase_group": null,
     "context": "If Alice completed amber orientation, then Alice holds an amber badge. Bruno completed amber orientation.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["simple_implication", "entity_mismatch"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": true,
@@ -57,7 +58,7 @@
     "expected_exportability": {"horn": "exact", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": null,
-    "expected_behavior": "The rule should not fire for Alice when only Bruno satisfies the antecedent."
+    "expected_behavior": "The rule should not fire for Alice when only Bruno satisfies the antecedent, so the answer should remain unknown."
   },
   {
     "id": "v2x-conj-001",
@@ -87,9 +88,10 @@
     "paraphrase_group": null,
     "context": "If Alice completed amber orientation and Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation.",
     "question": "May Alice enter the amber workshop?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["conjunction", "missing_premise"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": true,
@@ -97,7 +99,7 @@
     "expected_exportability": {"horn": "exact", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": null,
-    "expected_behavior": "The missing badge premise should prevent the permission from being derived."
+    "expected_behavior": "The missing badge premise leaves the permission unsupported, so the answer should remain unknown."
   },
   {
     "id": "v2x-disj-001",
@@ -137,7 +139,7 @@
     "expected_exportability": {"horn": "partial", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 0,
     "expected_failure_mode": "explicit_negation_withheld",
-    "expected_behavior": "The Horn backend should preserve the negation in the AST but withhold it from reasoning."
+    "expected_behavior": "The explicit negation directly supports answering no, even though the Horn backend still withholds it from positive rule reasoning."
   },
   {
     "id": "v2x-neg-002",
@@ -147,9 +149,10 @@
     "paraphrase_group": null,
     "context": "If Alice completed amber orientation, then Alice may enter the amber workshop. Alice completed amber orientation. Alice may not enter the amber workshop.",
     "question": "May Alice enter the amber workshop?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["explicit_negation", "conflicting_claims"],
     "expected_horn_answer": "entailed",
     "expected_inference_success": false,
@@ -157,7 +160,7 @@
     "expected_exportability": {"horn": "partial", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "explicit_negation_conflict",
-    "expected_behavior": "This is an honest failure case: Horn can derive the permission but cannot represent the conflicting negated fact."
+    "expected_behavior": "The explicit negative permission conflicts with the positive rule chain, so the answer should remain unknown under skeptical semantics."
   },
   {
     "id": "v2x-ctr-001",
@@ -167,9 +170,10 @@
     "paraphrase_group": "contradiction_base",
     "context": "Alice completed amber orientation. Alice did not complete amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["contradiction", "rule_chain"],
     "expected_horn_answer": "entailed",
     "expected_inference_success": false,
@@ -177,7 +181,7 @@
     "expected_exportability": {"horn": "partial", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "contradiction_unresolved",
-    "expected_behavior": "The translator should surface a contradiction, and the current Horn engine is expected to over-derive by ignoring the negative fact."
+    "expected_behavior": "The contradiction affects the rule premise, so the answer should remain unknown rather than forcing either yes or no."
   },
   {
     "id": "v2x-exc-001",
@@ -185,19 +189,19 @@
     "category": "conditions_exceptions",
     "categories": ["conditions_exceptions"],
     "paraphrase_group": null,
-    "context": "If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation. Alice is suspended.",
+    "context": "If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation. Alice is suspended. Alice may not enter the amber workshop.",
     "question": "May Alice enter the amber workshop?",
     "gold_answer": "no",
     "expected_answer": "no",
     "answer_type": "boolean",
-    "phenomena": ["exception", "blocking"],
-    "expected_horn_answer": "blocked",
-    "expected_inference_success": true,
+    "phenomena": ["exception", "blocking", "explicit_negation"],
+    "expected_horn_answer": "not_entailed",
+    "expected_inference_success": false,
     "expected_contradiction_flag": false,
-    "expected_exportability": {"horn": "exact", "fol": "partial", "smt": "unsupported"},
+    "expected_exportability": {"horn": "partial", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
-    "expected_failure_mode": null,
-    "expected_behavior": "The exception fact should block the rule application."
+    "expected_failure_mode": "explicit_negative_permission_withheld",
+    "expected_behavior": "The suspension blocks the positive rule and the explicit negative permission supports answering no."
   },
   {
     "id": "v2x-exc-002",
@@ -207,17 +211,18 @@
     "paraphrase_group": "exception_open",
     "context": "If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation.",
     "question": "May Alice enter the amber workshop?",
-    "gold_answer": "yes",
-    "expected_answer": "yes",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["exception", "no_blocker"],
-    "expected_horn_answer": "entailed",
+    "expected_horn_answer": "not_entailed",
     "expected_inference_success": true,
     "expected_contradiction_flag": false,
     "expected_exportability": {"horn": "exact", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": null,
-    "expected_behavior": "With no blocker fact present, the exception-guarded rule should still fire."
+    "expected_behavior": "Without explicit evidence that Alice is not suspended, the guarded rule should not support a positive conclusion under the benchmark's entailment-based semantics."
   },
   {
     "id": "v2x-exc-003",
@@ -227,17 +232,18 @@
     "paraphrase_group": "exception_open",
     "context": "If Alice completed the amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed the amber orientation.",
     "question": "May Alice enter the amber workshop?",
-    "gold_answer": "yes",
-    "expected_answer": "yes",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["exception", "paraphrase"],
-    "expected_horn_answer": "entailed",
+    "expected_horn_answer": "not_entailed",
     "expected_inference_success": true,
     "expected_contradiction_flag": false,
     "expected_exportability": {"horn": "exact", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": null,
-    "expected_behavior": "This paraphrase should remain stable because the guarded rule structure is unchanged."
+    "expected_behavior": "The paraphrase should preserve the same guarded-rule ambiguity, so the answer should remain unknown without explicit evidence that Alice is not suspended."
   },
   {
     "id": "v2x-chain-001",
@@ -327,9 +333,10 @@
     "paraphrase_group": null,
     "context": "All certified operators may use the milling machine. Bruno is a certified operator. Carla is a guest visitor.",
     "question": "May Carla use the milling machine?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["quantification", "entity_mismatch"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": true,
@@ -337,7 +344,7 @@
     "expected_exportability": {"horn": "exact", "fol": "exact", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": null,
-    "expected_behavior": "The variable binding should not leak from Bruno to Carla."
+    "expected_behavior": "The rule does not apply to Carla, but the context also does not prove the opposite, so the answer should remain unknown."
   },
   {
     "id": "v2x-att-001",
@@ -347,9 +354,10 @@
     "paraphrase_group": null,
     "context": "According to the intern, Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["attribution", "faithfulness"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": false,
@@ -357,7 +365,7 @@
     "expected_exportability": {"horn": "partial", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "attributed_fact_not_promoted",
-    "expected_behavior": "The attributed claim should remain explicit residue rather than becoming a plain Horn fact."
+    "expected_behavior": "The attributed claim should remain explicit residue rather than becoming settled ground truth, so the answer should remain unknown."
   },
   {
     "id": "v2x-att-002",
@@ -367,9 +375,10 @@
     "paraphrase_group": "attribution_permission",
     "context": "According to the inspector, Bruno is a certified operator. All certified operators may use the milling machine.",
     "question": "May Bruno use the milling machine?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["attribution", "quantification"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": false,
@@ -377,7 +386,7 @@
     "expected_exportability": {"horn": "partial", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "attributed_class_membership_not_promoted",
-    "expected_behavior": "The Horn backend should not treat attributed class membership as settled ground truth."
+    "expected_behavior": "The attributed class-membership claim should not become settled ground truth, so the answer should remain unknown."
   },
   {
     "id": "v2x-amb-001",
@@ -387,9 +396,10 @@
     "paraphrase_group": "pronoun_ambiguity",
     "context": "Alice completed amber orientation. She holds an amber badge.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["unresolved_reference", "partial_formalization"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": false,
@@ -397,7 +407,7 @@
     "expected_exportability": {"horn": "partial", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 0,
     "expected_failure_mode": "unresolved_pronoun",
-    "expected_behavior": "The pronoun should stay unresolved instead of being forced onto Alice."
+    "expected_behavior": "The pronoun should stay unresolved instead of being forced onto Alice, so the answer should remain unknown."
   },
   {
     "id": "v2x-amb-002",
@@ -407,9 +417,10 @@
     "paraphrase_group": null,
     "context": "Maybe Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["uncertainty", "faithfulness"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": false,
@@ -417,7 +428,7 @@
     "expected_exportability": {"horn": "partial", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "uncertain_fact_withheld",
-    "expected_behavior": "Uncertainty should be preserved outside the formal core and prevent Horn derivation."
+    "expected_behavior": "Uncertainty should be preserved outside the formal core, so the answer should remain unknown."
   },
   {
     "id": "v2x-amb-003",
@@ -427,9 +438,10 @@
     "paraphrase_group": "pronoun_ambiguity",
     "context": "Alice completed the amber orientation. She holds the amber badge.",
     "question": "Does Alice hold the amber badge?",
-    "gold_answer": "no",
-    "expected_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "expected_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["unresolved_reference", "paraphrase"],
     "expected_horn_answer": "not_entailed",
     "expected_inference_success": false,
@@ -437,7 +449,7 @@
     "expected_exportability": {"horn": "partial", "fol": "partial", "smt": "unsupported"},
     "expected_reasoning_depth": 0,
     "expected_failure_mode": "unresolved_pronoun",
-    "expected_behavior": "The paraphrase should remain unresolved in the same conservative way."
+    "expected_behavior": "The paraphrase should remain unresolved in the same conservative way, so the answer should remain unknown."
   },
   {
     "id": "v2x-num-001",

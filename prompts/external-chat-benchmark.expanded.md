@@ -6,7 +6,7 @@ Instructions:
 - Copy one full case block at a time into ChatGPT.
 - Start a fresh chat if the current one becomes flaky.
 - Each case is standalone.
-- Reply should be one word only: `yes` or `no`.
+- Reply should be one word only: `yes`, `no`, or `unknown`.
 - When you have all answers, put them into `examples/v2/external-chat-expanded-response.template.json`.
 
 ## case-001 | v2x-imp-001
@@ -21,6 +21,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice holds an amber badge. Alice completed amber orientation.
 
@@ -38,6 +40,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed the amber orientation, then Alice holds the amber badge. Alice completed the amber orientation.
 
@@ -55,6 +59,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice holds an amber badge. Bruno completed amber orientation.
 
@@ -72,6 +78,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation and Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. Alice holds an amber badge.
 
@@ -89,6 +97,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation and Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation.
 
@@ -106,6 +116,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation or Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation.
 
@@ -123,6 +135,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Alice does not hold an amber badge.
 
@@ -140,6 +154,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice may enter the amber workshop. Alice completed amber orientation. Alice may not enter the amber workshop.
 
@@ -157,6 +173,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Alice completed amber orientation. Alice did not complete amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.
 
@@ -174,8 +192,10 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
-Context: If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation. Alice is suspended.
+Context: If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation. Alice is suspended. Alice may not enter the amber workshop.
 
 Question: May Alice enter the amber workshop?
 
@@ -191,6 +211,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed amber orientation.
 
@@ -208,6 +230,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed the amber orientation, then Alice may enter the amber workshop unless Alice is suspended. Alice completed the amber orientation.
 
@@ -225,6 +249,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice is cleared for the amber zone. If Alice is cleared for the amber zone, then Alice may enter the amber workshop. Alice completed amber orientation.
 
@@ -242,6 +268,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: If Greta completed amber orientation, then Greta holds an amber badge. If Greta holds an amber badge, then Greta is cleared for the amber zone. If Greta is cleared for the amber zone, then Greta has a workstation key. If Greta has a workstation key, then Greta may enter the amber workshop. Bruno completed cobalt orientation. If Bruno completed cobalt orientation, then Bruno holds a cobalt badge. Greta completed amber orientation.
 
@@ -259,6 +287,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: All certified operators may use the milling machine. Bruno is a certified operator.
 
@@ -276,6 +306,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: All certified operators can use the milling machine. Bruno is a certified operator.
 
@@ -293,6 +325,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: All certified operators may use the milling machine. Bruno is a certified operator. Carla is a guest visitor.
 
@@ -310,6 +344,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: According to the intern, Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.
 
@@ -327,6 +363,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: According to the inspector, Bruno is a certified operator. All certified operators may use the milling machine.
 
@@ -344,6 +382,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Alice completed amber orientation. She holds an amber badge.
 
@@ -361,6 +401,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Maybe Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.
 
@@ -378,6 +420,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: Alice completed the amber orientation. She holds the amber badge.
 
@@ -395,6 +439,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: inventory count >= 3.
 
@@ -412,6 +458,8 @@ Reply with only one word:
 yes
 or
 no
+or
+unknown
 
 Context: batch size = 4.
 

@@ -11,6 +11,10 @@ produce a stable intermediate representation that is:
 - soft enough to preserve ambiguity and uncertainty
 - machine-friendly enough for retrieval, planning, and synthesis
 
+By doing so, we are leveraging a priori knowledge that can be token-independent and 
+achieve the same accuracy. This has limited scope, but aims to showcase how we can 
+intertwine preexisting corpus of knowledge with powerful LLMs. 
+
 ## Prototype status
 
 The repo now includes a runnable V1 prototype with:
@@ -166,9 +170,9 @@ If you want a step-by-step explanation of what happens during a run, see
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
-- `benchmarks/v2_reasoning.sample.json`: small V2 smoke-test benchmark
-- `benchmarks/v2_reasoning.expanded.json`: richer curated V2 diagnostic benchmark
-- `benchmarks/v2_reasoning.messy.json`: longer and noisier Tier 2 V2 benchmark
+- `benchmarks/v2_reasoning.sample.json`: small V2 smoke-test benchmark, including ternary `unknown` cases for guarded exceptions
+- `benchmarks/v2_reasoning.expanded.json`: richer curated V2 diagnostic benchmark with mixed boolean and ternary cases
+- `benchmarks/v2_reasoning.messy.json`: longer and noisier Tier 2 V2 benchmark with `yes / no / unknown` answers
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
@@ -504,4 +508,3 @@ uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.messy.json --pro
 - Add embedding generation for raw text and canonical graph serializations
 - Add hybrid retrieval experiments and scoring
 - Measure whether logical retrieval beats text-only retrieval for selected tasks
-

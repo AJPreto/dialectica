@@ -19,16 +19,18 @@
     "id": "v2-case-003",
     "context": "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop unless Alice is under amber suspension. Alice completed amber orientation. Alice is under amber suspension.",
     "question": "May Alice enter the amber workshop?",
-    "gold_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["exception", "blocking"]
   },
   {
     "id": "v2-case-004",
     "context": "Maybe Alice completed amber orientation. If Alice completed amber orientation, then Alice holds an amber badge.",
     "question": "Does Alice hold an amber badge?",
-    "gold_answer": "no",
-    "answer_type": "boolean",
+    "gold_answer": "unknown",
+    "answer_type": "ternary",
+    "choices": ["yes", "no", "unknown"],
     "phenomena": ["uncertainty", "faithfulness"]
   },
   {
@@ -41,10 +43,10 @@
   },
   {
     "id": "v2-case-006",
-    "context": "All certified operators may use the milling machine. Bruno is a certified operator.",
+    "context": "All certified operators may use the milling machine. Bruno is a certified operator. Carla may not use the milling machine.",
     "question": "May Carla use the milling machine?",
     "gold_answer": "no",
     "answer_type": "boolean",
-    "phenomena": ["quantification", "non_entailment"]
+    "phenomena": ["quantification", "explicit_negation"]
   }
 ]
