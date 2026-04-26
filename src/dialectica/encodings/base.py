@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -17,11 +18,12 @@ class CompilationResult:
     statement_records: dict[str, ExportRecord] = field(default_factory=dict)
 
 
-class BaseExporter:
+class BaseExporter(ABC):
     target = "base"
 
+    @abstractmethod
     def compile(self, document) -> CompilationResult:
-        raise NotImplementedError
+        """Compile a hybrid document into a backend-specific artifact."""
 
 
 def combine_status(records: list[ExportRecord]) -> str:
@@ -37,4 +39,3 @@ def combine_status(records: list[ExportRecord]) -> str:
     if any(record.status == "exact" for record in records):
         return "partial"
     return "unsupported"
-

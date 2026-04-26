@@ -10,7 +10,7 @@ from pathlib import Path
 from .api import run_server
 from .answer_eval import evaluate_answer_dataset, write_performance_summary, write_report
 from .canonical import canonicalize_logical_form, serialize_logical_form
-from .compiler import compile_hybrid_document, compiled_document_to_dict
+from .compiler import SUPPORTED_EXPORT_TARGETS, compile_hybrid_document, compiled_document_to_dict
 from .complexity import (
     generate_complexity_dataset,
     summarize_complexity_report,
@@ -30,7 +30,7 @@ from .validation import validate_logical_form
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="dialectica", description="Dialectica prototype tools")
+    parser = argparse.ArgumentParser(prog="dialectica", description="Dialectica logical-form tools")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     parse_parser = subparsers.add_parser("parse", help="Parse text into a logical form")
@@ -248,6 +248,14 @@ def main(argv: list[str] | None = None) -> int:
         requested_targets = [part.strip() for part in args.targets.split(",") if part.strip()]
         if args.reasoner not in requested_targets:
             requested_targets.append(args.reasoner)
+        unsupported_targets = [target for target in requested_targets if target not in SUPPORTED_EXPORT_TARGETS]
+        if unsupported_targets:
+            print(
+                "Unsupported export target(s): "
+                f"{', '.join(unsupported_targets)}. Supported targets: {', '.join(SUPPORTED_EXPORT_TARGETS)}.",
+                file=sys.stderr,
+            )
+            return 2
         targets = tuple(requested_targets)
         document = translate_text(text, query=args.query)
         compiled_document, compiled_outputs = compile_hybrid_document(document, targets=targets)
@@ -282,7 +290,7 @@ def main(argv: list[str] | None = None) -> int:
                 model=args.model,
                 include_gold_dialectica=args.include_gold_dialectica,
             )
-        except ProviderError as exc:
+        except (ProviderError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
         if args.output:
@@ -315,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
                 model=args.model,
                 include_gold_dialectica=args.include_gold_dialectica,
             )
-        except ProviderError as exc:
+        except (ProviderError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
         summary = summarize_complexity_report(report)
@@ -369,7 +377,7 @@ def main(argv: list[str] | None = None) -> int:
                 provider_name=args.provider,
                 model=args.model,
             )
-        except ProviderError as exc:
+        except (ProviderError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
         if args.output:

@@ -13,7 +13,6 @@ from ..ir import (
     HybridStatement,
     Negation,
     RuleCore,
-    Variable,
     ir_to_dict,
 )
 

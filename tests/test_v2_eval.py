@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from dialectica.reporting import write_v2_report_bundle
-from dialectica.scoring import normalize_answer
+from dialectica.scoring import extract_answer_payload, normalize_answer
 from dialectica.v2_eval import evaluate_v2_comparison
 
 
@@ -184,6 +184,58 @@ class V2BenchmarkTests(unittest.TestCase):
             self.assertTrue(markdown_path.exists())
             self.assertTrue((charts_dir / "category_accuracy.svg").exists())
             self.assertIn("markdown", manifest)
+
+    def test_report_bundle_escapes_user_visible_text(self) -> None:
+        report = {
+            "dataset_path": "benchmarks/v2_reasoning.expanded.json",
+            "provider": "oracle",
+            "model": None,
+            "aggregate": {
+                "direct": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
+            },
+            "category_summary": {
+                "risky|<script>": {"case_count": 1, "modes": {"direct": {"accuracy": 1.0}}},
+            },
+            "difficulty_summary": {
+                "easy|<b>": {"case_count": 1, "modes": {"direct": {"accuracy": 1.0}}},
+            },
+            "comparison_table": [
+                {
+                    "mode": "direct",
+                    "label": "Direct|<b>",
+                    "accuracy": 1.0,
+                    "average_total_tokens": 0.0,
+                    "average_latency_seconds": 0.0,
+                }
+            ],
+            "diagnostics": {},
+            "error_report": [
+                {
+                    "case_id": "case|<1>",
+                    "mode": "direct",
+                    "category": "risky|<script>",
+                    "predicted": "yes|<b>",
+                    "gold": "no|<i>",
+                    "expected_failure_mode": "bad|<tag>",
+                }
+            ],
+            "cases": [],
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            markdown_path = Path(tmpdir) / "report.md"
+            charts_dir = Path(tmpdir) / "charts"
+            write_v2_report_bundle(report=report, markdown_path=markdown_path, charts_dir=charts_dir)
+
+            markdown = markdown_path.read_text(encoding="utf-8")
+            svg = (charts_dir / "category_accuracy.svg").read_text(encoding="utf-8")
+            self.assertIn("risky\\|&lt;script&gt;", markdown)
+            self.assertNotIn("<script>", svg)
+            self.assertIn("risky|&lt;script&gt;", svg)
+
+    def test_answer_payload_extracts_first_balanced_json_object(self) -> None:
+        payload = extract_answer_payload('prefix {"answer": "yes", "justification": "ok"} trailing {"answer": "no"}')
+        self.assertEqual(payload, {"answer": "yes", "justification": "ok"})
 
     def test_ternary_unknown_answers_are_supported(self) -> None:
         self.assertEqual(normalize_answer("cannot determine", "ternary"), "unknown")

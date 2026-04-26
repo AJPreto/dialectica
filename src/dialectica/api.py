@@ -13,6 +13,9 @@ from .parser import parse_document, parse_text
 from .validation import validate_logical_form
 
 
+MAX_JSON_BODY_BYTES = 1_000_000
+
+
 class DialecticaHandler(BaseHTTPRequestHandler):
     server_version = "DialecticaHTTP/0.1"
 
@@ -47,7 +50,12 @@ class DialecticaHandler(BaseHTTPRequestHandler):
         return
 
     def _read_json_body(self) -> Any:
-        content_length = int(self.headers.get("Content-Length", "0"))
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            return None
+        if content_length < 0 or content_length > MAX_JSON_BODY_BYTES:
+            return None
         raw_body = self.rfile.read(content_length) if content_length else b""
         if not raw_body:
             return None

@@ -217,6 +217,21 @@ def reason_over_fol_program(program: dict[str, Any]) -> FOLReasoningResult:
                             )
                         )
                         continue
+                    uncleared = [
+                        item
+                        for item in grounded_exceptions
+                        if _literal_key(_complement_literal(item)) not in known
+                    ]
+                    if uncleared:
+                        blocked.append(
+                            ProofStep(
+                                statement_id=rule["statement_id"],
+                                derived=_apply_substitution_literal(rule["head"], substitution),
+                                premises=grounded_premises,
+                                blocked_by=uncleared,
+                            )
+                        )
+                        continue
                     head = _apply_substitution_literal(rule["head"], substitution)
                     key = _literal_key(head)
                     if key in known:

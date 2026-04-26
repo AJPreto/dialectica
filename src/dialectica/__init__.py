@@ -1,4 +1,4 @@
-"""Dialectica prototype package."""
+"""Dialectica logical-form toolkit."""
 
 from .canonical import canonicalize_logical_form, serialize_logical_form
 from .compiler import compile_hybrid_document

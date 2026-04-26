@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -515,7 +516,7 @@ def _v2_markdown(
         for row in comparison_table:
             lines.append(
                 "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} | {negation:.3f} | {exceptions:.3f} | {contradictions:.3f} | {paraphrase:.3f} | {depth:.2f} |".format(
-                    label=row.get("label", row.get("mode", "")),
+                    label=_markdown_cell(row.get("label", row.get("mode", ""))),
                     accuracy=float(row.get("accuracy", 0.0) or 0.0),
                     tokens=float(row.get("average_total_tokens", 0.0) or 0.0),
                     latency=float(row.get("average_latency_seconds", 0.0) or 0.0),
@@ -532,7 +533,7 @@ def _v2_markdown(
             current = aggregate.get(condition, {})
             lines.append(
                 "| {label} | {accuracy:.3f} | {tokens:.1f} | {latency:.3f} | 0.000 | 0.000 | 0.000 | 0.000 | 0.00 |".format(
-                    label=_display_label(condition),
+                    label=_markdown_cell(_display_label(condition)),
                     accuracy=float(current.get("accuracy", 0.0) or 0.0),
                     tokens=float(current.get("average_total_tokens", 0.0) or 0.0),
                     latency=float(current.get("average_latency_seconds", 0.0) or 0.0),
@@ -563,7 +564,7 @@ def _v2_markdown(
     for category, payload in category_summary.items():
         lines.append(
             "| {category} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
-                category=category,
+                category=_markdown_cell(category),
                 cases=int(payload.get("case_count", 0) or 0),
                 direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
                 compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
@@ -586,7 +587,7 @@ def _v2_markdown(
     for difficulty, payload in difficulty_summary.items():
         lines.append(
             "| {difficulty} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
-                difficulty=difficulty,
+                difficulty=_markdown_cell(difficulty),
                 cases=int(payload.get("case_count", 0) or 0),
                 direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
                 compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
@@ -609,12 +610,12 @@ def _v2_markdown(
     for entry in error_report[:30]:
         lines.append(
             "| {case_id} | {mode} | {category} | {predicted} | {gold} | {failure} |".format(
-                case_id=entry.get("case_id", ""),
-                mode=_display_label(str(entry.get("mode", ""))),
-                category=entry.get("category", ""),
-                predicted=entry.get("predicted", ""),
-                gold=entry.get("gold", ""),
-                failure=entry.get("expected_failure_mode", "") or "",
+                case_id=_markdown_cell(entry.get("case_id", "")),
+                mode=_markdown_cell(_display_label(str(entry.get("mode", "")))),
+                category=_markdown_cell(entry.get("category", "")),
+                predicted=_markdown_cell(entry.get("predicted", "")),
+                gold=_markdown_cell(entry.get("gold", "")),
+                failure=_markdown_cell(entry.get("expected_failure_mode", "") or ""),
             )
         )
 
@@ -643,10 +644,10 @@ def _bar_chart_svg(*, title: str, labels: list[str], values: list[float], y_labe
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="#fffdf8" />',
-        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{title}</text>',
+        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{_svg_text(title)}</text>',
         f'<line x1="{margin_left}" y1="{height - margin_bottom}" x2="{width - margin_right}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
         f'<line x1="{margin_left}" y1="{margin_top}" x2="{margin_left}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
-        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{y_label}</text>',
+        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(y_label)}</text>',
     ]
 
     for tick_index in range(y_ticks + 1):
@@ -671,7 +672,7 @@ def _bar_chart_svg(*, title: str, labels: list[str], values: list[float], y_labe
         label_x = x + bar_width / 2
         label_y = height - margin_bottom + 24
         parts.append(
-            f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{label}</text>'
+            f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(label)}</text>'
         )
 
     parts.append("</svg>")
@@ -711,10 +712,10 @@ def _grouped_bar_chart_svg(
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="#fffdf8" />',
-        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{title}</text>',
+        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{_svg_text(title)}</text>',
         f'<line x1="{margin_left}" y1="{height - margin_bottom}" x2="{width - margin_right}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
         f'<line x1="{margin_left}" y1="{margin_top}" x2="{margin_left}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
-        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{y_label}</text>',
+        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(y_label)}</text>',
     ]
 
     for tick_index in range(y_ticks + 1):
@@ -739,7 +740,7 @@ def _grouped_bar_chart_svg(
         label_x = group_x + group_width / 2
         label_y = height - margin_bottom + 24
         parts.append(
-            f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{label}</text>'
+            f'<text x="{label_x:.2f}" y="{label_y:.2f}" transform="rotate(35 {label_x:.2f} {label_y:.2f})" text-anchor="start" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(label)}</text>'
         )
 
     legend_x = margin_left
@@ -749,7 +750,7 @@ def _grouped_bar_chart_svg(
         x = legend_x + index * 190
         parts.append(f'<rect x="{x}" y="{legend_y - 12}" width="18" height="18" fill="{color}" rx="2" />')
         parts.append(
-            f'<text x="{x + 26}" y="{legend_y + 2}" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{entry.get("label", "")}</text>'
+            f'<text x="{x + 26}" y="{legend_y + 2}" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(entry.get("label", ""))}</text>'
         )
 
     parts.append("</svg>")
@@ -785,11 +786,11 @@ def _line_chart_svg(*, title: str, x_label: str, y_label: str, series: list[dict
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="#fffdf8" />',
-        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{title}</text>',
+        f'<text x="{width / 2}" y="30" text-anchor="middle" font-size="22" font-family="Segoe UI, sans-serif" fill="#1f1f1f">{_svg_text(title)}</text>',
         f'<line x1="{margin_left}" y1="{height - margin_bottom}" x2="{width - margin_right}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
         f'<line x1="{margin_left}" y1="{margin_top}" x2="{margin_left}" y2="{height - margin_bottom}" stroke="#444" stroke-width="2" />',
-        f'<text x="{width / 2}" y="{height - 20}" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{x_label}</text>',
-        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{y_label}</text>',
+        f'<text x="{width / 2}" y="{height - 20}" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(x_label)}</text>',
+        f'<text x="20" y="{margin_top + plot_height / 2}" transform="rotate(-90 20 {margin_top + plot_height / 2})" text-anchor="middle" font-size="14" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(y_label)}</text>',
     ]
 
     for tick_index in range(6):
@@ -825,7 +826,7 @@ def _line_chart_svg(*, title: str, x_label: str, y_label: str, series: list[dict
         legend_item_y = legend_y + index * 24
         parts.append(f'<line x1="{legend_x}" y1="{legend_item_y}" x2="{legend_x + 24}" y2="{legend_item_y}" stroke="{color}" stroke-width="4" />')
         parts.append(
-            f'<text x="{legend_x + 32}" y="{legend_item_y + 4}" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{entry.get("label", "")}</text>'
+            f'<text x="{legend_x + 32}" y="{legend_item_y + 4}" font-size="12" font-family="Segoe UI, sans-serif" fill="#333">{_svg_text(entry.get("label", ""))}</text>'
         )
 
     parts.append("</svg>")
@@ -836,5 +837,12 @@ def _display_label(condition_name: str) -> str:
     return DISPLAY_LABELS.get(condition_name, condition_name.replace("_", " ").title())
 
 
-def _status_label(value: Any) -> str:
-    return "ok" if bool(value) else "miss"
+def _svg_text(value: Any) -> str:
+    return escape(str(value), quote=True)
+
+
+def _markdown_cell(value: Any) -> str:
+    if value is None:
+        return ""
+    text = str(value).replace("\r", " ").replace("\n", " ")
+    return escape(text, quote=False).replace("|", r"\|")

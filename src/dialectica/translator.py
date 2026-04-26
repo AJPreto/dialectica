@@ -10,7 +10,6 @@ from .ir import (
     Conjunction,
     Constant,
     Disjunction,
-    ExportRecord,
     HybridDocument,
     HybridStatement,
     Implication,
@@ -41,6 +40,22 @@ _TEMPORAL_MARKERS = ("currently", "for now", "this shift", "today", "later")
 _UNRESOLVED_REFERENCES = {"he", "she", "they", "them", "it", "this", "that", "these", "those"}
 _SEMICOLON_SPLIT_PATTERN = re.compile(r";")
 _CONJUNCTION_SPLIT_PATTERN = re.compile(r"\band\b", re.I)
+_GENERIC_VERB_PATTERN = re.compile(r"^(?P<subject>[A-Z][A-Za-z0-9_-]*) (?P<verb>[a-z]+)(?: (?P<object>.+))?$")
+_VERB_ALIASES = {
+    "finishes": "completed",
+    "finished": "completed",
+    "finish": "completed",
+    "receives": "receive",
+    "received": "receive",
+    "receive": "receive",
+    "wears": "wear",
+    "wore": "wear",
+    "wear": "wear",
+    "carries": "carry",
+    "carried": "carry",
+    "carry": "carry",
+}
+_GENERIC_VERB_CANONICALS = set(_VERB_ALIASES.values())
 
 
 def translate_text(text: str, query: str | None = None) -> HybridDocument:
@@ -241,6 +256,16 @@ def _translate_sentence(
             provenance=provenance,
             exportability={},
         )
+    if _looks_like_conditional_syntax(working):
+        residue.non_formalized_fragments.append(sentence)
+        return HybridStatement(
+            id=statement_id,
+            kind="residue",
+            formal_core=None,
+            semantic_residue=residue,
+            provenance=provenance,
+            exportability={},
+        )
 
     universal = _parse_universal_rule(working)
     if universal is not None:
@@ -362,10 +387,13 @@ def _parse_clause(text: str):
         (re.compile(r"^(?P<subject>.+?) can (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _can_atom),
         (re.compile(r"^(?P<subject>.+?) is not (?P<object>.+)$", re.I), _negative_state_atom),
         (re.compile(r"^(?P<subject>.+?) is (?P<object>.+)$", re.I), _state_from_match),
+        (_GENERIC_VERB_PATTERN, _generic_verb_atom),
     ):
         match = pattern.match(normalized)
         if match:
-            return builder(match)
+            parsed = builder(match)
+            if parsed is not None:
+                return parsed
     return None
 
 
@@ -436,9 +464,11 @@ def _query_verb_atom(match: re.Match[str]) -> Atom:
     lemma = match.group("lemma")
     normalized_lemma = {
         "complete": "completed",
+        "finish": "completed",
+        "finished": "completed",
         "hold": "holds",
         "have": "has",
-    }.get(lemma.casefold(), lemma.casefold())
+    }.get(lemma.casefold(), _normalize_verb(lemma))
     remainder = " ".join(part for part in (normalized_lemma, match.group("object")) if part)
     return _unary_atom(match.group("subject"), remainder)
 
@@ -449,6 +479,19 @@ def _query_state_atom(match: re.Match[str]) -> Atom:
 
 def _query_has_atom(match: re.Match[str]) -> Atom:
     return _unary_atom(match.group("subject"), f"has {match.group('object')}")
+
+
+def _generic_verb_atom(match: re.Match[str]) -> Atom | None:
+    subject = match.group("subject")
+    if subject.casefold() in {"a", "an", "the", "if"}:
+        return None
+    verb = _normalize_verb(match.group("verb"))
+    if verb not in _GENERIC_VERB_CANONICALS:
+        return None
+    if verb in {"is", "are", "was", "were", "am", "be", "been", "being"}:
+        return None
+    predicate_text = " ".join(part for part in (verb, match.group("object")) if part)
+    return _unary_atom(subject, predicate_text)
 
 
 def _action_atom(subject_term, modal: str, action_text: str) -> Atom:
@@ -606,7 +649,11 @@ def _is_query_fragment(fragment: str) -> bool:
 
 def _looks_like_rule_fragment(fragment: str) -> bool:
     normalized = _normalize(fragment).rstrip(".?!")
-    return _parse_rule(normalized) is not None or _parse_universal_rule(normalized) is not None
+    return _looks_like_conditional_syntax(normalized) or _parse_universal_rule(normalized) is not None
+
+
+def _looks_like_conditional_syntax(fragment: str) -> bool:
+    return _RULE_PATTERN.match(_normalize(fragment).rstrip(".?!")) is not None
 
 
 def _is_articulate_fragment(fragment: str) -> bool:
@@ -669,6 +716,11 @@ def _parse_rule_antecedent(text: str):
 
 def _split_on_keyword(text: str, keyword: str) -> list[str]:
     return [part.strip() for part in re.split(rf"\b{re.escape(keyword)}\b", text, flags=re.I) if part.strip()]
+
+
+def _normalize_verb(verb: str) -> str:
+    normalized = verb.casefold()
+    return _VERB_ALIASES.get(normalized, normalized)
 
 
 def _predicate_slug(text: str) -> str:

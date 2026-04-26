@@ -116,6 +116,76 @@ class V2PipelineTests(unittest.TestCase):
         reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
         self.assertEqual(reasoning.answer, "entailed")
 
+    def test_generic_receive_rule_is_entailed_by_fol_backend(self) -> None:
+        document = translate_text(
+            "If Paolo completed forklift briefing, then Paolo receives an orange permit. "
+            "Paolo completed forklift briefing. "
+            "Does Paolo receive an orange permit?"
+        )
+        _, compiled = compile_hybrid_document(document)
+        reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
+        self.assertEqual(reasoning.answer, "entailed")
+
+    def test_paraphrased_finished_chain_is_entailed_by_fol_backend(self) -> None:
+        document = translate_text(
+            "If Mira finished dock training, then Mira receives a blue badge. "
+            "If Mira receives a blue badge, then Mira is cleared for loading bay 2. "
+            "If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. "
+            "Mira finished dock training. "
+            "May Mira supervise pallet transfers?"
+        )
+        _, compiled = compile_hybrid_document(document)
+        reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
+        self.assertEqual(reasoning.answer, "entailed")
+
+    def test_rule_conjunction_with_generic_verb_is_not_split_apart(self) -> None:
+        document = translate_text(
+            "If Nina completed clean room orientation and Nina wears a particle badge, "
+            "then Nina may enter the clean room. "
+            "Nina completed clean room orientation. "
+            "Nina wears a particle badge. "
+            "May Nina enter the clean room?"
+        )
+        self.assertEqual(document.statements[0].kind, "rule")
+        _, compiled = compile_hybrid_document(document)
+        reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
+        self.assertEqual(reasoning.answer, "entailed")
+
+    def test_failed_conditional_is_not_converted_to_fake_fact(self) -> None:
+        document = translate_text(
+            "If Alice completed amber orientation, then access follows. "
+            "Alice completed amber orientation. "
+            "Does Alice hold an amber badge?"
+        )
+        self.assertEqual(document.statements[0].kind, "residue")
+        self.assertIsNone(document.statements[0].formal_core)
+
+    def test_fol_unless_requires_explicit_exception_clearance(self) -> None:
+        document = translate_text(
+            "If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. "
+            "Alice completed amber orientation. "
+            "May Alice enter the amber workshop?"
+        )
+        _, compiled = compile_hybrid_document(document)
+        reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
+        self.assertEqual(reasoning.answer, "not_entailed")
+
+    def test_fol_unless_derives_when_exception_is_explicitly_false(self) -> None:
+        document = translate_text(
+            "If Alice completed amber orientation, then Alice may enter the amber workshop unless Alice is suspended. "
+            "Alice completed amber orientation. "
+            "Alice is not suspended. "
+            "May Alice enter the amber workshop?"
+        )
+        _, compiled = compile_hybrid_document(document)
+        reasoning = reason_over_fol_program(compiled["fol"]["artifact"]["program"])
+        self.assertEqual(reasoning.answer, "entailed")
+
+    def test_compile_rejects_unknown_export_target_cleanly(self) -> None:
+        document = translate_text("Alice completed amber orientation. Does Alice complete amber orientation?")
+        with self.assertRaisesRegex(ValueError, "Unsupported export target"):
+            compile_hybrid_document(document, targets=("horn", "made_up"))
+
 
 if __name__ == "__main__":
     unittest.main()

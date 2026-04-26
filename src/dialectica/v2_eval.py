@@ -10,7 +10,7 @@ from typing import Any
 
 from .canonical import canonicalize_logical_form
 from .compiler import compile_hybrid_document, compiled_document_to_dict
-from .engine import FOLReasoningResult, ReasoningResult, reason_over_fol_program, reason_over_horn_program
+from .engine import ReasoningResult, reason_over_fol_program, reason_over_horn_program
 from .explainer import explain_fol_reasoning, explain_reasoning
 from .filtering import filter_logical_form
 from .fingerprint import fingerprint_logical_form
@@ -47,9 +47,7 @@ def evaluate_v2_comparison(
     provider_name: str,
     model: str | None = None,
 ) -> dict[str, Any]:
-    with Path(path).open("r", encoding="utf-8") as handle:
-        dataset = json.load(handle)
-
+    dataset = _load_dataset(path)
     provider = build_provider(provider_name, model=model)
     cases: list[dict[str, Any]] = []
     condition_buckets: dict[str, list[dict[str, Any]]] = {mode: [] for mode in DEFAULT_MODE_ORDER}
@@ -161,6 +159,23 @@ def write_v2_report(report: dict[str, Any], output_path: str | Path) -> None:
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+
+def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
+    dataset_path = Path(path)
+    try:
+        with dataset_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON in V2 dataset {dataset_path}: {exc.msg}") from exc
+    if not isinstance(payload, list):
+        raise ValueError(f"V2 dataset {dataset_path} must be a JSON array of case objects.")
+    for index, case in enumerate(payload, start=1):
+        if not isinstance(case, dict):
+            raise ValueError(f"V2 dataset {dataset_path} case {index} must be an object.")
+        if "id" not in case:
+            raise ValueError(f"V2 dataset {dataset_path} case {index} is missing required field 'id'.")
+    return payload
 
 
 def _normalize_case(raw_case: dict[str, Any]) -> dict[str, Any]:

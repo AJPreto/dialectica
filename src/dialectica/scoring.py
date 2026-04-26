@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from typing import Any
@@ -90,17 +91,16 @@ def extract_answer_payload(text: str) -> dict[str, str]:
     the benchmark robust when a provider returns plain text.
     """
     cleaned = text.strip()
-    json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-    if json_match:
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"\{", cleaned):
         try:
-            import json
-
-            payload = json.loads(json_match.group(0))
+            payload, _ = decoder.raw_decode(cleaned[match.start() :])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
             answer = str(payload.get("answer", "")).strip()
             justification = str(payload.get("justification", "")).strip()
             return {"answer": answer, "justification": justification}
-        except json.JSONDecodeError:
-            pass
     first_line = cleaned.splitlines()[0] if cleaned else ""
     return {"answer": first_line.strip(), "justification": cleaned}
 

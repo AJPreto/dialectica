@@ -17,7 +17,7 @@ from .prompting import (
     build_dialectica_structural_compact_prompt,
     build_direct_prompt,
 )
-from .providers import ProviderError, build_provider
+from .providers import build_provider
 from .scoring import extract_answer_payload, score_answer
 from .validation import validate_logical_form
 
@@ -316,8 +316,20 @@ def build_performance_summary(
 
 
 def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
-    with Path(path).open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    dataset_path = Path(path)
+    try:
+        with dataset_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON in benchmark dataset {dataset_path}: {exc.msg}") from exc
+    if not isinstance(payload, list):
+        raise ValueError(f"Benchmark dataset {dataset_path} must be a JSON array of case objects.")
+    for index, case in enumerate(payload, start=1):
+        if not isinstance(case, dict):
+            raise ValueError(f"Benchmark dataset {dataset_path} case {index} must be an object.")
+        if "id" not in case:
+            raise ValueError(f"Benchmark dataset {dataset_path} case {index} is missing required field 'id'.")
+    return payload
 
 
 def _maybe_get_gold_logical_form(case: dict[str, Any], field: str) -> dict[str, Any] | None:

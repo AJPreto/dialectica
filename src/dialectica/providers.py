@@ -7,9 +7,10 @@ import os
 import time
 import urllib.error
 import urllib.request
-from urllib.parse import urlparse
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 
 @dataclass
@@ -25,9 +26,10 @@ class ProviderError(RuntimeError):
     """Raised when a model provider call fails."""
 
 
-class BaseProvider:
+class BaseProvider(ABC):
+    @abstractmethod
     def generate(self, instructions: str, prompt: str, metadata: dict[str, Any] | None = None) -> ProviderResponse:
-        raise NotImplementedError
+        """Generate a structured answer for a benchmark prompt."""
 
 
 class OracleProvider(BaseProvider):
@@ -183,7 +185,7 @@ class OllamaProvider(BaseProvider):
 
 
 def build_provider(provider_name: str, model: str | None = None) -> BaseProvider:
-    normalized = provider_name.casefold()
+    normalized = provider_name.strip().casefold()
     if normalized == "oracle":
         return OracleProvider()
     if normalized == "openai":
