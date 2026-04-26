@@ -1,619 +1,1086 @@
 [
     {
-        "id":  "v2m-chain-001",
-        "difficulty":  "medium",
-        "category":  "chained_inference",
-        "categories":  [
-                           "messy_long_context",
-                           "chained_inference",
-                           "simple_implication"
-                       ],
-        "paraphrase_group":  "messy_chain_yes",
-        "context":  "Morning operations note. If Mira completed dock training, then Mira receives a blue badge. If Mira receives a blue badge, then Mira is cleared for loading bay 2. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen received a visitor pass. If Owen received a visitor pass, then Owen may wait in the lobby. The coffee machine is broken. Mira completed dock training.",
-        "question":  "May Mira supervise pallet transfers?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "multi_hop",
-                          "distractors",
-                          "rule_chain"
-                      ],
-        "expected_horn_answer":  "entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  3,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The system should ignore the visitor side-chain and complete the three-step derivation for Mira.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-chain-001",
+        "difficulty": "medium",
+        "category": "chained_inference",
+        "categories": [
+            "messy_long_context",
+            "chained_inference",
+            "simple_implication"
+        ],
+        "paraphrase_group": "messy_chain_yes",
+        "context": "Morning operations note. If Mira completed dock training, then Mira receives a blue badge. If Mira receives a blue badge, then Mira is cleared for loading bay 2. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen received a visitor pass. If Owen received a visitor pass, then Owen may wait in the lobby. The coffee machine is broken. Mira completed dock training.",
+        "question": "May Mira supervise pallet transfers?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "multi_hop",
+            "distractors",
+            "rule_chain"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 3,
+        "expected_failure_mode": null,
+        "expected_behavior": "The system should ignore the visitor side-chain and complete the three-step derivation for Mira.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-chain-002",
-        "difficulty":  "medium",
-        "category":  "chained_inference",
-        "categories":  [
-                           "messy_long_context",
-                           "chained_inference",
-                           "simple_implication",
-                           "paraphrase_robustness"
-                       ],
-        "paraphrase_group":  "messy_chain_yes",
-        "context":  "Shift memo. If Mira finished dock training, then Mira receives a blue badge. If Mira receives a blue badge, then Mira is cleared for loading bay 2. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen signed in as a visitor. The break room fridge is empty. Mira finished dock training.",
-        "question":  "May Mira supervise pallet transfers?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "multi_hop",
-                          "paraphrase",
-                          "rule_chain"
-                      ],
-        "expected_horn_answer":  "entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  3,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The paraphrased wording should preserve the same three-step chain and answer.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-chain-002",
+        "difficulty": "medium",
+        "category": "chained_inference",
+        "categories": [
+            "messy_long_context",
+            "chained_inference",
+            "simple_implication",
+            "paraphrase_robustness"
+        ],
+        "paraphrase_group": "messy_chain_yes",
+        "context": "Shift memo. If Mira finished dock training, then Mira receives a blue badge. If Mira receives a blue badge, then Mira is cleared for loading bay 2. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen signed in as a visitor. The break room fridge is empty. Mira finished dock training.",
+        "question": "May Mira supervise pallet transfers?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "multi_hop",
+            "paraphrase",
+            "rule_chain"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 3,
+        "expected_failure_mode": null,
+        "expected_behavior": "The paraphrased wording should preserve the same three-step chain and answer.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-chain-003",
-        "difficulty":  "adversarial",
-        "category":  "chained_inference",
-        "categories":  [
-                           "messy_long_context",
-                           "chained_inference"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Operations note. If Mira completed dock training, then Mira receives a blue badge. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen received a visitor pass. If Owen received a visitor pass, then Owen may wait in the lobby. Mira completed dock training. The coffee machine is broken.",
-        "question":  "May Mira supervise pallet transfers?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "multi_hop",
-                          "missing_link",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  2,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The missing badge-to-clearance link leaves the final permission unsupported, so the answer should remain unknown despite the surrounding noise.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-chain-003",
+        "difficulty": "adversarial",
+        "category": "chained_inference",
+        "categories": [
+            "messy_long_context",
+            "chained_inference"
+        ],
+        "paraphrase_group": null,
+        "context": "Operations note. If Mira completed dock training, then Mira receives a blue badge. If Mira is cleared for loading bay 2, then Mira may supervise pallet transfers. Owen received a visitor pass. If Owen received a visitor pass, then Owen may wait in the lobby. Mira completed dock training. The coffee machine is broken.",
+        "question": "May Mira supervise pallet transfers?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "multi_hop",
+            "missing_link",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 2,
+        "expected_failure_mode": null,
+        "expected_behavior": "The missing badge-to-clearance link leaves the final permission unsupported, so the answer should remain unknown despite the surrounding noise.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-exc-001",
-        "difficulty":  "medium",
-        "category":  "conditions_exceptions",
-        "categories":  [
-                           "messy_long_context",
-                           "conditions_exceptions"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Archive update. If Lena completed archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena completed archive certification. Lena filed her weekly report. Lena is on audit hold. Lena may not enter the restricted stacks. The stacks close at midnight.",
-        "question":  "May Lena enter the restricted stacks?",
-        "gold_answer":  "no",
-        "expected_answer":  "no",
-        "answer_type":  "boolean",
-        "phenomena":  [
-                          "exception",
-                          "blocking",
-                          "distractors",
-                          "explicit_negation"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "explicit_negative_permission_withheld",
-        "expected_behavior":  "The audit hold blocks the positive rule and the explicit negative permission supports answering no."
+        "id": "v2m-exc-001",
+        "difficulty": "medium",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions"
+        ],
+        "paraphrase_group": null,
+        "context": "Archive update. If Lena completed archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena completed archive certification. Lena filed her weekly report. Lena is on audit hold. Lena may not enter the restricted stacks. The stacks close at midnight.",
+        "question": "May Lena enter the restricted stacks?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "boolean",
+        "phenomena": [
+            "exception",
+            "blocking",
+            "distractors",
+            "explicit_negation"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The audit hold blocks the positive rule and the explicit negative permission supports answering no."
     },
     {
-        "id":  "v2m-exc-002",
-        "difficulty":  "medium",
-        "category":  "conditions_exceptions",
-        "categories":  [
-                           "messy_long_context",
-                           "conditions_exceptions",
-                           "paraphrase_robustness"
-                       ],
-        "paraphrase_group":  "messy_exception_open",
-        "context":  "Archive update. If Lena completed archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena completed archive certification. Lena filed her weekly report. The stacks close at midnight.",
-        "question":  "May Lena enter the restricted stacks?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "exception",
-                          "no_blocker",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "partial",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "Without explicit evidence that Lena is not on audit hold, the guarded rule should not license a positive conclusion under the benchmark's entailment-based semantics.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-exc-002",
+        "difficulty": "medium",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions",
+            "paraphrase_robustness"
+        ],
+        "paraphrase_group": "messy_exception_open",
+        "context": "Archive update. If Lena completed archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena completed archive certification. Lena filed her weekly report. The stacks close at midnight.",
+        "question": "May Lena enter the restricted stacks?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "exception",
+            "no_blocker",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "Without explicit evidence that Lena is not on audit hold, the guarded rule should not license a positive conclusion under the benchmark's entailment-based semantics.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-exc-003",
-        "difficulty":  "medium",
-        "category":  "conditions_exceptions",
-        "categories":  [
-                           "messy_long_context",
-                           "conditions_exceptions",
-                           "paraphrase_robustness"
-                       ],
-        "paraphrase_group":  "messy_exception_open",
-        "context":  "Records bulletin. If Lena finished archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena finished archive certification. Lena filed her weekly report. The stacks close at midnight.",
-        "question":  "May Lena enter the restricted stacks?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "exception",
-                          "paraphrase",
-                          "no_blocker"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "partial",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The paraphrased exception case should remain unknown because the blocker is not ruled out explicitly.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-exc-003",
+        "difficulty": "medium",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions",
+            "paraphrase_robustness"
+        ],
+        "paraphrase_group": "messy_exception_open",
+        "context": "Records bulletin. If Lena finished archive certification, then Lena may enter the restricted stacks unless Lena is on audit hold. The janitor checked the hallway lights. Lena finished archive certification. Lena filed her weekly report. The stacks close at midnight.",
+        "question": "May Lena enter the restricted stacks?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "exception",
+            "paraphrase",
+            "no_blocker"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "The paraphrased exception case should remain unknown because the blocker is not ruled out explicitly.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-ctr-001",
-        "difficulty":  "adversarial",
-        "category":  "contradiction_detection",
-        "categories":  [
-                           "messy_long_context",
-                           "contradiction_detection",
-                           "negation",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Safety bulletin. Nora completed solvent training. Nora did not complete solvent training. If Nora completed solvent training, then Nora may use the solvent cabinet. The supervisor filed the schedule. The first aid kit was restocked.",
-        "question":  "May Nora use the solvent cabinet?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "contradiction",
-                          "rule_chain",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  true,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "contradiction_unresolved",
-        "expected_behavior":  "The contradiction affects the rule premise, so the answer should remain unknown rather than forcing either yes or no.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-ctr-001",
+        "difficulty": "adversarial",
+        "category": "contradiction_detection",
+        "categories": [
+            "messy_long_context",
+            "contradiction_detection",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Safety bulletin. Nora completed solvent training. Nora did not complete solvent training. If Nora completed solvent training, then Nora may use the solvent cabinet. The supervisor filed the schedule. The first aid kit was restocked.",
+        "question": "May Nora use the solvent cabinet?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "contradiction",
+            "rule_chain",
+            "distractors"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": true,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "contradiction_unresolved",
+        "expected_behavior": "The contradiction affects the rule premise, so the answer should remain unknown rather than forcing either yes or no.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-neg-001",
-        "difficulty":  "adversarial",
-        "category":  "negation",
-        "categories":  [
-                           "messy_long_context",
-                           "negation",
-                           "contradiction_detection",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Control room log. Ravi may not activate the test rig. The maintenance log mentions old batteries. Ravi submitted the safety form. The storage room was cleaned after lunch.",
-        "question":  "May Ravi activate the test rig?",
-        "gold_answer":  "no",
-        "expected_answer":  "no",
-        "answer_type":  "boolean",
-        "phenomena":  [
-                          "explicit_negation",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "explicit_negative_permission_withheld",
-        "expected_behavior":  "The explicit negative permission directly supports answering no, and the surrounding facts are just distractors."
+        "id": "v2m-neg-001",
+        "difficulty": "adversarial",
+        "category": "negation",
+        "categories": [
+            "messy_long_context",
+            "negation",
+            "contradiction_detection",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Control room log. Ravi may not activate the test rig. The maintenance log mentions old batteries. Ravi submitted the safety form. The storage room was cleaned after lunch.",
+        "question": "May Ravi activate the test rig?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "boolean",
+        "phenomena": [
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The explicit negative permission directly supports answering no, and the surrounding facts are just distractors."
     },
     {
-        "id":  "v2m-att-001",
-        "difficulty":  "medium",
-        "category":  "attribution_speaker_tracking",
-        "categories":  [
-                           "messy_long_context",
-                           "attribution_speaker_tracking",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Inspection note. According to the temporary clerk, Marta completed furnace orientation. If Marta completed furnace orientation, then Marta may access the heat bay. Carlos completed ladder safety. If Carlos completed ladder safety, then Carlos may enter the scaffold room. The lunch truck arrived late.",
-        "question":  "May Marta access the heat bay?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "attribution",
-                          "faithfulness",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "partial",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "attributed_fact_not_promoted",
-        "expected_behavior":  "The attributed training claim should stay residue instead of becoming settled ground truth, so the answer should remain unknown.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-att-001",
+        "difficulty": "medium",
+        "category": "attribution_speaker_tracking",
+        "categories": [
+            "messy_long_context",
+            "attribution_speaker_tracking",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Inspection note. According to the temporary clerk, Marta completed furnace orientation. If Marta completed furnace orientation, then Marta may access the heat bay. Carlos completed ladder safety. If Carlos completed ladder safety, then Carlos may enter the scaffold room. The lunch truck arrived late.",
+        "question": "May Marta access the heat bay?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "attribution",
+            "faithfulness",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "attributed_fact_not_promoted",
+        "expected_behavior": "The attributed training claim should stay residue instead of becoming settled ground truth, so the answer should remain unknown.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-amb-001",
-        "difficulty":  "medium",
-        "category":  "ambiguity_partial_formalization",
-        "categories":  [
-                           "messy_long_context",
-                           "ambiguity_partial_formalization",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Shift summary. Alice completed amber orientation. Bruno filed the inventory form. She holds an amber badge. The printer jammed twice before noon. The afternoon briefing started late.",
-        "question":  "Does Alice hold an amber badge?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "unresolved_reference",
-                          "partial_formalization",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "partial",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  0,
-        "expected_failure_mode":  "unresolved_pronoun",
-        "expected_behavior":  "The pronoun should remain unresolved in the longer context rather than being forced onto Alice, so the answer should remain unknown.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-amb-001",
+        "difficulty": "medium",
+        "category": "ambiguity_partial_formalization",
+        "categories": [
+            "messy_long_context",
+            "ambiguity_partial_formalization",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Shift summary. Alice completed amber orientation. Bruno filed the inventory form. She holds an amber badge. The printer jammed twice before noon. The afternoon briefing started late.",
+        "question": "Does Alice hold an amber badge?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "unresolved_reference",
+            "partial_formalization",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "unresolved_pronoun",
+        "expected_behavior": "The pronoun should remain unresolved in the longer context rather than being forced onto Alice, so the answer should remain unknown.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-unc-001",
-        "difficulty":  "medium",
-        "category":  "ambiguity_partial_formalization",
-        "categories":  [
-                           "messy_long_context",
-                           "ambiguity_partial_formalization",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Yard update. Maybe Farah completed crane briefing. If Farah completed crane briefing, then Farah may inspect the crane. Omar checked the north gate. The weather report was delayed. The spare hooks were counted at noon.",
-        "question":  "May Farah inspect the crane?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "uncertainty",
-                          "faithfulness",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "partial",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "uncertain_fact_withheld",
-        "expected_behavior":  "The uncertain briefing statement should be preserved as uncertainty, not promoted to a fact, so the answer should remain unknown.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-unc-001",
+        "difficulty": "medium",
+        "category": "ambiguity_partial_formalization",
+        "categories": [
+            "messy_long_context",
+            "ambiguity_partial_formalization",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Yard update. Maybe Farah completed crane briefing. If Farah completed crane briefing, then Farah may inspect the crane. Omar checked the north gate. The weather report was delayed. The spare hooks were counted at noon.",
+        "question": "May Farah inspect the crane?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "phenomena": [
+            "uncertainty",
+            "faithfulness",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "uncertain_fact_withheld",
+        "expected_behavior": "The uncertain briefing statement should be preserved as uncertainty, not promoted to a fact, so the answer should remain unknown.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-disj-001",
-        "difficulty":  "adversarial",
-        "category":  "conjunction_disjunction",
-        "categories":  [
-                           "messy_long_context",
-                           "conjunction_disjunction",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Access memo. If Imani holds a silver pass or Imani has supervisor override, then Imani may enter the diagnostics room. The copier toner is low. Imani holds a silver pass. The hallway camera was rebooted. The reception desk closed at 17:00.",
-        "question":  "May Imani enter the diagnostics room?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "disjunction",
-                          "distractors",
-                          "unsupported_formalization"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "unsupported",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  "disjunction_not_supported",
-        "expected_behavior":  "The plain-language answer is yes, but the Horn route should still refuse the disjunctive rule.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-disj-001",
+        "difficulty": "adversarial",
+        "category": "conjunction_disjunction",
+        "categories": [
+            "messy_long_context",
+            "conjunction_disjunction",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Access memo. If Imani holds a silver pass or Imani has supervisor override, then Imani may enter the diagnostics room. The copier toner is low. Imani holds a silver pass. The hallway camera was rebooted. The reception desk closed at 17:00.",
+        "question": "May Imani enter the diagnostics room?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "disjunction",
+            "distractors",
+            "unsupported_formalization"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "unsupported",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "disjunction_not_supported",
+        "expected_behavior": "The plain-language answer is yes, but the Horn route should still refuse the disjunctive rule.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-var-001",
-        "difficulty":  "medium",
-        "category":  "entity_binding",
-        "categories":  [
-                           "messy_long_context",
-                           "entity_binding"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Workshop report. All certified operators may use the milling machine. Bruno is a certified operator. Carla is a guest visitor. The shift report mentions a delayed delivery. Dina is a certified operator. The spare cutter was locked away.",
-        "question":  "May Dina use the milling machine?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "quantification",
-                          "variable_binding",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The quantifier should bind correctly to Dina despite the extra entity and delivery chatter.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-var-001",
+        "difficulty": "medium",
+        "category": "entity_binding",
+        "categories": [
+            "messy_long_context",
+            "entity_binding"
+        ],
+        "paraphrase_group": null,
+        "context": "Workshop report. All certified operators may use the milling machine. Bruno is a certified operator. Carla is a guest visitor. The shift report mentions a delayed delivery. Dina is a certified operator. The spare cutter was locked away.",
+        "question": "May Dina use the milling machine?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "quantification",
+            "variable_binding",
+            "distractors"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "The quantifier should bind correctly to Dina despite the extra entity and delivery chatter.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-var-002",
-        "difficulty":  "medium",
-        "category":  "entity_binding",
-        "categories":  [
-                           "messy_long_context",
-                           "entity_binding"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Workshop report. All certified operators may use the milling machine. Bruno is a certified operator. Carla is a guest visitor. The shift report mentions a delayed delivery. Dina is a certified operator. The spare cutter was locked away.",
-        "question":  "May Carla use the milling machine?",
-        "gold_answer":  "unknown",
-        "expected_answer":  "unknown",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "quantification",
-                          "entity_mismatch",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  true,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "exact",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  1,
-        "expected_failure_mode":  null,
-        "expected_behavior":  "The rule supports certified operators, but the context never states whether Carla is certified, so the answer should remain unknown.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-num-001",
+        "difficulty": "adversarial",
+        "category": "arithmetic_equality_inequality",
+        "categories": [
+            "messy_long_context",
+            "arithmetic_equality_inequality",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Warehouse note. batch size = 4. The foreman mentioned spare boxes during the briefing. Mira logged the shipment at 09:00. The loading dock alarm was tested after lunch.",
+        "question": "Is batch size = 4?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "equality",
+            "comparison",
+            "smt_candidate",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "unsupported",
+            "fol": "partial",
+            "smt": "partial"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "comparison_query_unsupported",
+        "expected_behavior": "The equality fact should survive the noise, but the Horn route should still fail to answer the comparison query.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-num-001",
-        "difficulty":  "adversarial",
-        "category":  "arithmetic_equality_inequality",
-        "categories":  [
-                           "messy_long_context",
-                           "arithmetic_equality_inequality",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Warehouse note. batch size = 4. The foreman mentioned spare boxes during the briefing. Mira logged the shipment at 09:00. The loading dock alarm was tested after lunch.",
-        "question":  "Is batch size = 4?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "equality",
-                          "comparison",
-                          "smt_candidate",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "unsupported",
-                                       "fol":  "partial",
-                                       "smt":  "partial"
-                                   },
-        "expected_reasoning_depth":  0,
-        "expected_failure_mode":  "comparison_query_unsupported",
-        "expected_behavior":  "The equality fact should survive the noise, but the Horn route should still fail to answer the comparison query.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-num-002",
+        "difficulty": "adversarial",
+        "category": "arithmetic_equality_inequality",
+        "categories": [
+            "messy_long_context",
+            "arithmetic_equality_inequality",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Inventory note. inventory count >= 3. The team moved two empty pallets before lunch. The loading dock closed at 18:00. A spare clipboard is missing from the office.",
+        "question": "Is inventory count >= 3?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "ternary",
+        "phenomena": [
+            "comparison",
+            "arithmetic",
+            "smt_candidate",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "unsupported",
+            "fol": "partial",
+            "smt": "partial"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "arithmetic_query_unsupported",
+        "expected_behavior": "The inequality should be answerable in principle, but the Horn route is still expected to miss it.",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ]
     },
     {
-        "id":  "v2m-num-002",
-        "difficulty":  "adversarial",
-        "category":  "arithmetic_equality_inequality",
-        "categories":  [
-                           "messy_long_context",
-                           "arithmetic_equality_inequality",
-                           "non_exportable_or_partial"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Inventory note. inventory count \u003e= 3. The team moved two empty pallets before lunch. The loading dock closed at 18:00. A spare clipboard is missing from the office.",
-        "question":  "Is inventory count \u003e= 3?",
-        "gold_answer":  "yes",
-        "expected_answer":  "yes",
-        "answer_type":  "ternary",
-        "phenomena":  [
-                          "comparison",
-                          "arithmetic",
-                          "smt_candidate",
-                          "distractors"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "unsupported",
-                                       "fol":  "partial",
-                                       "smt":  "partial"
-                                   },
-        "expected_reasoning_depth":  0,
-        "expected_failure_mode":  "arithmetic_query_unsupported",
-        "expected_behavior":  "The inequality should be answerable in principle, but the Horn route is still expected to miss it.",
-        "choices":  [
-                        "yes",
-                        "no",
-                        "unknown"
-                    ]
+        "id": "v2m-mixed-001",
+        "difficulty": "adversarial",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions",
+            "conjunction_disjunction"
+        ],
+        "paraphrase_group": null,
+        "context": "Lab access memo. If Greta completed access training, then Greta receives a green badge. If Greta receives a green badge and Greta has a workstation key, then Greta may enter lab 4 unless Greta is suspended. Greta completed access training. Greta has a workstation key. The coffee order arrived. Greta is suspended. Greta may not enter lab 4. Bruno checked the extinguisher before the drill.",
+        "question": "May Greta enter lab 4?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "boolean",
+        "phenomena": [
+            "conjunction",
+            "exception",
+            "blocking",
+            "distractors",
+            "explicit_negation"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 2,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The system should complete the badge chain, notice the suspension, and use the explicit negative permission to answer no."
     },
     {
-        "id":  "v2m-mixed-001",
-        "difficulty":  "adversarial",
-        "category":  "conditions_exceptions",
-        "categories":  [
-                           "messy_long_context",
-                           "conditions_exceptions",
-                           "conjunction_disjunction"
-                       ],
-        "paraphrase_group":  null,
-        "context":  "Lab access memo. If Greta completed access training, then Greta receives a green badge. If Greta receives a green badge and Greta has a workstation key, then Greta may enter lab 4 unless Greta is suspended. Greta completed access training. Greta has a workstation key. The coffee order arrived. Greta is suspended. Greta may not enter lab 4. Bruno checked the extinguisher before the drill.",
-        "question":  "May Greta enter lab 4?",
-        "gold_answer":  "no",
-        "expected_answer":  "no",
-        "answer_type":  "boolean",
-        "phenomena":  [
-                          "conjunction",
-                          "exception",
-                          "blocking",
-                          "distractors",
-                          "explicit_negation"
-                      ],
-        "expected_horn_answer":  "not_entailed",
-        "expected_inference_success":  false,
-        "expected_contradiction_flag":  false,
-        "expected_exportability":  {
-                                       "horn":  "partial",
-                                       "fol":  "exact",
-                                       "smt":  "unsupported"
-                                   },
-        "expected_reasoning_depth":  2,
-        "expected_failure_mode":  "explicit_negative_permission_withheld",
-        "expected_behavior":  "The system should complete the badge chain, notice the suspension, and use the explicit negative permission to answer no."
+        "id": "v2m-imp-001",
+        "difficulty": "medium",
+        "category": "simple_implication",
+        "categories": [
+            "messy_long_context",
+            "simple_implication"
+        ],
+        "paraphrase_group": null,
+        "context": "Badge desk note. If Paolo completed forklift briefing, then Paolo receives an orange permit. The vending machine jammed again. Paolo completed forklift briefing. A crate of gloves is missing from the cage.",
+        "question": "Does Paolo receive an orange permit?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "boolean",
+        "phenomena": [
+            "simple_implication",
+            "rule_application",
+            "distractors"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "The system should ignore the office chatter and derive the orange permit from the single completed-briefing fact."
+    },
+    {
+        "id": "v2m-conj-001",
+        "difficulty": "medium",
+        "category": "conjunction_disjunction",
+        "categories": [
+            "messy_long_context",
+            "conjunction_disjunction"
+        ],
+        "paraphrase_group": null,
+        "context": "Workshop notice. If Nina completed clean room orientation and Nina wears a particle badge, then Nina may enter the clean room. The janitor replaced a bulb. Nina completed clean room orientation. A courier signed the log. Nina wears a particle badge. The spare filters arrived late.",
+        "question": "May Nina enter the clean room?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "boolean",
+        "phenomena": [
+            "conjunction",
+            "rule_application",
+            "distractors"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "Both conjuncts are present, so the permission should be derivable despite the surrounding memo noise."
+    },
+    {
+        "id": "v2m-disj-002",
+        "difficulty": "adversarial",
+        "category": "conjunction_disjunction",
+        "categories": [
+            "messy_long_context",
+            "conjunction_disjunction",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Server room memo. If Omar holds a red pass or Omar has incident override, then Omar may enter server room B. The thermostat was recalibrated after dawn. Omar has incident override. The break room sink drips.",
+        "question": "May Omar enter server room B?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "boolean",
+        "phenomena": [
+            "disjunction",
+            "unsupported_formalization",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "unsupported",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "disjunction_not_supported",
+        "expected_behavior": "The plain-language answer is yes, but the Horn route should still refuse the disjunctive rule."
+    },
+    {
+        "id": "v2m-var-003",
+        "difficulty": "medium",
+        "category": "entity_binding",
+        "categories": [
+            "messy_long_context",
+            "entity_binding"
+        ],
+        "paraphrase_group": null,
+        "context": "Machine audit. All laser-certified technicians may calibrate the optic bench. Serena archived the shipping receipts. Theo is a laser-certified technician. The hallway fan is noisy. A toolbox went missing near the bench.",
+        "question": "May Theo calibrate the optic bench?",
+        "gold_answer": "yes",
+        "expected_answer": "yes",
+        "answer_type": "boolean",
+        "phenomena": [
+            "quantification",
+            "variable_binding",
+            "distractors"
+        ],
+        "expected_horn_answer": "entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": null,
+        "expected_behavior": "The quantifier should instantiate cleanly for Theo even with unrelated audit chatter nearby."
+    },
+    {
+        "id": "v2m-neg-002",
+        "difficulty": "easy",
+        "category": "negation",
+        "categories": [
+            "messy_long_context",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Badge log. Elias does not hold a silver badge. The printer toner arrived after noon. A courier signed the door sheet.",
+        "question": "Does Elias hold a silver badge?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "explicit_negation_withheld",
+        "expected_behavior": "The explicit negative badge fact directly supports answering no."
+    },
+    {
+        "id": "v2m-neg-003",
+        "difficulty": "easy",
+        "category": "negation",
+        "categories": [
+            "messy_long_context",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Dock notice. Priya may not operate the pallet lift. The loading door squeaks in the morning. A clipboard was replaced before lunch.",
+        "question": "May Priya operate the pallet lift?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The explicit negative permission supports answering no directly."
+    },
+    {
+        "id": "v2m-exc-004",
+        "difficulty": "medium",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Archive bulletin. If Jonah completed vault training, then Jonah may enter the map vault unless Jonah is under review. The radiator clicked all afternoon. Jonah completed vault training. Jonah is under review. Jonah may not enter the map vault. A copier jam delayed the clerk.",
+        "question": "May Jonah enter the map vault?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "exception",
+            "blocking",
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The review status blocks the positive rule and the explicit negative permission supports answering no."
+    },
+    {
+        "id": "v2m-mixed-002",
+        "difficulty": "adversarial",
+        "category": "conditions_exceptions",
+        "categories": [
+            "messy_long_context",
+            "conditions_exceptions",
+            "conjunction_disjunction",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Lab memo. If Rosa completed biosafety orientation and Rosa carries a green wristband, then Rosa may enter lab 7 unless Rosa is quarantined. Rosa completed biosafety orientation. The lunch order was late. Rosa carries a green wristband. Rosa is quarantined. Rosa may not enter lab 7. A drawer lock was replaced.",
+        "question": "May Rosa enter lab 7?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "conjunction",
+            "exception",
+            "blocking",
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 2,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The system should complete the positive chain, notice the quarantine blocker, and use the explicit negative permission to answer no."
+    },
+    {
+        "id": "v2m-var-004",
+        "difficulty": "medium",
+        "category": "entity_binding",
+        "categories": [
+            "messy_long_context",
+            "entity_binding",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Workshop report. All certified operators may use the milling machine. Bruno is a certified operator. Carla may not use the milling machine. Dina is a certified operator. The shift report mentions a delayed delivery. The spare cutter was locked away.",
+        "question": "May Carla use the milling machine?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "quantification",
+            "explicit_negation",
+            "entity_specific_fact",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The explicit negative permission for Carla supports answering no, while the universal rule still applies to the other named operators."
+    },
+    {
+        "id": "v2m-imp-002",
+        "difficulty": "medium",
+        "category": "simple_implication",
+        "categories": [
+            "messy_long_context",
+            "simple_implication",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Locker note. If Aria completed solvent training, then Aria may open the solvent locker. The floor was mopped before noon. Aria may not open the solvent locker. A broom handle was replaced after the audit.",
+        "question": "May Aria open the solvent locker?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "simple_implication",
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The rule is present but unsupported, while the explicit negative permission supports answering no."
+    },
+    {
+        "id": "v2m-att-002",
+        "difficulty": "medium",
+        "category": "attribution_speaker_tracking",
+        "categories": [
+            "messy_long_context",
+            "attribution_speaker_tracking",
+            "negation",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Inspection note. According to the temp clerk, Marta completed furnace orientation. Marta may not access the heat bay. Carlos completed ladder safety. If Carlos completed ladder safety, then Carlos may enter the scaffold room. The lunch truck arrived late.",
+        "question": "May Marta access the heat bay?",
+        "gold_answer": "no",
+        "expected_answer": "no",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "attribution",
+            "explicit_negation",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "explicit_negative_permission_withheld",
+        "expected_behavior": "The attributed positive claim should not override the explicit negative permission, so the answer should be no."
+    },
+    {
+        "id": "v2m-chain-004",
+        "difficulty": "adversarial",
+        "category": "chained_inference",
+        "categories": [
+            "messy_long_context",
+            "chained_inference",
+            "simple_implication"
+        ],
+        "paraphrase_group": null,
+        "context": "Operations note. If Talia completed crane prep, then Talia receives a red tag. If Talia is cleared for south gantry, then Talia may inspect the hoist. The dispatch radio crackled after lunch. Talia completed crane prep. A clipboard went missing from the cage.",
+        "question": "May Talia inspect the hoist?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "multi_hop",
+            "missing_link",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": true,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "exact",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 2,
+        "expected_failure_mode": null,
+        "expected_behavior": "The final permission remains unsupported because the tag-to-clearance step is missing."
+    },
+    {
+        "id": "v2m-amb-002",
+        "difficulty": "medium",
+        "category": "ambiguity_partial_formalization",
+        "categories": [
+            "messy_long_context",
+            "ambiguity_partial_formalization",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Shift summary. Marcus completed freezer orientation. Jonah filed the receipt correction. He received a silver pass. The ceiling vent rattled through the afternoon. A mop bucket was left by the stairs.",
+        "question": "Does Marcus receive a silver pass?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "unresolved_reference",
+            "partial_formalization",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "partial",
+            "fol": "partial",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 0,
+        "expected_failure_mode": "unresolved_pronoun",
+        "expected_behavior": "The pronoun should remain unresolved rather than being forced onto Marcus."
+    },
+    {
+        "id": "v2m-disj-003",
+        "difficulty": "adversarial",
+        "category": "conjunction_disjunction",
+        "categories": [
+            "messy_long_context",
+            "conjunction_disjunction",
+            "non_exportable_or_partial"
+        ],
+        "paraphrase_group": null,
+        "context": "Access memo. If Salma holds a bronze pass or Salma has supervisor override, then Salma may enter the diagnostics room. The coffee urn is empty. The hallway camera rebooted after lunch. The reception desk closed early.",
+        "question": "May Salma enter the diagnostics room?",
+        "gold_answer": "unknown",
+        "expected_answer": "unknown",
+        "answer_type": "ternary",
+        "choices": [
+            "yes",
+            "no",
+            "unknown"
+        ],
+        "phenomena": [
+            "disjunction",
+            "missing_premise",
+            "distractors"
+        ],
+        "expected_horn_answer": "not_entailed",
+        "expected_inference_success": false,
+        "expected_contradiction_flag": false,
+        "expected_exportability": {
+            "horn": "unsupported",
+            "fol": "exact",
+            "smt": "unsupported"
+        },
+        "expected_reasoning_depth": 1,
+        "expected_failure_mode": "disjunction_not_supported",
+        "expected_behavior": "Neither antecedent is stated, so the permission should remain unknown even though the rule is present."
     }
 ]

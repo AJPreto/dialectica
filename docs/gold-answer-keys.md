@@ -73,10 +73,23 @@ Source: `v2_reasoning.messy.json`
 | v2m-unc-001 | unknown | May Farah inspect the crane? |
 | v2m-disj-001 | yes | May Imani enter the diagnostics room? |
 | v2m-var-001 | yes | May Dina use the milling machine? |
-| v2m-var-002 | unknown | May Carla use the milling machine? |
 | v2m-num-001 | yes | Is batch size = 4? |
 | v2m-num-002 | yes | Is inventory count >= 3? |
 | v2m-mixed-001 | no | May Greta enter lab 4? |
+| v2m-imp-001 | yes | Does Paolo receive an orange permit? |
+| v2m-conj-001 | yes | May Nina enter the clean room? |
+| v2m-disj-002 | yes | May Omar enter server room B? |
+| v2m-var-003 | yes | May Theo calibrate the optic bench? |
+| v2m-neg-002 | no | Does Elias hold a silver badge? |
+| v2m-neg-003 | no | May Priya operate the pallet lift? |
+| v2m-exc-004 | no | May Jonah enter the map vault? |
+| v2m-mixed-002 | no | May Rosa enter lab 7? |
+| v2m-var-004 | no | May Carla use the milling machine? |
+| v2m-imp-002 | no | May Aria open the solvent locker? |
+| v2m-att-002 | no | May Marta access the heat bay? |
+| v2m-chain-004 | unknown | May Talia inspect the hoist? |
+| v2m-amb-002 | unknown | Does Marcus receive a silver pass? |
+| v2m-disj-003 | unknown | May Salma enter the diagnostics room? |
 
 ## Manual Exercise
 

@@ -1,6 +1,6 @@
 # Objective Evaluation
 
-The parser benchmark in [evaluate.py](/c:/Users/marti/Documents/GitHub/dialectica/src/dialectica/evaluate.py)
+The parser benchmark in [evaluate.py](../src/dialectica/evaluate.py)
 is useful, but it is not the main proof of value.
 
 The real question is:

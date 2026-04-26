@@ -1,6 +1,6 @@
 # Full Manual ChatGPT Pack
 
-This pack mirrors the full expanded V2 benchmark in [v2_reasoning.expanded.json](C:/Users/marti/Documents/GitHub/dialectica/benchmarks/v2_reasoning.expanded.json).
+This pack mirrors the full expanded V2 benchmark in [v2_reasoning.expanded.json](../benchmarks/v2_reasoning.expanded.json).
 
 Instructions:
 - Copy one full case block at a time into ChatGPT.
