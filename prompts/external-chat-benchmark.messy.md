@@ -1,6 +1,6 @@
-# Messy Tier Manual ChatGPT Pack (Raw)
+# Manual ChatGPT Reasoning Pack
 
-This pack mirrors the current 30-case Tier 2 messy benchmark in [reasoning.messy.json](../benchmarks/reasoning.messy.json).
+This pack mirrors the canonical 30-case reasoning benchmark in [reasoning.messy.json](../benchmarks/reasoning.messy.json).
 
 This is the raw manual variant. It minimizes benchmark steering and only specifies the answer format.
 

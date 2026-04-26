@@ -96,7 +96,7 @@ class ReasoningBenchmarkTests(unittest.TestCase):
 
     def test_reasoning_report_bundle_renders(self) -> None:
         report = {
-            "dataset_path": "benchmarks/reasoning.expanded.json",
+            "dataset_path": "benchmarks/reasoning.messy.json",
             "provider": "oracle",
             "model": None,
             "mode_order": ["direct", "dialectica_compact", "dialectica_filtered", "dialectica_filtered_structural", "horn_reasoner", "fol_reasoner"],
@@ -187,7 +187,7 @@ class ReasoningBenchmarkTests(unittest.TestCase):
 
     def test_report_bundle_escapes_user_visible_text(self) -> None:
         report = {
-            "dataset_path": "benchmarks/reasoning.expanded.json",
+            "dataset_path": "benchmarks/reasoning.messy.json",
             "provider": "oracle",
             "model": None,
             "aggregate": {

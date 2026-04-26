@@ -1,8 +1,0 @@
-{
-  "benchmark_id": "reasoning-manual-chat-001",
-  "source": "chatgpt-chat",
-  "model": "",
-  "allowed_answers": ["yes", "no", "unknown"],
-  "answer": "",
-  "justification": ""
-}

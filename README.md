@@ -170,9 +170,7 @@ If you want a step-by-step explanation of what happens during a run, see
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
-- `benchmarks/reasoning.sample.json`: small reasoning smoke-test benchmark, including ternary `unknown` cases for guarded exceptions
-- `benchmarks/reasoning.expanded.json`: richer curated reasoning diagnostic benchmark with mixed boolean and ternary cases
-- `benchmarks/reasoning.messy.json`: longer and noisier benchmark with `yes / no / unknown` answers
+- `benchmarks/reasoning.messy.json`: canonical noisy reasoning benchmark with `yes / no / unknown` answers
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
@@ -489,13 +487,7 @@ Start here:
 - [encoding backend comparison](./docs/encoding-backends.md)
 - [reasoning benchmark suite](./docs/reasoning-benchmark-suite.md)
 
-Run the expanded reasoning benchmark locally:
-
-```bash
-uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
-```
-
-Run the messier reasoning benchmark locally:
+Run the reasoning benchmark locally:
 
 ```bash
 uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/reasoning.messy.qwen2.5.json --markdown-output reports/reasoning.messy.qwen2.5.report.md --charts-dir reports/reasoning.messy.qwen2.5.charts --pretty

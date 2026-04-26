@@ -403,7 +403,7 @@ def _add_reason_run_arguments(command_parser: argparse.ArgumentParser) -> None:
 def _add_reasoning_eval_arguments(command_parser: argparse.ArgumentParser) -> None:
     command_parser.add_argument(
         "--dataset",
-        default=str(Path("benchmarks") / "reasoning.sample.json"),
+        default=str(Path("benchmarks") / "reasoning.messy.json"),
         help="Path to a reasoning comparison benchmark JSON file",
     )
     command_parser.add_argument(

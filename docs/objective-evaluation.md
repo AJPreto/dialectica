@@ -185,7 +185,7 @@ safety check.
 The repo also has a dedicated reasoning comparison runner:
 
 ```bash
-uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/reasoning.messy.qwen2.5.json --markdown-output reports/reasoning.messy.qwen2.5.report.md --charts-dir reports/reasoning.messy.qwen2.5.charts --pretty
 ```
 
 That benchmark adds:
