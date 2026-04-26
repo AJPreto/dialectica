@@ -15,9 +15,9 @@ By doing so, we are leveraging a priori knowledge that can be token-independent 
 achieve the same accuracy. This has limited scope, but aims to showcase how we can 
 intertwine preexisting corpus of knowledge with powerful LLMs. 
 
-## Prototype status
+## Current status
 
-The repo now includes a runnable V1 prototype with:
+The repo includes a runnable local toolchain with:
 
 - a local parser CLI
 - a small HTTP API
@@ -26,7 +26,7 @@ The repo now includes a runnable V1 prototype with:
 - a synthetic complexity-sweep benchmark generator
 - schema, prompt, and sample output files
 
-The parser is heuristic in this first version so the project can run locally
+The parser is heuristic so the project can run locally
 with no external model dependency. That makes it useful for fast iteration on
 the intermediate representation before swapping in an LLM-backed parser later.
 
@@ -142,10 +142,10 @@ The report bundle can also emit:
 - SVG bar charts for accuracy, tokens, latency, and iterations
 - an SVG line plot of raw context size versus average total tokens
 
-### Run the experimental V2 neuro-symbolic path
+### Run the neuro-symbolic reasoning pipeline
 
 ```bash
-uv run dialectica v2-run "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --pretty
+uv run dialectica reason "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --pretty
 ```
 
 If you want a step-by-step explanation of what happens during a run, see
@@ -153,11 +153,11 @@ If you want a step-by-step explanation of what happens during a run, see
 
 ## Repo layout
 
-- `src/dialectica/ir.py`: hybrid AST for the experimental V2 path
-- `src/dialectica/translator.py`: controlled natural-language translator for V2
-- `src/dialectica/compiler.py`: V2 export dispatcher
+- `src/dialectica/ir.py`: hybrid reasoning AST
+- `src/dialectica/translator.py`: controlled natural-language translator
+- `src/dialectica/compiler.py`: export dispatcher
 - `src/dialectica/engine.py`: deterministic Horn and broader FOL-style reasoning engines
-- `src/dialectica/explainer.py`: V2 natural-language explanation layer
+- `src/dialectica/explainer.py`: natural-language explanation layer
 - `src/dialectica/parser.py`: heuristic parser
 - `src/dialectica/canonical.py`: canonicalization and serialization
 - `src/dialectica/complexity.py`: synthetic complexity benchmark generation and summaries
@@ -170,9 +170,9 @@ If you want a step-by-step explanation of what happens during a run, see
 - `benchmarks/core.json`: initial benchmark set
 - `benchmarks/objective_qa.sample.json`: sample objective answer benchmark format
 - `benchmarks/complexity_sweep.sample.json`: generated scaling benchmark sample
-- `benchmarks/v2_reasoning.sample.json`: small V2 smoke-test benchmark, including ternary `unknown` cases for guarded exceptions
-- `benchmarks/v2_reasoning.expanded.json`: richer curated V2 diagnostic benchmark with mixed boolean and ternary cases
-- `benchmarks/v2_reasoning.messy.json`: longer and noisier Tier 2 V2 benchmark with `yes / no / unknown` answers
+- `benchmarks/reasoning.sample.json`: small reasoning smoke-test benchmark, including ternary `unknown` cases for guarded exceptions
+- `benchmarks/reasoning.expanded.json`: richer curated reasoning diagnostic benchmark with mixed boolean and ternary cases
+- `benchmarks/reasoning.messy.json`: longer and noisier benchmark with `yes / no / unknown` answers
 - `schema/logical-blocks.schema.json`: JSON schema for the target structure
 - `schema/logical-encoding.schema.json`: TPTP-inspired encoding layer
 - `prompts/parser.md`: parser prompt for an eventual LLM-backed version
@@ -180,9 +180,9 @@ If you want a step-by-step explanation of what happens during a run, see
 - `docs/structural-fingerprint.md`: notes on the Gödel-inspired auxiliary backend
 - `docs/objective-evaluation.md`: how to test whether Dialectica improves correctness
 - `docs/run-walkthrough.md`: step-by-step explanation of what happens during a run
-- `docs/v2-neurosymbolic.md`: experimental V2 design and CLI usage
-- `docs/v2-encoding-comparison.md`: practical comparison of V2 export targets
-- `docs/v2-benchmark-suite.md`: V2 benchmark philosophy, categories, metrics, and usage
+- `docs/reasoning-pipeline.md`: reasoning pipeline design and CLI usage
+- `docs/encoding-backends.md`: practical comparison of export targets
+- `docs/reasoning-benchmark-suite.md`: benchmark philosophy, categories, metrics, and usage
 
 ## Core idea
 
@@ -359,7 +359,7 @@ See:
 - [objective evaluation guide](./docs/objective-evaluation.md)
 - [sample objective QA dataset](./benchmarks/objective_qa.sample.json)
 - [sample complexity sweep](./benchmarks/complexity_sweep.sample.json)
-- [V2 benchmark suite](./docs/v2-benchmark-suite.md)
+- [reasoning benchmark suite](./docs/reasoning-benchmark-suite.md)
 
 ## Structural fingerprint backend
 
@@ -423,7 +423,7 @@ Output:
 
 ## Suggested first build
 
-The fastest path to a working prototype is:
+The fastest path to a working system is:
 
 1. Define the schema
 2. Create a parser prompt that emits strict JSON
@@ -432,10 +432,10 @@ The fastest path to a working prototype is:
 5. Embed both raw text and canonical serialization
 6. Compare hybrid retrieval quality on a small benchmark set
 
-The prototype now covers steps 1 through 4 directly, and lays the groundwork
+The local toolchain covers steps 1 through 4 directly, and lays the groundwork
 for steps 5 and 6.
 
-## V1 architecture
+## Retrieval Architecture
 
 ```text
 User text
@@ -454,20 +454,20 @@ Query
   -> Downstream agent
 ```
 
-## Practical V1 constraints
+## Practical Constraints
 
-Dialectica should not try to solve full formal reasoning in version one.
-Instead, version one should aim to be useful for:
+The retrieval-oriented path should not try to solve full formal reasoning.
+Instead, it should be useful for:
 
 - decomposing prompts
 - retrieving relevant prior reasoning
 - surfacing contradictions
 - carrying forward explicit constraints
 
-## Experimental V2 path
+## Neuro-Symbolic Reasoning
 
-Dialectica now also includes an experimental V2 path that keeps V1 intact while
-adding:
+Dialectica also includes a neuro-symbolic reasoning path that works alongside
+the retrieval-oriented logical-form pipeline:
 
 - conservative redundancy removal before translation
 - high-confidence decomposition into smaller articulated units
@@ -477,7 +477,7 @@ adding:
 - a broader skeptical FOL-style reasoning backend over the exact exported core
 - a natural-language explanation layer
 
-The default end-to-end V2 backend is Horn-style because it is deterministic,
+The default end-to-end reasoning backend is Horn-style because it is deterministic,
 explainable, and cheap to run locally. The same AST also exports to a FOL-style
 artifact that now has a matching proof path for the safe compiled fragment, and
 to a partial SMT-oriented path for future
@@ -485,26 +485,26 @@ arithmetic work.
 
 Start here:
 
-- [V2 neuro-symbolic overview](./docs/v2-neurosymbolic.md)
-- [V2 encoding comparison](./docs/v2-encoding-comparison.md)
-- [V2 benchmark suite](./docs/v2-benchmark-suite.md)
+- [reasoning pipeline overview](./docs/reasoning-pipeline.md)
+- [encoding backend comparison](./docs/encoding-backends.md)
+- [reasoning benchmark suite](./docs/reasoning-benchmark-suite.md)
 
-Run the expanded V2 benchmark locally:
+Run the expanded reasoning benchmark locally:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
 ```
 
-Run the messier Tier 2 V2 benchmark locally:
+Run the messier reasoning benchmark locally:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.messy.qwen2.5.json --markdown-output reports/v2_comparison.messy.qwen2.5.report.md --charts-dir reports/v2_comparison.messy.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/reasoning.messy.qwen2.5.json --markdown-output reports/reasoning.messy.qwen2.5.report.md --charts-dir reports/reasoning.messy.qwen2.5.charts --pretty
 ```
 
 ## Next implementation steps
 
 - Replace or augment the heuristic parser with an LLM-backed parser
-- Broaden contradiction, negation, and arithmetic coverage in the V2 translator
+- Broaden contradiction, negation, and arithmetic coverage in the translator
 - Add embedding generation for raw text and canonical graph serializations
 - Add hybrid retrieval experiments and scoring
 - Measure whether logical retrieval beats text-only retrieval for selected tasks

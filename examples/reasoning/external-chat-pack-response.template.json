@@ -5,32 +5,32 @@
   "allowed_answers": ["yes", "no", "unknown"],
   "results": [
     {
-      "benchmark_id": "v2x-manual-pack-001",
+      "benchmark_id": "reasoning-manual-pack-001",
       "prompt_label": "case-001",
       "answer": "yes"
     },
     {
-      "benchmark_id": "v2x-manual-pack-002",
+      "benchmark_id": "reasoning-manual-pack-002",
       "prompt_label": "case-002",
       "answer": "yes"
     },
     {
-      "benchmark_id": "v2x-manual-pack-003",
+      "benchmark_id": "reasoning-manual-pack-003",
       "prompt_label": "case-003",
       "answer": "no"
     },
     {
-      "benchmark_id": "v2x-manual-pack-004",
+      "benchmark_id": "reasoning-manual-pack-004",
       "prompt_label": "case-004",
       "answer": "unknown"
     },
     {
-      "benchmark_id": "v2x-manual-pack-005",
+      "benchmark_id": "reasoning-manual-pack-005",
       "prompt_label": "case-005",
       "answer": "unknown"
     },
     {
-      "benchmark_id": "v2x-manual-pack-006",
+      "benchmark_id": "reasoning-manual-pack-006",
       "prompt_label": "case-006",
       "answer": "yes"
     }

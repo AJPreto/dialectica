@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "id": "cx-01-001-q1",
     "scenario_id": "scenario-01-001",
@@ -89,7 +89,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 1,
         "variant": "entails",
@@ -113,12 +113,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "entails",
       "level": 1
@@ -266,7 +266,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 2,
         "variant": "entails",
@@ -290,12 +290,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "entails",
       "level": 2
@@ -549,7 +549,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 3,
         "variant": "blocked",
@@ -573,12 +573,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "blocked",
       "level": 3
@@ -876,7 +876,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 4,
         "variant": "entails",
@@ -900,12 +900,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "entails",
       "level": 4
@@ -1263,7 +1263,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 5,
         "variant": "blocked",
@@ -1287,12 +1287,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "blocked",
       "level": 5
@@ -1694,7 +1694,7 @@
       ],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1",
+        "generator": "complexity-sweep",
         "family": "access_chain",
         "level": 6,
         "variant": "entails",
@@ -1718,12 +1718,12 @@
       "relations": [],
       "ambiguities": [],
       "metadata": {
-        "generator": "complexity-sweep-v1"
+        "generator": "complexity-sweep"
       }
     },
     "gold_encoding": {
       "dialect": "fof",
-      "generator": "complexity-sweep-v1",
+      "generator": "complexity-sweep",
       "family": "access_chain",
       "variant": "entails",
       "level": 6

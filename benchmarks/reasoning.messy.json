@@ -1,6 +1,6 @@
 [
     {
-        "id": "v2m-chain-001",
+        "id": "reasoning-messy-chain-001",
         "difficulty": "medium",
         "category": "chained_inference",
         "categories": [
@@ -37,7 +37,7 @@
         ]
     },
     {
-        "id": "v2m-chain-002",
+        "id": "reasoning-messy-chain-002",
         "difficulty": "medium",
         "category": "chained_inference",
         "categories": [
@@ -75,7 +75,7 @@
         ]
     },
     {
-        "id": "v2m-chain-003",
+        "id": "reasoning-messy-chain-003",
         "difficulty": "adversarial",
         "category": "chained_inference",
         "categories": [
@@ -111,7 +111,7 @@
         ]
     },
     {
-        "id": "v2m-exc-001",
+        "id": "reasoning-messy-exc-001",
         "difficulty": "medium",
         "category": "conditions_exceptions",
         "categories": [
@@ -143,7 +143,7 @@
         "expected_behavior": "The audit hold blocks the positive rule and the explicit negative permission supports answering no."
     },
     {
-        "id": "v2m-exc-002",
+        "id": "reasoning-messy-exc-002",
         "difficulty": "medium",
         "category": "conditions_exceptions",
         "categories": [
@@ -180,7 +180,7 @@
         ]
     },
     {
-        "id": "v2m-exc-003",
+        "id": "reasoning-messy-exc-003",
         "difficulty": "medium",
         "category": "conditions_exceptions",
         "categories": [
@@ -217,7 +217,7 @@
         ]
     },
     {
-        "id": "v2m-ctr-001",
+        "id": "reasoning-messy-ctr-001",
         "difficulty": "adversarial",
         "category": "contradiction_detection",
         "categories": [
@@ -255,7 +255,7 @@
         ]
     },
     {
-        "id": "v2m-neg-001",
+        "id": "reasoning-messy-neg-001",
         "difficulty": "adversarial",
         "category": "negation",
         "categories": [
@@ -287,7 +287,7 @@
         "expected_behavior": "The explicit negative permission directly supports answering no, and the surrounding facts are just distractors."
     },
     {
-        "id": "v2m-att-001",
+        "id": "reasoning-messy-att-001",
         "difficulty": "medium",
         "category": "attribution_speaker_tracking",
         "categories": [
@@ -324,7 +324,7 @@
         ]
     },
     {
-        "id": "v2m-amb-001",
+        "id": "reasoning-messy-amb-001",
         "difficulty": "medium",
         "category": "ambiguity_partial_formalization",
         "categories": [
@@ -361,7 +361,7 @@
         ]
     },
     {
-        "id": "v2m-unc-001",
+        "id": "reasoning-messy-unc-001",
         "difficulty": "medium",
         "category": "ambiguity_partial_formalization",
         "categories": [
@@ -398,7 +398,7 @@
         ]
     },
     {
-        "id": "v2m-disj-001",
+        "id": "reasoning-messy-disj-001",
         "difficulty": "adversarial",
         "category": "conjunction_disjunction",
         "categories": [
@@ -435,7 +435,7 @@
         ]
     },
     {
-        "id": "v2m-var-001",
+        "id": "reasoning-messy-var-001",
         "difficulty": "medium",
         "category": "entity_binding",
         "categories": [
@@ -471,7 +471,7 @@
         ]
     },
     {
-        "id": "v2m-num-001",
+        "id": "reasoning-messy-num-001",
         "difficulty": "adversarial",
         "category": "arithmetic_equality_inequality",
         "categories": [
@@ -509,7 +509,7 @@
         ]
     },
     {
-        "id": "v2m-num-002",
+        "id": "reasoning-messy-num-002",
         "difficulty": "adversarial",
         "category": "arithmetic_equality_inequality",
         "categories": [
@@ -547,7 +547,7 @@
         ]
     },
     {
-        "id": "v2m-mixed-001",
+        "id": "reasoning-messy-mixed-001",
         "difficulty": "adversarial",
         "category": "conditions_exceptions",
         "categories": [
@@ -581,7 +581,7 @@
         "expected_behavior": "The system should complete the badge chain, notice the suspension, and use the explicit negative permission to answer no."
     },
     {
-        "id": "v2m-imp-001",
+        "id": "reasoning-messy-imp-001",
         "difficulty": "medium",
         "category": "simple_implication",
         "categories": [
@@ -612,7 +612,7 @@
         "expected_behavior": "The system should ignore the office chatter and derive the orange permit from the single completed-briefing fact."
     },
     {
-        "id": "v2m-conj-001",
+        "id": "reasoning-messy-conj-001",
         "difficulty": "medium",
         "category": "conjunction_disjunction",
         "categories": [
@@ -643,7 +643,7 @@
         "expected_behavior": "Both conjuncts are present, so the permission should be derivable despite the surrounding memo noise."
     },
     {
-        "id": "v2m-disj-002",
+        "id": "reasoning-messy-disj-002",
         "difficulty": "adversarial",
         "category": "conjunction_disjunction",
         "categories": [
@@ -675,7 +675,7 @@
         "expected_behavior": "The plain-language answer is yes, but the Horn route should still refuse the disjunctive rule."
     },
     {
-        "id": "v2m-var-003",
+        "id": "reasoning-messy-var-003",
         "difficulty": "medium",
         "category": "entity_binding",
         "categories": [
@@ -706,7 +706,7 @@
         "expected_behavior": "The quantifier should instantiate cleanly for Theo even with unrelated audit chatter nearby."
     },
     {
-        "id": "v2m-neg-002",
+        "id": "reasoning-messy-neg-002",
         "difficulty": "easy",
         "category": "negation",
         "categories": [
@@ -742,7 +742,7 @@
         "expected_behavior": "The explicit negative badge fact directly supports answering no."
     },
     {
-        "id": "v2m-neg-003",
+        "id": "reasoning-messy-neg-003",
         "difficulty": "easy",
         "category": "negation",
         "categories": [
@@ -778,7 +778,7 @@
         "expected_behavior": "The explicit negative permission supports answering no directly."
     },
     {
-        "id": "v2m-exc-004",
+        "id": "reasoning-messy-exc-004",
         "difficulty": "medium",
         "category": "conditions_exceptions",
         "categories": [
@@ -817,7 +817,7 @@
         "expected_behavior": "The review status blocks the positive rule and the explicit negative permission supports answering no."
     },
     {
-        "id": "v2m-mixed-002",
+        "id": "reasoning-messy-mixed-002",
         "difficulty": "adversarial",
         "category": "conditions_exceptions",
         "categories": [
@@ -858,7 +858,7 @@
         "expected_behavior": "The system should complete the positive chain, notice the quarantine blocker, and use the explicit negative permission to answer no."
     },
     {
-        "id": "v2m-var-004",
+        "id": "reasoning-messy-var-004",
         "difficulty": "medium",
         "category": "entity_binding",
         "categories": [
@@ -897,7 +897,7 @@
         "expected_behavior": "The explicit negative permission for Carla supports answering no, while the universal rule still applies to the other named operators."
     },
     {
-        "id": "v2m-imp-002",
+        "id": "reasoning-messy-imp-002",
         "difficulty": "medium",
         "category": "simple_implication",
         "categories": [
@@ -935,7 +935,7 @@
         "expected_behavior": "The rule is present but unsupported, while the explicit negative permission supports answering no."
     },
     {
-        "id": "v2m-att-002",
+        "id": "reasoning-messy-att-002",
         "difficulty": "medium",
         "category": "attribution_speaker_tracking",
         "categories": [
@@ -973,7 +973,7 @@
         "expected_behavior": "The attributed positive claim should not override the explicit negative permission, so the answer should be no."
     },
     {
-        "id": "v2m-chain-004",
+        "id": "reasoning-messy-chain-004",
         "difficulty": "adversarial",
         "category": "chained_inference",
         "categories": [
@@ -1010,7 +1010,7 @@
         "expected_behavior": "The final permission remains unsupported because the tag-to-clearance step is missing."
     },
     {
-        "id": "v2m-amb-002",
+        "id": "reasoning-messy-amb-002",
         "difficulty": "medium",
         "category": "ambiguity_partial_formalization",
         "categories": [
@@ -1047,7 +1047,7 @@
         "expected_behavior": "The pronoun should remain unresolved rather than being forced onto Marcus."
     },
     {
-        "id": "v2m-disj-003",
+        "id": "reasoning-messy-disj-003",
         "difficulty": "adversarial",
         "category": "conjunction_disjunction",
         "categories": [

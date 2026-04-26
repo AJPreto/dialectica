@@ -1,6 +1,6 @@
 # Architecture Notes
 
-## Recommended V1 pipeline
+## Recommended Pipeline
 
 ```text
 input text
@@ -49,7 +49,7 @@ Embed each block independently to support:
 
 ## Retrieval scoring
 
-A practical V1 score can combine:
+A practical retrieval score can combine:
 
 - text cosine similarity
 - canonical graph cosine similarity
@@ -73,7 +73,7 @@ score = 0.40 * text_similarity
 - Policy and requirement extraction
 - Research note indexing
 
-## What not to do in V1
+## What Not To Do
 
 - Full theorem proving
 - Strict symbolic execution over noisy user language

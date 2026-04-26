@@ -1,4 +1,4 @@
-"""Partial SMT-style export for the experimental Dialectica V2 path."""
+"""Partial SMT-style export for Dialectica reasoning."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class SMTExporter(BaseExporter):
                 status="unsupported",
                 notes=["The first SMT exporter only handles standalone comparison statements."],
             )
-            notes.append("The SMT path is present experimentally but is not yet the default end-to-end backend.")
+            notes.append("The SMT path is available as a partial export target for arithmetic and constraint work.")
 
         artifact = {
             "dialect": "smtlib2",

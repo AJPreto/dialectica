@@ -355,7 +355,7 @@ def _generate_scenario_cases(
         ordered_items,
         context=context,
         metadata={
-            "generator": "complexity-sweep-v1",
+            "generator": "complexity-sweep",
             "family": "access_chain",
             "level": level,
             "variant": variant,
@@ -410,7 +410,7 @@ def _generate_scenario_cases(
                 "gold_question_logical_form": gold_question_form,
                 "gold_encoding": {
                     "dialect": "fof",
-                    "generator": "complexity-sweep-v1",
+                    "generator": "complexity-sweep",
                     "family": "access_chain",
                     "variant": variant,
                     "level": level,
@@ -676,7 +676,7 @@ def _build_question_logical_form(question: str) -> dict[str, Any]:
         ],
         "relations": [],
         "ambiguities": [],
-        "metadata": {"generator": "complexity-sweep-v1"},
+        "metadata": {"generator": "complexity-sweep"},
     }
 
 

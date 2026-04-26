@@ -8,7 +8,7 @@ from .constants import BLOCK_TYPES, PARSE_STATUSES, POLARITIES, RELATION_TYPES
 
 
 def validate_logical_form(logical_form: dict[str, Any]) -> list[str]:
-    """Return a list of validation errors. Empty means valid enough for V1."""
+    """Return a list of validation errors. Empty means the form is usable."""
     errors: list[str] = []
     required_top_level = ("source_text", "blocks", "relations")
     for field in required_top_level:
@@ -44,4 +44,3 @@ def validate_logical_form(logical_form: dict[str, Any]) -> list[str]:
             errors.append(f"Relation {index} references unknown target block: {target}")
 
     return errors
-

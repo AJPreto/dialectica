@@ -89,7 +89,7 @@ def filter_logical_form(
         filtered = dict(canonical_context)
         metadata = dict(filtered.get("metadata", {}))
         metadata["filter"] = {
-            "strategy": "question-conditioned-v1",
+            "strategy": "question-conditioned",
             "fallback": "no_question_tokens",
             "source_block_count": len(blocks),
             "filtered_block_count": len(blocks),
@@ -161,7 +161,7 @@ def filter_logical_form(
         "metadata": {
             **canonical_context.get("metadata", {}),
             "filter": {
-                "strategy": "question-conditioned-v1",
+                "strategy": "question-conditioned",
                 "source_block_count": len(blocks),
                 "filtered_block_count": len(filtered_blocks),
                 "source_relation_count": len(relations),
@@ -177,7 +177,7 @@ def _fallback_filtered_form(logical_form: dict[str, Any], *, reason: str) -> dic
     fallback = canonicalize_logical_form(logical_form)
     metadata = dict(fallback.get("metadata", {}))
     metadata["filter"] = {
-        "strategy": "question-conditioned-v1",
+        "strategy": "question-conditioned",
         "fallback": reason,
         "source_block_count": len(fallback.get("blocks", [])),
         "filtered_block_count": len(fallback.get("blocks", [])),

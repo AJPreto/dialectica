@@ -1,4 +1,4 @@
-"""Hybrid intermediate representation for the experimental Dialectica V2 path."""
+"""Hybrid intermediate representation for Dialectica reasoning."""
 
 from __future__ import annotations
 

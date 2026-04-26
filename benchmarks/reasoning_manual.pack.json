@@ -1,6 +1,6 @@
 [
   {
-    "id": "v2x-manual-pack-001",
+    "id": "reasoning-manual-pack-001",
     "difficulty": "easy",
     "category": "simple_implication",
     "categories": ["simple_implication"],
@@ -14,7 +14,7 @@
     "prompt_label": "case-001"
   },
   {
-    "id": "v2x-manual-pack-002",
+    "id": "reasoning-manual-pack-002",
     "difficulty": "medium",
     "category": "conjunction_disjunction",
     "categories": ["conjunction_disjunction"],
@@ -28,7 +28,7 @@
     "prompt_label": "case-002"
   },
   {
-    "id": "v2x-manual-pack-003",
+    "id": "reasoning-manual-pack-003",
     "difficulty": "easy",
     "category": "negation",
     "categories": ["negation"],
@@ -42,7 +42,7 @@
     "prompt_label": "case-003"
   },
   {
-    "id": "v2x-manual-pack-004",
+    "id": "reasoning-manual-pack-004",
     "difficulty": "adversarial",
     "category": "contradiction_detection",
     "categories": ["contradiction_detection", "negation"],
@@ -57,7 +57,7 @@
     "prompt_label": "case-004"
   },
   {
-    "id": "v2x-manual-pack-005",
+    "id": "reasoning-manual-pack-005",
     "difficulty": "medium",
     "category": "conditions_exceptions",
     "categories": ["conditions_exceptions"],
@@ -72,7 +72,7 @@
     "prompt_label": "case-005"
   },
   {
-    "id": "v2x-manual-pack-006",
+    "id": "reasoning-manual-pack-006",
     "difficulty": "easy",
     "category": "arithmetic_equality_inequality",
     "categories": ["arithmetic_equality_inequality"],

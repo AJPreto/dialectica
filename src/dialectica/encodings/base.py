@@ -1,4 +1,4 @@
-"""Shared encoding interfaces for Dialectica V2 exporters."""
+"""Shared encoding interfaces for Dialectica exporters."""
 
 from __future__ import annotations
 

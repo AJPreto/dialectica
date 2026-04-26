@@ -1,15 +1,15 @@
-# V2 Benchmark Suite
+# Reasoning Benchmark Suite
 
-Dialectica now has two different evaluation stories:
+Dialectica has two complementary evaluation stories:
 
-- V1 prompt-and-encoding benchmarks
-- V2 neuro-symbolic benchmarks centered on the Horn path
+- prompt-and-encoding benchmarks
+- neuro-symbolic benchmarks centered on the Horn path
 
-This document is about the second one.
+This document is about the neuro-symbolic benchmark.
 
 ## Philosophy
 
-The V2 suite is meant to characterize the system, not flatter it.
+The reasoning suite is meant to characterize the system, not flatter it.
 
 That means the benchmark includes:
 
@@ -20,15 +20,15 @@ That means the benchmark includes:
 
 The goal is to answer:
 
-`Is the V2 Horn pipeline genuinely more accurate and more faithful, or was the early result a small-benchmark artifact?`
+`Is the Horn reasoning pipeline genuinely more accurate and more faithful, or was the early result a small-benchmark artifact?`
 
 ## Files
 
-- `benchmarks/v2_reasoning.sample.json`
+- `benchmarks/reasoning.sample.json`
   A small smoke-test set.
-- `benchmarks/v2_reasoning.expanded.json`
+- `benchmarks/reasoning.expanded.json`
   The richer curated suite for serious comparison runs.
-- `benchmarks/v2_reasoning.messy.json`
+- `benchmarks/reasoning.messy.json`
   A Tier 2 suite with longer, noisier, more distractor-heavy prompts.
 
 ## Tiers
@@ -51,7 +51,7 @@ The benchmark now has two curated tiers:
 
 The purpose of the messy tier is to probe the next question:
 
-`Does the V2 path still hold up when the problem is not a neat textbook snippet?`
+`Does the reasoning path still hold up when the problem is not a neat textbook snippet?`
 
 ## Category taxonomy
 
@@ -104,14 +104,14 @@ single raw accuracy number.
 Some items are grouped under `paraphrase_group`.
 
 Those groups preserve the intended meaning while varying wording or surface
-form. The V2 report measures whether each mode stays stable across the group.
+form. The reasoning report measures whether each mode stays stable across the group.
 
 This is deliberately modest. The current translator is still controlled and
 domain-limited, so the paraphrases are curated rather than fully open-ended.
 
 ## Metrics
 
-The V2 report now includes:
+The reasoning report includes:
 
 - overall accuracy
 - average token cost
@@ -143,7 +143,7 @@ The suite intentionally includes cases where Horn is expected to struggle:
 - disjunction
 - arithmetic or comparison queries that point toward SMT rather than Horn
 
-If V2 performs poorly there, that is a benchmark success, not a benchmark
+If the Horn reasoner performs poorly there, that is a benchmark success, not a benchmark
 failure. The suite is doing its job by showing the boundary of the current
 slice.
 
@@ -152,25 +152,25 @@ slice.
 Smoke test:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.sample.json --provider oracle --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.sample.json --provider oracle --pretty
 ```
 
 Expanded local run:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
 ```
 
 Messy Tier 2 local run:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.messy.qwen2.5.json --markdown-output reports/v2_comparison.messy.qwen2.5.report.md --charts-dir reports/v2_comparison.messy.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.messy.json --provider ollama --model qwen2.5:3b --output reports/reasoning.messy.qwen2.5.json --markdown-output reports/reasoning.messy.qwen2.5.report.md --charts-dir reports/reasoning.messy.qwen2.5.charts --pretty
 ```
 
 Render charts from an existing JSON report without recomputing:
 
 ```bash
-uv run dialectica render-v2-report --report reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+uv run dialectica render-reasoning-report --report reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
 ```
 
 ## How to add new cases
@@ -191,13 +191,13 @@ Do not overclaim from aggregate accuracy alone.
 
 Look at:
 
-- where V2 Horn wins
+- where the Horn reasoner wins
 - where it loses
 - whether those wins cluster in the categories it is actually designed for
 - whether its failures are because of translation limits, export limits, or reasoning limits
 
 The right conclusion is not “Horn is better” or “Horn is worse.”
-The right conclusion is a map of where the current V2 slice is trustworthy.
+The right conclusion is a map of where the current reasoning slice is trustworthy.
 
 On the messy tier, the extra question is whether correctness degrades
 gracefully as distractors and context clutter increase, or whether the

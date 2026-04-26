@@ -1,4 +1,4 @@
-"""FOL-style export for the experimental Dialectica V2 path."""
+"""FOL-style export for Dialectica reasoning."""
 
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ class FOLExporter(BaseExporter):
                     "name": name,
                     "signature": "$i > $o",
                     "arity": 1,
-                    "description": "Auto-generated from the V2 hybrid AST.",
+                    "description": "Auto-generated from the hybrid AST.",
                 }
                 for name in sorted(predicate_names)
             ],
@@ -83,7 +83,7 @@ class FOLExporter(BaseExporter):
                     "name": name,
                     "signature": "$i",
                     "arity": 0,
-                    "description": "Auto-generated constant from the V2 hybrid AST.",
+                    "description": "Auto-generated constant from the hybrid AST.",
                 }
                 for name in sorted(constant_names)
             ],
@@ -150,7 +150,7 @@ class FOLExporter(BaseExporter):
                 "linked_blocks": [],
                 "source": {
                     "kind": "parser",
-                    "reference": "experimental-v2-translator",
+                    "reference": "controlled-heuristic-translator",
                     "details": {"sentence_id": statement.provenance.sentence_id},
                 },
                 "useful_info": [{"key": "source_fragment", "value": statement.provenance.fragment}],

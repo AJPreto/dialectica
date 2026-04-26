@@ -1,4 +1,4 @@
-"""Encoding backends for the experimental Dialectica V2 path."""
+"""Encoding backends for Dialectica reasoning."""
 
 from .base import CompilationResult
 from .fol import FOLExporter
@@ -11,4 +11,3 @@ __all__ = [
     "HornExporter",
     "SMTExporter",
 ]
-

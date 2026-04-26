@@ -92,7 +92,7 @@
         ],
         "source": {
           "kind": "parser",
-          "reference": "heuristic-v1",
+          "reference": "heuristic",
           "details": {
             "strategy": "semantic-to-formal bridge"
           }

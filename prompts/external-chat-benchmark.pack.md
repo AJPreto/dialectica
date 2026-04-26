@@ -6,7 +6,7 @@ Instructions:
 - Start a fresh chat if the current one has been flaky.
 - Copy one case at a time.
 - Ask for a one-word answer only: `yes`, `no`, or `unknown`.
-- When you have the results, paste them back into the response template in `examples/v2/external-chat-pack-response.template.json`.
+- When you have the results, paste them back into the response template in `examples/reasoning/external-chat-pack-response.template.json`.
 
 ## case-001
 

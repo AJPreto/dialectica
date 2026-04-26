@@ -1,5 +1,5 @@
 {
-  "id": "v2-universal-rule",
+  "id": "reasoning-universal-rule",
   "text": "All certified operators may use the milling machine. Bruno is a certified operator. May Bruno use the milling machine?",
   "expected_answer": "entailed"
 }

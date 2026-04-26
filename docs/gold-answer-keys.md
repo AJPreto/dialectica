@@ -4,110 +4,110 @@ This file is a human-readable view of the current gold labels in the benchmark J
 
 The benchmark JSON files remain the source of truth:
 
-- `benchmarks/v2_reasoning.sample.json`
-- `benchmarks/v2_reasoning.expanded.json`
-- `benchmarks/v2_reasoning.messy.json`
-- `benchmarks/v2_chatgpt_manual.exercise.json`
-- `benchmarks/v2_chatgpt_manual.pack.json`
+- `benchmarks/reasoning.sample.json`
+- `benchmarks/reasoning.expanded.json`
+- `benchmarks/reasoning.messy.json`
+- `benchmarks/reasoning_manual.exercise.json`
+- `benchmarks/reasoning_manual.pack.json`
 
 ## Sample
 
-Source: `v2_reasoning.sample.json`
+Source: `reasoning.sample.json`
 
 | ID | Gold | Question |
 | --- | --- | --- |
-| v2-case-001 | yes | May Alice enter the amber workshop? |
-| v2-case-002 | yes | May Bruno use the milling machine? |
-| v2-case-003 | unknown | May Alice enter the amber workshop? |
-| v2-case-004 | unknown | Does Alice hold an amber badge? |
-| v2-case-005 | yes | May Greta enter the amber workshop? |
-| v2-case-006 | no | May Carla use the milling machine? |
+| reasoning-case-001 | yes | May Alice enter the amber workshop? |
+| reasoning-case-002 | yes | May Bruno use the milling machine? |
+| reasoning-case-003 | unknown | May Alice enter the amber workshop? |
+| reasoning-case-004 | unknown | Does Alice hold an amber badge? |
+| reasoning-case-005 | yes | May Greta enter the amber workshop? |
+| reasoning-case-006 | no | May Carla use the milling machine? |
 
 ## Expanded
 
-Source: `v2_reasoning.expanded.json`
+Source: `reasoning.expanded.json`
 
 | ID | Gold | Question |
 | --- | --- | --- |
-| v2x-imp-001 | yes | Does Alice hold an amber badge? |
-| v2x-imp-002 | yes | Does Alice hold the amber badge? |
-| v2x-imp-003 | unknown | Does Alice hold an amber badge? |
-| v2x-conj-001 | yes | May Alice enter the amber workshop? |
-| v2x-conj-002 | unknown | May Alice enter the amber workshop? |
-| v2x-disj-001 | yes | May Alice enter the amber workshop? |
-| v2x-neg-001 | no | Does Alice hold an amber badge? |
-| v2x-neg-002 | unknown | May Alice enter the amber workshop? |
-| v2x-ctr-001 | unknown | Does Alice hold an amber badge? |
-| v2x-exc-001 | no | May Alice enter the amber workshop? |
-| v2x-exc-002 | unknown | May Alice enter the amber workshop? |
-| v2x-exc-003 | unknown | May Alice enter the amber workshop? |
-| v2x-chain-001 | yes | May Alice enter the amber workshop? |
-| v2x-chain-002 | yes | May Greta enter the amber workshop? |
-| v2x-var-001 | yes | May Bruno use the milling machine? |
-| v2x-var-002 | yes | Can Bruno use the milling machine? |
-| v2x-var-003 | unknown | May Carla use the milling machine? |
-| v2x-att-001 | unknown | Does Alice hold an amber badge? |
-| v2x-att-002 | unknown | May Bruno use the milling machine? |
-| v2x-amb-001 | unknown | Does Alice hold an amber badge? |
-| v2x-amb-002 | unknown | Does Alice hold an amber badge? |
-| v2x-amb-003 | unknown | Does Alice hold the amber badge? |
-| v2x-num-001 | yes | Is inventory count >= 3? |
-| v2x-num-002 | yes | Is batch size = 4? |
+| reasoning-expanded-imp-001 | yes | Does Alice hold an amber badge? |
+| reasoning-expanded-imp-002 | yes | Does Alice hold the amber badge? |
+| reasoning-expanded-imp-003 | unknown | Does Alice hold an amber badge? |
+| reasoning-expanded-conj-001 | yes | May Alice enter the amber workshop? |
+| reasoning-expanded-conj-002 | unknown | May Alice enter the amber workshop? |
+| reasoning-expanded-disj-001 | yes | May Alice enter the amber workshop? |
+| reasoning-expanded-neg-001 | no | Does Alice hold an amber badge? |
+| reasoning-expanded-neg-002 | unknown | May Alice enter the amber workshop? |
+| reasoning-expanded-ctr-001 | unknown | Does Alice hold an amber badge? |
+| reasoning-expanded-exc-001 | no | May Alice enter the amber workshop? |
+| reasoning-expanded-exc-002 | unknown | May Alice enter the amber workshop? |
+| reasoning-expanded-exc-003 | unknown | May Alice enter the amber workshop? |
+| reasoning-expanded-chain-001 | yes | May Alice enter the amber workshop? |
+| reasoning-expanded-chain-002 | yes | May Greta enter the amber workshop? |
+| reasoning-expanded-var-001 | yes | May Bruno use the milling machine? |
+| reasoning-expanded-var-002 | yes | Can Bruno use the milling machine? |
+| reasoning-expanded-var-003 | unknown | May Carla use the milling machine? |
+| reasoning-expanded-att-001 | unknown | Does Alice hold an amber badge? |
+| reasoning-expanded-att-002 | unknown | May Bruno use the milling machine? |
+| reasoning-expanded-amb-001 | unknown | Does Alice hold an amber badge? |
+| reasoning-expanded-amb-002 | unknown | Does Alice hold an amber badge? |
+| reasoning-expanded-amb-003 | unknown | Does Alice hold the amber badge? |
+| reasoning-expanded-num-001 | yes | Is inventory count >= 3? |
+| reasoning-expanded-num-002 | yes | Is batch size = 4? |
 
 ## Messy
 
-Source: `v2_reasoning.messy.json`
+Source: `reasoning.messy.json`
 
 | ID | Gold | Question |
 | --- | --- | --- |
-| v2m-chain-001 | yes | May Mira supervise pallet transfers? |
-| v2m-chain-002 | yes | May Mira supervise pallet transfers? |
-| v2m-chain-003 | unknown | May Mira supervise pallet transfers? |
-| v2m-exc-001 | no | May Lena enter the restricted stacks? |
-| v2m-exc-002 | unknown | May Lena enter the restricted stacks? |
-| v2m-exc-003 | unknown | May Lena enter the restricted stacks? |
-| v2m-ctr-001 | unknown | May Nora use the solvent cabinet? |
-| v2m-neg-001 | no | May Ravi activate the test rig? |
-| v2m-att-001 | unknown | May Marta access the heat bay? |
-| v2m-amb-001 | unknown | Does Alice hold an amber badge? |
-| v2m-unc-001 | unknown | May Farah inspect the crane? |
-| v2m-disj-001 | yes | May Imani enter the diagnostics room? |
-| v2m-var-001 | yes | May Dina use the milling machine? |
-| v2m-num-001 | yes | Is batch size = 4? |
-| v2m-num-002 | yes | Is inventory count >= 3? |
-| v2m-mixed-001 | no | May Greta enter lab 4? |
-| v2m-imp-001 | yes | Does Paolo receive an orange permit? |
-| v2m-conj-001 | yes | May Nina enter the clean room? |
-| v2m-disj-002 | yes | May Omar enter server room B? |
-| v2m-var-003 | yes | May Theo calibrate the optic bench? |
-| v2m-neg-002 | no | Does Elias hold a silver badge? |
-| v2m-neg-003 | no | May Priya operate the pallet lift? |
-| v2m-exc-004 | no | May Jonah enter the map vault? |
-| v2m-mixed-002 | no | May Rosa enter lab 7? |
-| v2m-var-004 | no | May Carla use the milling machine? |
-| v2m-imp-002 | no | May Aria open the solvent locker? |
-| v2m-att-002 | no | May Marta access the heat bay? |
-| v2m-chain-004 | unknown | May Talia inspect the hoist? |
-| v2m-amb-002 | unknown | Does Marcus receive a silver pass? |
-| v2m-disj-003 | unknown | May Salma enter the diagnostics room? |
+| reasoning-messy-chain-001 | yes | May Mira supervise pallet transfers? |
+| reasoning-messy-chain-002 | yes | May Mira supervise pallet transfers? |
+| reasoning-messy-chain-003 | unknown | May Mira supervise pallet transfers? |
+| reasoning-messy-exc-001 | no | May Lena enter the restricted stacks? |
+| reasoning-messy-exc-002 | unknown | May Lena enter the restricted stacks? |
+| reasoning-messy-exc-003 | unknown | May Lena enter the restricted stacks? |
+| reasoning-messy-ctr-001 | unknown | May Nora use the solvent cabinet? |
+| reasoning-messy-neg-001 | no | May Ravi activate the test rig? |
+| reasoning-messy-att-001 | unknown | May Marta access the heat bay? |
+| reasoning-messy-amb-001 | unknown | Does Alice hold an amber badge? |
+| reasoning-messy-unc-001 | unknown | May Farah inspect the crane? |
+| reasoning-messy-disj-001 | yes | May Imani enter the diagnostics room? |
+| reasoning-messy-var-001 | yes | May Dina use the milling machine? |
+| reasoning-messy-num-001 | yes | Is batch size = 4? |
+| reasoning-messy-num-002 | yes | Is inventory count >= 3? |
+| reasoning-messy-mixed-001 | no | May Greta enter lab 4? |
+| reasoning-messy-imp-001 | yes | Does Paolo receive an orange permit? |
+| reasoning-messy-conj-001 | yes | May Nina enter the clean room? |
+| reasoning-messy-disj-002 | yes | May Omar enter server room B? |
+| reasoning-messy-var-003 | yes | May Theo calibrate the optic bench? |
+| reasoning-messy-neg-002 | no | Does Elias hold a silver badge? |
+| reasoning-messy-neg-003 | no | May Priya operate the pallet lift? |
+| reasoning-messy-exc-004 | no | May Jonah enter the map vault? |
+| reasoning-messy-mixed-002 | no | May Rosa enter lab 7? |
+| reasoning-messy-var-004 | no | May Carla use the milling machine? |
+| reasoning-messy-imp-002 | no | May Aria open the solvent locker? |
+| reasoning-messy-att-002 | no | May Marta access the heat bay? |
+| reasoning-messy-chain-004 | unknown | May Talia inspect the hoist? |
+| reasoning-messy-amb-002 | unknown | Does Marcus receive a silver pass? |
+| reasoning-messy-disj-003 | unknown | May Salma enter the diagnostics room? |
 
 ## Manual Exercise
 
-Source: `v2_chatgpt_manual.exercise.json`
+Source: `reasoning_manual.exercise.json`
 
 | ID | Gold | Question |
 | --- | --- | --- |
-| v2x-manual-chat-001 | unknown | May Bruno start the calibration console? |
+| reasoning-manual-chat-001 | unknown | May Bruno start the calibration console? |
 
 ## Manual Pack
 
-Source: `v2_chatgpt_manual.pack.json`
+Source: `reasoning_manual.pack.json`
 
 | ID | Gold | Question |
 | --- | --- | --- |
-| v2x-manual-pack-001 | yes | Does Alice hold an amber badge? |
-| v2x-manual-pack-002 | yes | May Bruno enter the calibration room? |
-| v2x-manual-pack-003 | no | Does Alice hold an amber badge? |
-| v2x-manual-pack-004 | unknown | May Alice enter the amber workshop? |
-| v2x-manual-pack-005 | unknown | May Alice enter the amber workshop? |
-| v2x-manual-pack-006 | yes | Is batch size = 4? |
+| reasoning-manual-pack-001 | yes | Does Alice hold an amber badge? |
+| reasoning-manual-pack-002 | yes | May Bruno enter the calibration room? |
+| reasoning-manual-pack-003 | no | Does Alice hold an amber badge? |
+| reasoning-manual-pack-004 | unknown | May Alice enter the amber workshop? |
+| reasoning-manual-pack-005 | unknown | May Alice enter the amber workshop? |
+| reasoning-manual-pack-006 | yes | Is batch size = 4? |

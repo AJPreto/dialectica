@@ -88,7 +88,7 @@ def fingerprint_logical_form(
     sketch = _build_sketch([*block_entries, *relation_entries, *ambiguity_entries, graph_entry], sketch_size=sketch_size)
 
     return {
-        "scheme": "godel-inspired-v1",
+        "scheme": "godel-inspired",
         "symbol_table": symbol_table,
         "graph": _export_entry(graph_entry),
         "blocks": [_export_entry(entry) for entry in block_entries],

@@ -1,4 +1,4 @@
-"""Deterministic reasoning engines for the experimental V2 path."""
+"""Deterministic reasoning engines for Dialectica."""
 
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ class FOLReasoningResult:
 
 
 def reason_over_horn_program(program: dict[str, Any]) -> ReasoningResult:
-    """Forward-chain over a Horn-like program exported from the V2 AST."""
+    """Forward-chain over a Horn-like program exported from the hybrid AST."""
     facts = [_atom_from_dict(entry["atom"]) for entry in program.get("facts", [])]
     rules = [
         {

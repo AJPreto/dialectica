@@ -5,122 +5,122 @@
   "allowed_answers": ["yes", "no", "unknown"],
   "results": [
     {
-      "benchmark_id": "v2x-imp-001",
+      "benchmark_id": "reasoning-expanded-imp-001",
       "prompt_label": "case-001",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-imp-002",
+      "benchmark_id": "reasoning-expanded-imp-002",
       "prompt_label": "case-002",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-imp-003",
+      "benchmark_id": "reasoning-expanded-imp-003",
       "prompt_label": "case-003",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-conj-001",
+      "benchmark_id": "reasoning-expanded-conj-001",
       "prompt_label": "case-004",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-conj-002",
+      "benchmark_id": "reasoning-expanded-conj-002",
       "prompt_label": "case-005",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-disj-001",
+      "benchmark_id": "reasoning-expanded-disj-001",
       "prompt_label": "case-006",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-neg-001",
+      "benchmark_id": "reasoning-expanded-neg-001",
       "prompt_label": "case-007",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-neg-002",
+      "benchmark_id": "reasoning-expanded-neg-002",
       "prompt_label": "case-008",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-ctr-001",
+      "benchmark_id": "reasoning-expanded-ctr-001",
       "prompt_label": "case-009",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-exc-001",
+      "benchmark_id": "reasoning-expanded-exc-001",
       "prompt_label": "case-010",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-exc-002",
+      "benchmark_id": "reasoning-expanded-exc-002",
       "prompt_label": "case-011",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-exc-003",
+      "benchmark_id": "reasoning-expanded-exc-003",
       "prompt_label": "case-012",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-chain-001",
+      "benchmark_id": "reasoning-expanded-chain-001",
       "prompt_label": "case-013",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-chain-002",
+      "benchmark_id": "reasoning-expanded-chain-002",
       "prompt_label": "case-014",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-var-001",
+      "benchmark_id": "reasoning-expanded-var-001",
       "prompt_label": "case-015",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-var-002",
+      "benchmark_id": "reasoning-expanded-var-002",
       "prompt_label": "case-016",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-var-003",
+      "benchmark_id": "reasoning-expanded-var-003",
       "prompt_label": "case-017",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-att-001",
+      "benchmark_id": "reasoning-expanded-att-001",
       "prompt_label": "case-018",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-att-002",
+      "benchmark_id": "reasoning-expanded-att-002",
       "prompt_label": "case-019",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-amb-001",
+      "benchmark_id": "reasoning-expanded-amb-001",
       "prompt_label": "case-020",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-amb-002",
+      "benchmark_id": "reasoning-expanded-amb-002",
       "prompt_label": "case-021",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-amb-003",
+      "benchmark_id": "reasoning-expanded-amb-003",
       "prompt_label": "case-022",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-num-001",
+      "benchmark_id": "reasoning-expanded-num-001",
       "prompt_label": "case-023",
       "answer": ""
     },
     {
-      "benchmark_id": "v2x-num-002",
+      "benchmark_id": "reasoning-expanded-num-002",
       "prompt_label": "case-024",
       "answer": ""
     }

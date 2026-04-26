@@ -21,7 +21,7 @@ NEGATIVE_CUES = (
 def parse_text(text: str, language: str = "en") -> dict[str, Any]:
     """Parse natural language into a Dialectica logical form.
 
-    This first prototype uses lightweight heuristics so it can run locally
+    The local parser uses lightweight heuristics so it can run locally
     without a model dependency.
     """
     cleaned = _normalize_text(text)
@@ -32,7 +32,7 @@ def parse_text(text: str, language: str = "en") -> dict[str, Any]:
         "blocks": [],
         "relations": [],
         "ambiguities": [],
-        "metadata": {"parser": "heuristic-v1"},
+        "metadata": {"parser": "heuristic"},
     }
     if not cleaned:
         return logical_form
@@ -160,7 +160,7 @@ def parse_document(text: str, language: str = "en") -> dict[str, Any]:
         "blocks": [],
         "relations": [],
         "ambiguities": [],
-        "metadata": {"parser": "heuristic-v1", "mode": "document", "segment_count": len(segments)},
+        "metadata": {"parser": "heuristic", "mode": "document", "segment_count": len(segments)},
     }
     block_counter = 0
     ambiguity_counter = 0

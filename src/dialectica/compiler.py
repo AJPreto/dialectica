@@ -1,4 +1,4 @@
-"""Compiler entry points for the experimental Dialectica V2 path."""
+"""Compiler entry points for Dialectica hybrid reasoning."""
 
 from __future__ import annotations
 

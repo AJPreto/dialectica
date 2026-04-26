@@ -1,4 +1,4 @@
-"""Horn-style export for the experimental Dialectica V2 path."""
+"""Horn-style export for Dialectica reasoning."""
 
 from __future__ import annotations
 

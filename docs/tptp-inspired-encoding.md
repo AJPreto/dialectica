@@ -47,7 +47,7 @@ Each encoded formula follows a TPTP-like envelope:
   "linked_blocks": ["b1", "b2"],
   "source": {
     "kind": "parser",
-    "reference": "heuristic-v1"
+    "reference": "heuristic"
   },
   "useful_info": [
     {"key": "origin", "value": "natural-language parse"}
@@ -148,7 +148,7 @@ Stay with the simpler block graph when you need:
         "linked_blocks": ["b1", "b2"],
         "source": {
           "kind": "parser",
-          "reference": "heuristic-v1"
+          "reference": "heuristic"
         },
         "confidence": 0.71,
         "formula": {

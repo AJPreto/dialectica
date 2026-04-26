@@ -7,7 +7,7 @@ from dialectica.engine import reason_over_fol_program, reason_over_horn_program
 from dialectica.translator import translate_text
 
 
-class V2PipelineTests(unittest.TestCase):
+class ReasoningPipelineTests(unittest.TestCase):
     def test_access_chain_is_entailed(self) -> None:
         document = translate_text(
             "If Alice completed amber orientation, then Alice holds an amber badge. "

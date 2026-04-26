@@ -1,4 +1,4 @@
-"""Diagnostic benchmark comparison for V1 prompting versus the experimental V2 path."""
+"""Diagnostic benchmark comparison for Dialectica reasoning paths."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ MODEL_MODES = (
     "dialectica_filtered",
     "dialectica_filtered_structural",
 )
-DEFAULT_MODE_ORDER = [*MODEL_MODES, "v2_horn", "v2_fol"]
+DEFAULT_MODE_ORDER = [*MODEL_MODES, "horn_reasoner", "fol_reasoner"]
 EXPORT_TARGETS = ("horn", "fol", "smt")
 DIAGNOSTIC_CATEGORY_MAP = {
     "contradiction_sensitivity": "contradiction_detection",
@@ -42,7 +42,7 @@ DIAGNOSTIC_CATEGORY_MAP = {
 }
 
 
-def evaluate_v2_comparison(
+def evaluate_reasoning_comparison(
     path: str | Path,
     provider_name: str,
     model: str | None = None,
@@ -91,8 +91,8 @@ def evaluate_v2_comparison(
                     question_fingerprint,
                 ),
             ),
-            _run_v2_horn_condition(case),
-            _run_v2_fol_condition(case),
+            _run_horn_reasoner_condition(case),
+            _run_fol_reasoner_condition(case),
         ]
         for result in conditions:
             result["expected_reasoning_depth"] = case["expected_reasoning_depth"]
@@ -155,7 +155,7 @@ def evaluate_v2_comparison(
     }
 
 
-def write_v2_report(report: dict[str, Any], output_path: str | Path) -> None:
+def write_reasoning_report(report: dict[str, Any], output_path: str | Path) -> None:
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -167,14 +167,14 @@ def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
         with dataset_path.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON in V2 dataset {dataset_path}: {exc.msg}") from exc
+        raise ValueError(f"Invalid JSON in reasoning benchmark dataset {dataset_path}: {exc.msg}") from exc
     if not isinstance(payload, list):
-        raise ValueError(f"V2 dataset {dataset_path} must be a JSON array of case objects.")
+        raise ValueError(f"Reasoning benchmark dataset {dataset_path} must be a JSON array of case objects.")
     for index, case in enumerate(payload, start=1):
         if not isinstance(case, dict):
-            raise ValueError(f"V2 dataset {dataset_path} case {index} must be an object.")
+            raise ValueError(f"Reasoning benchmark dataset {dataset_path} case {index} must be an object.")
         if "id" not in case:
-            raise ValueError(f"V2 dataset {dataset_path} case {index} is missing required field 'id'.")
+            raise ValueError(f"Reasoning benchmark dataset {dataset_path} case {index} is missing required field 'id'.")
     return payload
 
 
@@ -267,13 +267,13 @@ def _run_model_condition(
     }
 
 
-def _run_v2_horn_condition(case: dict[str, Any]) -> dict[str, Any]:
+def _run_horn_reasoner_condition(case: dict[str, Any]) -> dict[str, Any]:
     started_at = time.perf_counter()
     document = translate_text(case["context"], query=case["question"])
     compiled_document, compiled = compile_hybrid_document(document)
     reasoning = reason_over_horn_program(compiled["horn"]["artifact"])
     explanation = explain_reasoning(compiled_document, reasoning)
-    normalized_answer = _normalize_v2_answer(reasoning.answer, answer_type=case["answer_type"])
+    normalized_answer = _normalize_reasoner_answer(reasoning.answer, answer_type=case["answer_type"])
     score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
     compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
     contradiction = _detect_contradictions(compiled_document)
@@ -292,8 +292,8 @@ def _run_v2_horn_condition(case: dict[str, Any]) -> dict[str, Any]:
         for target in EXPORT_TARGETS
     }
     return {
-        "name": "v2_horn",
-        "label": DISPLAY_LABELS.get("v2_horn", "V2 Horn"),
+        "name": "horn_reasoner",
+        "label": DISPLAY_LABELS.get("horn_reasoner", "Horn Reasoner"),
         "answer": normalized_answer,
         "raw_reasoning_answer": reasoning.answer,
         "correct": bool(score["correct"]),
@@ -321,19 +321,19 @@ def _run_v2_horn_condition(case: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _run_v2_fol_condition(case: dict[str, Any]) -> dict[str, Any]:
+def _run_fol_reasoner_condition(case: dict[str, Any]) -> dict[str, Any]:
     started_at = time.perf_counter()
     document = translate_text(case["context"], query=case["question"])
     compiled_document, compiled = compile_hybrid_document(document)
     reasoning = reason_over_fol_program(compiled["fol"]["artifact"].get("program", {}))
     explanation = explain_fol_reasoning(compiled_document, reasoning)
-    normalized_answer = _normalize_v2_answer(reasoning.answer, answer_type=case["answer_type"])
+    normalized_answer = _normalize_reasoner_answer(reasoning.answer, answer_type=case["answer_type"])
     score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
     compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
     contradiction = _detect_contradictions(compiled_document)
     return {
-        "name": "v2_fol",
-        "label": DISPLAY_LABELS.get("v2_fol", "V2 FOL"),
+        "name": "fol_reasoner",
+        "label": DISPLAY_LABELS.get("fol_reasoner", "FOL Reasoner"),
         "answer": normalized_answer,
         "raw_reasoning_answer": reasoning.answer,
         "correct": bool(score["correct"]),
@@ -355,7 +355,7 @@ def _run_v2_fol_condition(case: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _normalize_v2_answer(answer: str, *, answer_type: str) -> str:
+def _normalize_reasoner_answer(answer: str, *, answer_type: str) -> str:
     if answer_type == "boolean":
         return "yes" if answer == "entailed" else "no"
     if answer_type == "ternary":
@@ -462,8 +462,8 @@ def _build_diagnostics(cases: list[dict[str, Any]], aggregate: dict[str, Any]) -
     }
     for diagnostic_name, category_name in DIAGNOSTIC_CATEGORY_MAP.items():
         diagnostics[diagnostic_name] = _subset_accuracy(cases, category_name)
-    diagnostics["contradiction_sensitivity"]["v2_horn_flag_match_rate"] = _contradiction_flag_match_rate(cases)
-    diagnostics["contradiction_sensitivity"]["v2_horn_false_positive_rate"] = _contradiction_false_positive_rate(cases)
+    diagnostics["contradiction_sensitivity"]["horn_reasoner_flag_match_rate"] = _contradiction_flag_match_rate(cases)
+    diagnostics["contradiction_sensitivity"]["horn_reasoner_false_positive_rate"] = _contradiction_false_positive_rate(cases)
     return diagnostics
 
 
@@ -573,10 +573,10 @@ def _export_success_rate(cases: list[dict[str, Any]]) -> dict[str, Any]:
     status_counts = {target: {"exact": 0, "partial": 0, "lossy": 0, "unsupported": 0} for target in EXPORT_TARGETS}
     match_counts = {target: {"matched": 0, "expected": 0} for target in EXPORT_TARGETS}
     for case in cases:
-        v2_horn = _condition_map(case).get("v2_horn")
-        if v2_horn is None:
+        horn_reasoner = _condition_map(case).get("horn_reasoner")
+        if horn_reasoner is None:
             continue
-        statuses = v2_horn.get("compiled", {}).get("statuses", {})
+        statuses = horn_reasoner.get("compiled", {}).get("statuses", {})
         expected = case.get("expectations", {}).get("expected_exportability", {})
         for target in EXPORT_TARGETS:
             status = str(statuses.get(target, "unsupported"))
@@ -603,17 +603,17 @@ def _explanation_faithfulness_proxy(cases: list[dict[str, Any]]) -> dict[str, An
     passes = []
     check_totals: dict[str, list[float]] = {}
     for case in cases:
-        v2_horn = _condition_map(case).get("v2_horn")
-        if v2_horn is None:
+        horn_reasoner = _condition_map(case).get("horn_reasoner")
+        if horn_reasoner is None:
             continue
-        proxy = v2_horn.get("explanation_proxy", {})
+        proxy = horn_reasoner.get("explanation_proxy", {})
         passes.append(1.0 if proxy.get("passed") else 0.0)
         for check in proxy.get("checks", []):
             if not check.get("applicable"):
                 continue
             check_totals.setdefault(check["name"], []).append(1.0 if check.get("passed") else 0.0)
     return {
-        "v2_horn": {
+        "horn_reasoner": {
             "pass_rate": _safe_mean(passes),
             "checks": {name: _safe_mean(values) for name, values in sorted(check_totals.items())},
         }
@@ -627,21 +627,21 @@ def _partial_formalization_correctness(cases: list[dict[str, Any]]) -> dict[str,
         if case.get("expectations", {}).get("expected_exportability", {}).get("horn") in {"partial", "unsupported"}
     ]
     if not subset:
-        return {"case_count": 0, "modes": {}, "v2_horn": {}}
+        return {"case_count": 0, "modes": {}, "horn_reasoner": {}}
 
     mode_scores: dict[str, list[float]] = {}
-    v2_export_matches = []
-    v2_explanation_matches = []
+    export_matches = []
+    explanation_matches = []
     for case in subset:
         condition_map = _condition_map(case)
         for mode, condition in condition_map.items():
             mode_scores.setdefault(mode, []).append(1.0 if condition.get("correct") else 0.0)
-        v2_horn = condition_map.get("v2_horn")
-        if v2_horn is not None:
+        horn_reasoner = condition_map.get("horn_reasoner")
+        if horn_reasoner is not None:
             expected_status = case["expectations"]["expected_exportability"].get("horn")
-            actual_status = v2_horn.get("compiled", {}).get("statuses", {}).get("horn")
-            v2_export_matches.append(1.0 if actual_status == expected_status else 0.0)
-            v2_explanation_matches.append(1.0 if v2_horn.get("explanation_proxy", {}).get("passed") else 0.0)
+            actual_status = horn_reasoner.get("compiled", {}).get("statuses", {}).get("horn")
+            export_matches.append(1.0 if actual_status == expected_status else 0.0)
+            explanation_matches.append(1.0 if horn_reasoner.get("explanation_proxy", {}).get("passed") else 0.0)
 
     return {
         "case_count": len(subset),
@@ -649,9 +649,9 @@ def _partial_formalization_correctness(cases: list[dict[str, Any]]) -> dict[str,
             mode: {"accuracy": _safe_mean(values)}
             for mode, values in sorted(mode_scores.items(), key=lambda item: _mode_sort_key(item[0]))
         },
-        "v2_horn": {
-            "export_expectation_match_rate": _safe_mean(v2_export_matches),
-            "explanation_proxy_rate": _safe_mean(v2_explanation_matches),
+        "horn_reasoner": {
+            "export_expectation_match_rate": _safe_mean(export_matches),
+            "explanation_proxy_rate": _safe_mean(explanation_matches),
         },
     }
 
@@ -677,11 +677,11 @@ def _average_reasoning_depth_handled(cases: list[dict[str, Any]], aggregate: dic
 def _contradiction_flag_match_rate(cases: list[dict[str, Any]]) -> float:
     values = []
     for case in cases:
-        v2_horn = _condition_map(case).get("v2_horn")
-        if v2_horn is None:
+        horn_reasoner = _condition_map(case).get("horn_reasoner")
+        if horn_reasoner is None:
             continue
         expected = bool(case.get("expectations", {}).get("expected_contradiction_flag", False))
-        actual = bool(v2_horn.get("contradiction", {}).get("flag", False))
+        actual = bool(horn_reasoner.get("contradiction", {}).get("flag", False))
         values.append(1.0 if actual == expected else 0.0)
     return _safe_mean(values)
 
@@ -691,10 +691,10 @@ def _contradiction_false_positive_rate(cases: list[dict[str, Any]]) -> float:
     for case in cases:
         if case.get("expectations", {}).get("expected_contradiction_flag"):
             continue
-        v2_horn = _condition_map(case).get("v2_horn")
-        if v2_horn is None:
+        horn_reasoner = _condition_map(case).get("horn_reasoner")
+        if horn_reasoner is None:
             continue
-        negatives.append(1.0 if v2_horn.get("contradiction", {}).get("flag") else 0.0)
+        negatives.append(1.0 if horn_reasoner.get("contradiction", {}).get("flag") else 0.0)
     return _safe_mean(negatives)
 
 
@@ -721,9 +721,9 @@ def _build_comparison_table(aggregate: dict[str, Any], diagnostics: dict[str, An
             "paraphrase_stability": paraphrase.get(mode, {}).get("stable_group_rate"),
             "average_reasoning_depth_solved": depths.get(mode, {}).get("average_depth"),
         }
-        if mode == "v2_horn":
+        if mode == "horn_reasoner":
             row["horn_export_match_rate"] = export_rates.get("horn", {}).get("expectation_match_rate")
-            row["explanation_proxy_rate"] = diagnostics.get("explanation_faithfulness_proxy", {}).get("v2_horn", {}).get(
+            row["explanation_proxy_rate"] = diagnostics.get("explanation_faithfulness_proxy", {}).get("horn_reasoner", {}).get(
                 "pass_rate"
             )
         table.append(row)
@@ -748,7 +748,7 @@ def _build_error_report(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "expected_failure_mode": case.get("expectations", {}).get("expected_failure_mode"),
                 "expected_behavior": case.get("expectations", {}).get("expected_behavior"),
             }
-            if condition.get("name") == "v2_horn":
+            if condition.get("name") == "horn_reasoner":
                 entry["raw_reasoning_answer"] = condition.get("raw_reasoning_answer")
                 entry["horn_status"] = condition.get("compiled", {}).get("statuses", {}).get("horn")
                 entry["contradiction_flag"] = condition.get("contradiction", {}).get("flag")

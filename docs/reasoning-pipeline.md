@@ -1,8 +1,7 @@
-# V2 Neuro-Symbolic Path
+# Neuro-Symbolic Reasoning Pipeline
 
-Dialectica V1 is a typed logical-block and retrieval-oriented system.
-Dialectica V2 is an experimental parallel path that adds a stronger
-neuro-symbolic stack:
+Dialectica combines typed logical blocks, controlled translation, and
+deterministic symbolic backends in one reasoning pipeline:
 
 ```text
 natural language
@@ -17,7 +16,7 @@ natural language
 
 ## Design goals
 
-- preserve V1 intact
+- preserve the typed logical-block workflow
 - keep the internal IR stable even while export targets change
 - formalize as much as is safe
 - keep ambiguity and other residue explicit
@@ -26,9 +25,9 @@ natural language
 - prefer deterministic reasoning
 - stay laptop-friendly and dependency-light
 
-## Current V2 slice
+## Current Reasoning Slice
 
-The first vertical slice intentionally covers a small, controlled subset:
+The current reasoning slice intentionally covers a controlled subset:
 
 - conservative pre-translation cleanup
 - atomic facts such as `Alice completed amber orientation`
@@ -71,21 +70,21 @@ Current exporters:
   annotated encoding and a safe machine-readable fragment for deterministic
   skeptical proof.
 - `smt`
-  Experimental partial path. Present mainly to make exportability explicit for
+  Partial path. Present mainly to make exportability explicit for
   future arithmetic and constraint work.
 
 ## CLI
 
-Run the experimental path:
+Run the reasoning path:
 
 ```bash
-uv run dialectica v2-run "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --pretty
+uv run dialectica reason "If Alice completed amber orientation, then Alice holds an amber badge. If Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --pretty
 ```
 
 You can also pass the query separately:
 
 ```bash
-uv run dialectica v2-run "All certified operators may use the milling machine. Bruno is a certified operator." --query "May Bruno use the milling machine?" --pretty
+uv run dialectica reason "All certified operators may use the milling machine. Bruno is a certified operator." --query "May Bruno use the milling machine?" --pretty
 ```
 
 ## Output shape
@@ -100,15 +99,15 @@ The command returns:
 You can choose the reasoning backend explicitly:
 
 ```bash
-uv run dialectica v2-run "If Alice completed amber orientation or Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --reasoner fol --pretty
+uv run dialectica reason "If Alice completed amber orientation or Alice holds an amber badge, then Alice may enter the amber workshop. Alice completed amber orientation. May Alice enter the amber workshop?" --reasoner fol --pretty
 ```
 
-## Benchmarking V2
+## Benchmarking
 
-The repo now includes a richer dedicated V2 benchmark suite:
+The repo includes a dedicated reasoning benchmark suite:
 
-- `benchmarks/v2_reasoning.sample.json`
-- `benchmarks/v2_reasoning.expanded.json`
+- `benchmarks/reasoning.sample.json`
+- `benchmarks/reasoning.expanded.json`
 
 Use the expanded suite when you want a more credible comparison across:
 
@@ -116,17 +115,17 @@ Use the expanded suite when you want a more credible comparison across:
 - `dialectica_compact`
 - `dialectica_filtered`
 - `dialectica_filtered_structural`
-- `v2_horn`
-- `v2_fol`
+- `Horn Reasoner`
+- `FOL Reasoner`
 
 Example:
 
 ```bash
-uv run dialectica evaluate-v2 --dataset benchmarks/v2_reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/v2_comparison.expanded.qwen2.5.json --markdown-output reports/v2_comparison.expanded.qwen2.5.report.md --charts-dir reports/v2_comparison.expanded.qwen2.5.charts --pretty
+uv run dialectica evaluate-reasoning --dataset benchmarks/reasoning.expanded.json --provider ollama --model qwen2.5:3b --output reports/reasoning.expanded.qwen2.5.json --markdown-output reports/reasoning.expanded.qwen2.5.report.md --charts-dir reports/reasoning.expanded.qwen2.5.charts --pretty
 ```
 
 For the benchmark philosophy, category taxonomy, and interpretation guidance,
-see [v2-benchmark-suite.md](./v2-benchmark-suite.md).
+see [reasoning-benchmark-suite.md](./reasoning-benchmark-suite.md).
 
 ## Why Horn first
 

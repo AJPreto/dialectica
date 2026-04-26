@@ -1,4 +1,4 @@
-"""Natural-language explanation helpers for the experimental V2 path."""
+"""Natural-language explanation helpers for Dialectica reasoning."""
 
 from __future__ import annotations
 

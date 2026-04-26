@@ -1,4 +1,4 @@
-"""Controlled natural-language translator for the experimental Dialectica V2 path."""
+"""Controlled natural-language translator for Dialectica reasoning."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ _GENERIC_VERB_CANONICALS = set(_VERB_ALIASES.values())
 
 
 def translate_text(text: str, query: str | None = None) -> HybridDocument:
-    """Translate raw text into the experimental hybrid AST."""
+    """Translate raw text into the hybrid reasoning AST."""
     statements: list[HybridStatement] = []
     statement_counter = 0
     prepared_context = _prepare_context_units(text)
@@ -102,8 +102,8 @@ def translate_text(text: str, query: str | None = None) -> HybridDocument:
         source_text=text if query is None else f"{text.strip()} {query.strip()}".strip(),
         statements=statements,
         metadata={
-            "path": "experimental-v2",
-            "translator": "controlled-heuristic-v2",
+            "path": "hybrid-reasoning",
+            "translator": "controlled-heuristic",
             "statement_count": len(statements),
             "pretranslation": prepared_context["metadata"],
         },

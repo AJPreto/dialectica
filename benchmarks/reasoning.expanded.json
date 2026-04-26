@@ -1,6 +1,6 @@
 [
   {
-    "id": "v2x-imp-001",
+    "id": "reasoning-expanded-imp-001",
     "difficulty": "easy",
     "category": "simple_implication",
     "categories": ["simple_implication"],
@@ -20,7 +20,7 @@
     "expected_behavior": "Horn should derive the badge fact from a single implication."
   },
   {
-    "id": "v2x-imp-002",
+    "id": "reasoning-expanded-imp-002",
     "difficulty": "easy",
     "category": "simple_implication",
     "categories": ["simple_implication"],
@@ -40,7 +40,7 @@
     "expected_behavior": "This paraphrase should stay stable under the Horn path because the internal predicate names remain consistent within the case."
   },
   {
-    "id": "v2x-imp-003",
+    "id": "reasoning-expanded-imp-003",
     "difficulty": "easy",
     "category": "simple_implication",
     "categories": ["simple_implication", "entity_binding"],
@@ -61,7 +61,7 @@
     "expected_behavior": "The rule should not fire for Alice when only Bruno satisfies the antecedent, so the answer should remain unknown."
   },
   {
-    "id": "v2x-conj-001",
+    "id": "reasoning-expanded-conj-001",
     "difficulty": "medium",
     "category": "conjunction_disjunction",
     "categories": ["conjunction_disjunction"],
@@ -81,7 +81,7 @@
     "expected_behavior": "Horn should require both conjuncts before deriving the permission."
   },
   {
-    "id": "v2x-conj-002",
+    "id": "reasoning-expanded-conj-002",
     "difficulty": "medium",
     "category": "conjunction_disjunction",
     "categories": ["conjunction_disjunction"],
@@ -102,7 +102,7 @@
     "expected_behavior": "The missing badge premise leaves the permission unsupported, so the answer should remain unknown."
   },
   {
-    "id": "v2x-disj-001",
+    "id": "reasoning-expanded-disj-001",
     "difficulty": "adversarial",
     "category": "conjunction_disjunction",
     "categories": ["conjunction_disjunction", "non_exportable_or_partial"],
@@ -119,10 +119,10 @@
     "expected_exportability": {"horn": "unsupported", "fol": "unsupported", "smt": "unsupported"},
     "expected_reasoning_depth": 1,
     "expected_failure_mode": "disjunction_not_supported",
-    "expected_behavior": "The answer is yes in plain language, but the current V2 path should refuse to compile the disjunctive rule."
+    "expected_behavior": "The answer is yes in plain language, but the current reasoning path should refuse to compile the disjunctive rule."
   },
   {
-    "id": "v2x-neg-001",
+    "id": "reasoning-expanded-neg-001",
     "difficulty": "medium",
     "category": "negation",
     "categories": ["negation", "non_exportable_or_partial"],
@@ -142,7 +142,7 @@
     "expected_behavior": "The explicit negation directly supports answering no, even though the Horn backend still withholds it from positive rule reasoning."
   },
   {
-    "id": "v2x-neg-002",
+    "id": "reasoning-expanded-neg-002",
     "difficulty": "adversarial",
     "category": "negation",
     "categories": ["negation", "contradiction_detection", "non_exportable_or_partial"],
@@ -163,7 +163,7 @@
     "expected_behavior": "The explicit negative permission conflicts with the positive rule chain, so the answer should remain unknown under skeptical semantics."
   },
   {
-    "id": "v2x-ctr-001",
+    "id": "reasoning-expanded-ctr-001",
     "difficulty": "adversarial",
     "category": "contradiction_detection",
     "categories": ["contradiction_detection", "negation", "non_exportable_or_partial"],
@@ -184,7 +184,7 @@
     "expected_behavior": "The contradiction affects the rule premise, so the answer should remain unknown rather than forcing either yes or no."
   },
   {
-    "id": "v2x-exc-001",
+    "id": "reasoning-expanded-exc-001",
     "difficulty": "easy",
     "category": "conditions_exceptions",
     "categories": ["conditions_exceptions"],
@@ -204,7 +204,7 @@
     "expected_behavior": "The suspension blocks the positive rule and the explicit negative permission supports answering no."
   },
   {
-    "id": "v2x-exc-002",
+    "id": "reasoning-expanded-exc-002",
     "difficulty": "easy",
     "category": "conditions_exceptions",
     "categories": ["conditions_exceptions"],
@@ -225,7 +225,7 @@
     "expected_behavior": "Without explicit evidence that Alice is not suspended, the guarded rule should not support a positive conclusion under the benchmark's entailment-based semantics."
   },
   {
-    "id": "v2x-exc-003",
+    "id": "reasoning-expanded-exc-003",
     "difficulty": "medium",
     "category": "conditions_exceptions",
     "categories": ["conditions_exceptions", "paraphrase_robustness"],
@@ -246,7 +246,7 @@
     "expected_behavior": "The paraphrase should preserve the same guarded-rule ambiguity, so the answer should remain unknown without explicit evidence that Alice is not suspended."
   },
   {
-    "id": "v2x-chain-001",
+    "id": "reasoning-expanded-chain-001",
     "difficulty": "medium",
     "category": "chained_inference",
     "categories": ["chained_inference", "simple_implication"],
@@ -266,7 +266,7 @@
     "expected_behavior": "The Horn trace should show a three-step derivation."
   },
   {
-    "id": "v2x-chain-002",
+    "id": "reasoning-expanded-chain-002",
     "difficulty": "adversarial",
     "category": "chained_inference",
     "categories": ["chained_inference", "entity_binding"],
@@ -286,7 +286,7 @@
     "expected_behavior": "The Horn path should ignore the distractor chain and still complete the four-step derivation."
   },
   {
-    "id": "v2x-var-001",
+    "id": "reasoning-expanded-var-001",
     "difficulty": "easy",
     "category": "entity_binding",
     "categories": ["entity_binding"],
@@ -306,7 +306,7 @@
     "expected_behavior": "The universal rule should instantiate correctly for Bruno."
   },
   {
-    "id": "v2x-var-002",
+    "id": "reasoning-expanded-var-002",
     "difficulty": "easy",
     "category": "entity_binding",
     "categories": ["entity_binding", "paraphrase_robustness"],
@@ -326,7 +326,7 @@
     "expected_behavior": "This modal paraphrase should remain stable when the query modal matches the rule modal."
   },
   {
-    "id": "v2x-var-003",
+    "id": "reasoning-expanded-var-003",
     "difficulty": "medium",
     "category": "entity_binding",
     "categories": ["entity_binding"],
@@ -347,7 +347,7 @@
     "expected_behavior": "The rule does not apply to Carla, but the context also does not prove the opposite, so the answer should remain unknown."
   },
   {
-    "id": "v2x-att-001",
+    "id": "reasoning-expanded-att-001",
     "difficulty": "medium",
     "category": "attribution_speaker_tracking",
     "categories": ["attribution_speaker_tracking", "non_exportable_or_partial"],
@@ -368,7 +368,7 @@
     "expected_behavior": "The attributed claim should remain explicit residue rather than becoming settled ground truth, so the answer should remain unknown."
   },
   {
-    "id": "v2x-att-002",
+    "id": "reasoning-expanded-att-002",
     "difficulty": "medium",
     "category": "attribution_speaker_tracking",
     "categories": ["attribution_speaker_tracking", "entity_binding", "non_exportable_or_partial"],
@@ -389,7 +389,7 @@
     "expected_behavior": "The attributed class-membership claim should not become settled ground truth, so the answer should remain unknown."
   },
   {
-    "id": "v2x-amb-001",
+    "id": "reasoning-expanded-amb-001",
     "difficulty": "medium",
     "category": "ambiguity_partial_formalization",
     "categories": ["ambiguity_partial_formalization", "non_exportable_or_partial"],
@@ -410,7 +410,7 @@
     "expected_behavior": "The pronoun should stay unresolved instead of being forced onto Alice, so the answer should remain unknown."
   },
   {
-    "id": "v2x-amb-002",
+    "id": "reasoning-expanded-amb-002",
     "difficulty": "medium",
     "category": "ambiguity_partial_formalization",
     "categories": ["ambiguity_partial_formalization", "non_exportable_or_partial"],
@@ -431,7 +431,7 @@
     "expected_behavior": "Uncertainty should be preserved outside the formal core, so the answer should remain unknown."
   },
   {
-    "id": "v2x-amb-003",
+    "id": "reasoning-expanded-amb-003",
     "difficulty": "medium",
     "category": "ambiguity_partial_formalization",
     "categories": ["ambiguity_partial_formalization", "paraphrase_robustness", "non_exportable_or_partial"],
@@ -452,7 +452,7 @@
     "expected_behavior": "The paraphrase should remain unresolved in the same conservative way, so the answer should remain unknown."
   },
   {
-    "id": "v2x-num-001",
+    "id": "reasoning-expanded-num-001",
     "difficulty": "adversarial",
     "category": "arithmetic_equality_inequality",
     "categories": ["arithmetic_equality_inequality", "non_exportable_or_partial"],
@@ -472,7 +472,7 @@
     "expected_behavior": "The comparison fact is meaningful, but the current end-to-end Horn path cannot answer the comparison query."
   },
   {
-    "id": "v2x-num-002",
+    "id": "reasoning-expanded-num-002",
     "difficulty": "adversarial",
     "category": "arithmetic_equality_inequality",
     "categories": ["arithmetic_equality_inequality", "non_exportable_or_partial"],
@@ -489,6 +489,6 @@
     "expected_exportability": {"horn": "unsupported", "fol": "partial", "smt": "partial"},
     "expected_reasoning_depth": 0,
     "expected_failure_mode": "comparison_query_unsupported",
-    "expected_behavior": "Equality exports better than inequality, but the current V2 demo still lacks a query path for comparison answers."
+    "expected_behavior": "Equality exports better than inequality, but the current reasoning path still lacks a query path for comparison answers."
   }
 ]

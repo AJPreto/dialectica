@@ -5,12 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from dialectica.reporting import write_v2_report_bundle
+from dialectica.reporting import write_reasoning_report_bundle
 from dialectica.scoring import extract_answer_payload, normalize_answer
-from dialectica.v2_eval import evaluate_v2_comparison
+from dialectica.reasoning_eval import evaluate_reasoning_comparison
 
 
-class V2BenchmarkTests(unittest.TestCase):
+class ReasoningBenchmarkTests(unittest.TestCase):
     def test_expanded_report_contains_diagnostics(self) -> None:
         dataset = [
             {
@@ -74,13 +74,13 @@ class V2BenchmarkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             dataset_path = Path(tmpdir) / "dataset.json"
             dataset_path.write_text(json.dumps(dataset), encoding="utf-8")
-            report = evaluate_v2_comparison(dataset_path, provider_name="oracle")
+            report = evaluate_reasoning_comparison(dataset_path, provider_name="oracle")
 
             self.assertIn("category_summary", report)
             self.assertIn("simple_implication", report["category_summary"])
             self.assertIn("diagnostics", report)
             self.assertIn("paraphrase_stability", report["diagnostics"])
-            self.assertIn("v2_fol", report["aggregate"])
+            self.assertIn("fol_reasoner", report["aggregate"])
             self.assertEqual(
                 report["diagnostics"]["paraphrase_stability"]["modes"]["direct"]["group_count"],
                 1,
@@ -90,23 +90,23 @@ class V2BenchmarkTests(unittest.TestCase):
                 0.0,
             )
             self.assertTrue(
-                any(entry["mode"] == "v2_horn" for entry in report["error_report"]),
-                "The contradiction case should create a V2 Horn error entry.",
+                any(entry["mode"] == "horn_reasoner" for entry in report["error_report"]),
+                "The contradiction case should create a Horn reasoner error entry.",
             )
 
-    def test_v2_report_bundle_renders(self) -> None:
+    def test_reasoning_report_bundle_renders(self) -> None:
         report = {
-            "dataset_path": "benchmarks/v2_reasoning.expanded.json",
+            "dataset_path": "benchmarks/reasoning.expanded.json",
             "provider": "oracle",
             "model": None,
-            "mode_order": ["direct", "dialectica_compact", "dialectica_filtered", "dialectica_filtered_structural", "v2_horn", "v2_fol"],
+            "mode_order": ["direct", "dialectica_compact", "dialectica_filtered", "dialectica_filtered_structural", "horn_reasoner", "fol_reasoner"],
             "aggregate": {
                 "direct": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
                 "dialectica_compact": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
                 "dialectica_filtered": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
                 "dialectica_filtered_structural": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
-                "v2_horn": {"accuracy": 0.5, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
-                "v2_fol": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
+                "horn_reasoner": {"accuracy": 0.5, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
+                "fol_reasoner": {"accuracy": 1.0, "average_total_tokens": 0.0, "average_latency_seconds": 0.0},
             },
             "category_summary": {
                 "simple_implication": {
@@ -116,8 +116,8 @@ class V2BenchmarkTests(unittest.TestCase):
                         "dialectica_compact": {"accuracy": 1.0},
                         "dialectica_filtered": {"accuracy": 1.0},
                         "dialectica_filtered_structural": {"accuracy": 1.0},
-                        "v2_horn": {"accuracy": 1.0},
-                        "v2_fol": {"accuracy": 1.0},
+                        "horn_reasoner": {"accuracy": 1.0},
+                        "fol_reasoner": {"accuracy": 1.0},
                     },
                 }
             },
@@ -129,8 +129,8 @@ class V2BenchmarkTests(unittest.TestCase):
                         "dialectica_compact": {"accuracy": 1.0},
                         "dialectica_filtered": {"accuracy": 1.0},
                         "dialectica_filtered_structural": {"accuracy": 1.0},
-                        "v2_horn": {"accuracy": 0.5},
-                        "v2_fol": {"accuracy": 1.0},
+                        "horn_reasoner": {"accuracy": 0.5},
+                        "fol_reasoner": {"accuracy": 1.0},
                     },
                 }
             },
@@ -149,14 +149,14 @@ class V2BenchmarkTests(unittest.TestCase):
                 }
             ],
             "diagnostics": {
-                "contradiction_sensitivity": {"v2_horn_flag_match_rate": 1.0, "modes": {"direct": {"accuracy": 1.0}}},
-                "explanation_faithfulness_proxy": {"v2_horn": {"pass_rate": 0.5}},
+                "contradiction_sensitivity": {"horn_reasoner_flag_match_rate": 1.0, "modes": {"direct": {"accuracy": 1.0}}},
+                "explanation_faithfulness_proxy": {"horn_reasoner": {"pass_rate": 0.5}},
                 "export_success_rate": {"by_target": {"horn": {"expectation_match_rate": 0.5}}},
             },
             "error_report": [
                 {
                     "case_id": "case-3",
-                    "mode": "v2_horn",
+                    "mode": "horn_reasoner",
                     "category": "contradiction_detection",
                     "predicted": "yes",
                     "gold": "no",
@@ -170,7 +170,7 @@ class V2BenchmarkTests(unittest.TestCase):
                     "gold_answer": "yes",
                     "conditions": [
                         {"name": "direct", "correct": True, "token_counts": {"total_tokens": 0}},
-                        {"name": "v2_horn", "correct": True, "token_counts": {"total_tokens": 0}},
+                        {"name": "horn_reasoner", "correct": True, "token_counts": {"total_tokens": 0}},
                     ],
                 }
             ],
@@ -179,7 +179,7 @@ class V2BenchmarkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             markdown_path = Path(tmpdir) / "report.md"
             charts_dir = Path(tmpdir) / "charts"
-            manifest = write_v2_report_bundle(report=report, markdown_path=markdown_path, charts_dir=charts_dir)
+            manifest = write_reasoning_report_bundle(report=report, markdown_path=markdown_path, charts_dir=charts_dir)
 
             self.assertTrue(markdown_path.exists())
             self.assertTrue((charts_dir / "category_accuracy.svg").exists())
@@ -187,7 +187,7 @@ class V2BenchmarkTests(unittest.TestCase):
 
     def test_report_bundle_escapes_user_visible_text(self) -> None:
         report = {
-            "dataset_path": "benchmarks/v2_reasoning.expanded.json",
+            "dataset_path": "benchmarks/reasoning.expanded.json",
             "provider": "oracle",
             "model": None,
             "aggregate": {
@@ -225,7 +225,7 @@ class V2BenchmarkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             markdown_path = Path(tmpdir) / "report.md"
             charts_dir = Path(tmpdir) / "charts"
-            write_v2_report_bundle(report=report, markdown_path=markdown_path, charts_dir=charts_dir)
+            write_reasoning_report_bundle(report=report, markdown_path=markdown_path, charts_dir=charts_dir)
 
             markdown = markdown_path.read_text(encoding="utf-8")
             svg = (charts_dir / "category_accuracy.svg").read_text(encoding="utf-8")
@@ -265,13 +265,13 @@ class V2BenchmarkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             dataset_path = Path(tmpdir) / "dataset.json"
             dataset_path.write_text(json.dumps(dataset), encoding="utf-8")
-            report = evaluate_v2_comparison(dataset_path, provider_name="oracle")
+            report = evaluate_reasoning_comparison(dataset_path, provider_name="oracle")
 
             self.assertEqual(report["cases"][0]["answer_type"], "ternary")
             self.assertEqual(report["cases"][0]["choices"], ["yes", "no", "unknown"])
-            v2_horn = next(condition for condition in report["cases"][0]["conditions"] if condition["name"] == "v2_horn")
-            self.assertEqual(v2_horn["predicted"], "unknown")
-            self.assertTrue(v2_horn["correct"])
+            horn_reasoner = next(condition for condition in report["cases"][0]["conditions"] if condition["name"] == "horn_reasoner")
+            self.assertEqual(horn_reasoner["predicted"], "unknown")
+            self.assertTrue(horn_reasoner["correct"])
 
 
 if __name__ == "__main__":

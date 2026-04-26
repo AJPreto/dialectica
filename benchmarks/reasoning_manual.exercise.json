@@ -1,6 +1,6 @@
 [
   {
-    "id": "v2x-manual-chat-001",
+    "id": "reasoning-manual-chat-001",
     "difficulty": "adversarial",
     "category": "negation",
     "categories": [
@@ -33,6 +33,6 @@
     "expected_failure_mode": "manual_external_chat_exercise",
     "expected_behavior": "The conclusion depends on a contradicted premise about whether Bruno is under safety suspension, so the answer should remain unknown under skeptical semantics.",
     "manual_prompt_path": "prompts/external-chat-benchmark.md",
-    "response_template_path": "examples/v2/external-chat-response.template.json"
+    "response_template_path": "examples/reasoning/external-chat-response.template.json"
   }
 ]

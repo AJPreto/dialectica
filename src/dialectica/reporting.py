@@ -13,8 +13,8 @@ PREFERRED_CONDITION_ORDER = [
     "dialectica_filtered",
     "dialectica_structural_compact",
     "dialectica_filtered_structural",
-    "v2_horn",
-    "v2_fol",
+    "horn_reasoner",
+    "fol_reasoner",
 ]
 
 DISPLAY_LABELS = {
@@ -23,8 +23,8 @@ DISPLAY_LABELS = {
     "dialectica_filtered": "Filtered",
     "dialectica_structural_compact": "Structural Compact",
     "dialectica_filtered_structural": "Filtered Structural",
-    "v2_horn": "V2 Horn",
-    "v2_fol": "V2 FOL",
+    "horn_reasoner": "Horn Reasoner",
+    "fol_reasoner": "FOL Reasoner",
     "dialectica_gold_compact": "Gold Compact",
     "dialectica_gold_filtered": "Gold Filtered",
     "dialectica_gold_structural_compact": "Gold Structural Compact",
@@ -154,7 +154,7 @@ def write_complexity_report_bundle(
     }
 
 
-def write_v2_report_bundle(
+def write_reasoning_report_bundle(
     *,
     report: dict[str, Any],
     markdown_path: str | Path,
@@ -189,7 +189,7 @@ def write_v2_report_bundle(
 
     accuracy_chart.write_text(
         _bar_chart_svg(
-            title="V2 Comparison Accuracy",
+            title="Reasoning Comparison Accuracy",
             labels=[_display_label(condition) for condition in conditions],
             values=accuracy_values,
             y_label="Accuracy",
@@ -199,7 +199,7 @@ def write_v2_report_bundle(
     )
     token_chart.write_text(
         _bar_chart_svg(
-            title="V2 Comparison Average Total Tokens",
+            title="Reasoning Comparison Average Total Tokens",
             labels=[_display_label(condition) for condition in conditions],
             values=token_values,
             y_label="Average total tokens",
@@ -208,7 +208,7 @@ def write_v2_report_bundle(
     )
     latency_chart.write_text(
         _bar_chart_svg(
-            title="V2 Comparison Average Latency",
+            title="Reasoning Comparison Average Latency",
             labels=[_display_label(condition) for condition in conditions],
             values=latency_values,
             y_label="Seconds",
@@ -220,7 +220,7 @@ def write_v2_report_bundle(
             title="Correctness by Case",
             x_label="Case index",
             y_label="Correct (1=yes, 0=no)",
-            series=_build_v2_correctness_series(report, conditions),
+            series=_build_reasoning_correctness_series(report, conditions),
         ),
         encoding="utf-8",
     )
@@ -229,7 +229,7 @@ def write_v2_report_bundle(
             title="Context Size vs Total Tokens",
             x_label="Context characters",
             y_label="Total tokens",
-            series=_build_v2_token_series(report, conditions),
+            series=_build_reasoning_token_series(report, conditions),
         ),
         encoding="utf-8",
     )
@@ -255,7 +255,7 @@ def write_v2_report_bundle(
     )
 
     markdown_destination.write_text(
-        _v2_markdown(
+        _reasoning_markdown(
             report=report,
             markdown_path=markdown_destination,
             chart_paths={
@@ -323,7 +323,7 @@ def _build_token_trend_series(sweep_summary: dict[str, Any]) -> list[dict[str, A
     return series
 
 
-def _build_v2_correctness_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
+def _build_reasoning_correctness_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
     cases = report.get("cases", [])
     series: list[dict[str, Any]] = []
     for index, condition in enumerate(conditions):
@@ -342,7 +342,7 @@ def _build_v2_correctness_series(report: dict[str, Any], conditions: list[str]) 
     return series
 
 
-def _build_v2_token_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
+def _build_reasoning_token_series(report: dict[str, Any], conditions: list[str]) -> list[dict[str, Any]]:
     cases = report.get("cases", [])
     series: list[dict[str, Any]] = []
     for index, condition in enumerate(conditions):
@@ -462,7 +462,7 @@ def _complexity_markdown(
     return "\n".join(lines)
 
 
-def _v2_markdown(
+def _reasoning_markdown(
     *,
     report: dict[str, Any],
     markdown_path: Path,
@@ -476,7 +476,7 @@ def _v2_markdown(
     difficulty_summary = report.get("difficulty_summary", {})
     error_report = report.get("error_report", [])
     lines = [
-        "# V2 Comparison Report",
+        "# Reasoning Comparison Report",
         "",
         f"- Dataset: `{report.get('dataset_path')}`",
         f"- Provider: `{report.get('provider')}`",
@@ -545,11 +545,11 @@ def _v2_markdown(
             "",
             "## Key Diagnostics",
             "",
-            "- V2 contradiction-flag match rate: `{:.3f}`".format(
-                float(diagnostics.get("contradiction_sensitivity", {}).get("v2_horn_flag_match_rate", 0.0) or 0.0)
+            "- Horn contradiction-flag match rate: `{:.3f}`".format(
+                float(diagnostics.get("contradiction_sensitivity", {}).get("horn_reasoner_flag_match_rate", 0.0) or 0.0)
             ),
-            "- V2 explanation faithfulness proxy: `{:.3f}`".format(
-                float(diagnostics.get("explanation_faithfulness_proxy", {}).get("v2_horn", {}).get("pass_rate", 0.0) or 0.0)
+            "- Horn explanation faithfulness proxy: `{:.3f}`".format(
+                float(diagnostics.get("explanation_faithfulness_proxy", {}).get("horn_reasoner", {}).get("pass_rate", 0.0) or 0.0)
             ),
             "- Horn export expectation match rate: `{:.3f}`".format(
                 float(diagnostics.get("export_success_rate", {}).get("by_target", {}).get("horn", {}).get("expectation_match_rate", 0.0) or 0.0)
@@ -557,21 +557,21 @@ def _v2_markdown(
             "",
             "## Category Summary",
             "",
-            "| Category | Cases | Direct | Compact | Filtered | Filtered Structural | V2 Horn | V2 FOL |",
+            "| Category | Cases | Direct | Compact | Filtered | Filtered Structural | Horn Reasoner | FOL Reasoner |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for category, payload in category_summary.items():
         lines.append(
-            "| {category} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
+            "| {category} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {horn_reasoner:.3f} | {fol_reasoner:.3f} |".format(
                 category=_markdown_cell(category),
                 cases=int(payload.get("case_count", 0) or 0),
                 direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
                 compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
                 filtered=float(payload.get("modes", {}).get("dialectica_filtered", {}).get("accuracy", 0.0) or 0.0),
                 filtered_struct=float(payload.get("modes", {}).get("dialectica_filtered_structural", {}).get("accuracy", 0.0) or 0.0),
-                v2_horn=float(payload.get("modes", {}).get("v2_horn", {}).get("accuracy", 0.0) or 0.0),
-                v2_fol=float(payload.get("modes", {}).get("v2_fol", {}).get("accuracy", 0.0) or 0.0),
+                horn_reasoner=float(payload.get("modes", {}).get("horn_reasoner", {}).get("accuracy", 0.0) or 0.0),
+                fol_reasoner=float(payload.get("modes", {}).get("fol_reasoner", {}).get("accuracy", 0.0) or 0.0),
             )
         )
 
@@ -580,21 +580,21 @@ def _v2_markdown(
             "",
             "## Difficulty Summary",
             "",
-            "| Difficulty | Cases | Direct | Compact | Filtered | Filtered Structural | V2 Horn | V2 FOL |",
+            "| Difficulty | Cases | Direct | Compact | Filtered | Filtered Structural | Horn Reasoner | FOL Reasoner |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for difficulty, payload in difficulty_summary.items():
         lines.append(
-            "| {difficulty} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {v2_horn:.3f} | {v2_fol:.3f} |".format(
+            "| {difficulty} | {cases} | {direct:.3f} | {compact:.3f} | {filtered:.3f} | {filtered_struct:.3f} | {horn_reasoner:.3f} | {fol_reasoner:.3f} |".format(
                 difficulty=_markdown_cell(difficulty),
                 cases=int(payload.get("case_count", 0) or 0),
                 direct=float(payload.get("modes", {}).get("direct", {}).get("accuracy", 0.0) or 0.0),
                 compact=float(payload.get("modes", {}).get("dialectica_compact", {}).get("accuracy", 0.0) or 0.0),
                 filtered=float(payload.get("modes", {}).get("dialectica_filtered", {}).get("accuracy", 0.0) or 0.0),
                 filtered_struct=float(payload.get("modes", {}).get("dialectica_filtered_structural", {}).get("accuracy", 0.0) or 0.0),
-                v2_horn=float(payload.get("modes", {}).get("v2_horn", {}).get("accuracy", 0.0) or 0.0),
-                v2_fol=float(payload.get("modes", {}).get("v2_fol", {}).get("accuracy", 0.0) or 0.0),
+                horn_reasoner=float(payload.get("modes", {}).get("horn_reasoner", {}).get("accuracy", 0.0) or 0.0),
+                fol_reasoner=float(payload.get("modes", {}).get("fol_reasoner", {}).get("accuracy", 0.0) or 0.0),
             )
         )
 

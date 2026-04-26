@@ -134,7 +134,7 @@ Example structural summary:
 
 ```json
 {
-  "scheme": "godel-inspired-v1",
+  "scheme": "godel-inspired",
   "graph_signature": "00ep7t-00knhc-0065yl",
   "graph_residues": {
     "1000003": 685865,
@@ -186,7 +186,7 @@ For the filtered Alice-only subgraph, the structural summary becomes smaller:
 
 ```json
 {
-  "scheme": "godel-inspired-v1",
+  "scheme": "godel-inspired",
   "graph_signature": "003ot4-000hgs-0059x9",
   "graph_residues": {
     "1000003": 172120,

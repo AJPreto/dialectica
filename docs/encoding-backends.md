@@ -1,6 +1,6 @@
-# V2 Encoding Comparison
+# Encoding Backend Comparison
 
-This document records the practical V2 encoding decision.
+This document records the practical encoding backend decision.
 
 ## Summary table
 
@@ -12,11 +12,11 @@ This document records the practical V2 encoding decision.
 
 ## Chosen default
 
-Dialectica V2 uses:
+Dialectica uses:
 
 - `horn` as the default end-to-end backend
 - `fol` as the broader comparison and proof path
-- `smt` as an experimental partial export target for future arithmetic work
+- `smt` as a partial export target for future arithmetic work
 
 ## Why Horn wins first
 
@@ -52,7 +52,8 @@ It should arrive after the hybrid AST and Horn path are stable, not before.
 
 ## Evaluation plan
 
-Compare V1 versus V2, and compare Horn versus FOL export quality, on:
+Compare encoded prompting against symbolic reasoning backends, and compare Horn
+versus FOL export quality, on:
 
 - contradiction sensitivity
 - negation handling

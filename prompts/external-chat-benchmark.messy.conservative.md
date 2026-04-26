@@ -1,6 +1,6 @@
 # Messy Tier Manual ChatGPT Pack (Conservative)
 
-This pack mirrors the current 30-case Tier 2 messy benchmark in [v2_reasoning.messy.json](../benchmarks/v2_reasoning.messy.json).
+This pack mirrors the current 30-case Tier 2 messy benchmark in [reasoning.messy.json](../benchmarks/reasoning.messy.json).
 
 This variant adds a cautious policy instruction for comparison runs.
 
@@ -11,9 +11,9 @@ Instructions:
 - Use only the supplied context.
 - If the conclusion is unsupported, conflicted, ambiguous, or underdetermined, answer `unknown`.
 - Reply should be one word only: `yes`, `no`, or `unknown`.
-- When you have all answers, put them into `examples/v2/external-chat-messy-response.v2.template.json`.
+- When you have all answers, put them into `examples/reasoning/external-chat-messy-response.template.json`.
 
-## case-001 | v2m-chain-001
+## case-001 | reasoning-messy-chain-001
 
 Reply with only one word:
 yes
@@ -26,7 +26,7 @@ Context: Morning operations note. If Mira completed dock training, then Mira rec
 
 Question: May Mira supervise pallet transfers?
 
-## case-002 | v2m-chain-002
+## case-002 | reasoning-messy-chain-002
 
 Reply with only one word:
 yes
@@ -39,7 +39,7 @@ Context: Shift memo. If Mira finished dock training, then Mira receives a blue b
 
 Question: May Mira supervise pallet transfers?
 
-## case-003 | v2m-chain-003
+## case-003 | reasoning-messy-chain-003
 
 Reply with only one word:
 yes
@@ -52,7 +52,7 @@ Context: Operations note. If Mira completed dock training, then Mira receives a 
 
 Question: May Mira supervise pallet transfers?
 
-## case-004 | v2m-exc-001
+## case-004 | reasoning-messy-exc-001
 
 Reply with only one word:
 yes
@@ -65,7 +65,7 @@ Context: Archive update. If Lena completed archive certification, then Lena may 
 
 Question: May Lena enter the restricted stacks?
 
-## case-005 | v2m-exc-002
+## case-005 | reasoning-messy-exc-002
 
 Reply with only one word:
 yes
@@ -78,7 +78,7 @@ Context: Archive update. If Lena completed archive certification, then Lena may 
 
 Question: May Lena enter the restricted stacks?
 
-## case-006 | v2m-exc-003
+## case-006 | reasoning-messy-exc-003
 
 Reply with only one word:
 yes
@@ -91,7 +91,7 @@ Context: Records bulletin. If Lena finished archive certification, then Lena may
 
 Question: May Lena enter the restricted stacks?
 
-## case-007 | v2m-ctr-001
+## case-007 | reasoning-messy-ctr-001
 
 Reply with only one word:
 yes
@@ -104,7 +104,7 @@ Context: Safety bulletin. Nora completed solvent training. Nora did not complete
 
 Question: May Nora use the solvent cabinet?
 
-## case-008 | v2m-neg-001
+## case-008 | reasoning-messy-neg-001
 
 Reply with only one word:
 yes
@@ -117,7 +117,7 @@ Context: Control room log. Ravi may not activate the test rig. The maintenance l
 
 Question: May Ravi activate the test rig?
 
-## case-009 | v2m-att-001
+## case-009 | reasoning-messy-att-001
 
 Reply with only one word:
 yes
@@ -130,7 +130,7 @@ Context: Inspection note. According to the temporary clerk, Marta completed furn
 
 Question: May Marta access the heat bay?
 
-## case-010 | v2m-amb-001
+## case-010 | reasoning-messy-amb-001
 
 Reply with only one word:
 yes
@@ -143,7 +143,7 @@ Context: Shift summary. Alice completed amber orientation. Bruno filed the inven
 
 Question: Does Alice hold an amber badge?
 
-## case-011 | v2m-unc-001
+## case-011 | reasoning-messy-unc-001
 
 Reply with only one word:
 yes
@@ -156,7 +156,7 @@ Context: Yard update. Maybe Farah completed crane briefing. If Farah completed c
 
 Question: May Farah inspect the crane?
 
-## case-012 | v2m-disj-001
+## case-012 | reasoning-messy-disj-001
 
 Reply with only one word:
 yes
@@ -169,7 +169,7 @@ Context: Access memo. If Imani holds a silver pass or Imani has supervisor overr
 
 Question: May Imani enter the diagnostics room?
 
-## case-013 | v2m-var-001
+## case-013 | reasoning-messy-var-001
 
 Reply with only one word:
 yes
@@ -182,7 +182,7 @@ Context: Workshop report. All certified operators may use the milling machine. B
 
 Question: May Dina use the milling machine?
 
-## case-014 | v2m-num-001
+## case-014 | reasoning-messy-num-001
 
 Reply with only one word:
 yes
@@ -195,7 +195,7 @@ Context: Warehouse note. batch size = 4. The foreman mentioned spare boxes durin
 
 Question: Is batch size = 4?
 
-## case-015 | v2m-num-002
+## case-015 | reasoning-messy-num-002
 
 Reply with only one word:
 yes
@@ -208,7 +208,7 @@ Context: Inventory note. inventory count >= 3. The team moved two empty pallets 
 
 Question: Is inventory count >= 3?
 
-## case-016 | v2m-mixed-001
+## case-016 | reasoning-messy-mixed-001
 
 Reply with only one word:
 yes
@@ -221,7 +221,7 @@ Context: Lab access memo. If Greta completed access training, then Greta receive
 
 Question: May Greta enter lab 4?
 
-## case-017 | v2m-imp-001
+## case-017 | reasoning-messy-imp-001
 
 Reply with only one word:
 yes
@@ -234,7 +234,7 @@ Context: Badge desk note. If Paolo completed forklift briefing, then Paolo recei
 
 Question: Does Paolo receive an orange permit?
 
-## case-018 | v2m-conj-001
+## case-018 | reasoning-messy-conj-001
 
 Reply with only one word:
 yes
@@ -247,7 +247,7 @@ Context: Workshop notice. If Nina completed clean room orientation and Nina wear
 
 Question: May Nina enter the clean room?
 
-## case-019 | v2m-disj-002
+## case-019 | reasoning-messy-disj-002
 
 Reply with only one word:
 yes
@@ -260,7 +260,7 @@ Context: Server room memo. If Omar holds a red pass or Omar has incident overrid
 
 Question: May Omar enter server room B?
 
-## case-020 | v2m-var-003
+## case-020 | reasoning-messy-var-003
 
 Reply with only one word:
 yes
@@ -273,7 +273,7 @@ Context: Machine audit. All laser-certified technicians may calibrate the optic 
 
 Question: May Theo calibrate the optic bench?
 
-## case-021 | v2m-neg-002
+## case-021 | reasoning-messy-neg-002
 
 Reply with only one word:
 yes
@@ -286,7 +286,7 @@ Context: Badge log. Elias does not hold a silver badge. The printer toner arrive
 
 Question: Does Elias hold a silver badge?
 
-## case-022 | v2m-neg-003
+## case-022 | reasoning-messy-neg-003
 
 Reply with only one word:
 yes
@@ -299,7 +299,7 @@ Context: Dock notice. Priya may not operate the pallet lift. The loading door sq
 
 Question: May Priya operate the pallet lift?
 
-## case-023 | v2m-exc-004
+## case-023 | reasoning-messy-exc-004
 
 Reply with only one word:
 yes
@@ -312,7 +312,7 @@ Context: Archive bulletin. If Jonah completed vault training, then Jonah may ent
 
 Question: May Jonah enter the map vault?
 
-## case-024 | v2m-mixed-002
+## case-024 | reasoning-messy-mixed-002
 
 Reply with only one word:
 yes
@@ -325,7 +325,7 @@ Context: Lab memo. If Rosa completed biosafety orientation and Rosa carries a gr
 
 Question: May Rosa enter lab 7?
 
-## case-025 | v2m-var-004
+## case-025 | reasoning-messy-var-004
 
 Reply with only one word:
 yes
@@ -338,7 +338,7 @@ Context: Workshop report. All certified operators may use the milling machine. B
 
 Question: May Carla use the milling machine?
 
-## case-026 | v2m-imp-002
+## case-026 | reasoning-messy-imp-002
 
 Reply with only one word:
 yes
@@ -351,7 +351,7 @@ Context: Locker note. If Aria completed solvent training, then Aria may open the
 
 Question: May Aria open the solvent locker?
 
-## case-027 | v2m-att-002
+## case-027 | reasoning-messy-att-002
 
 Reply with only one word:
 yes
@@ -364,7 +364,7 @@ Context: Inspection note. According to the temp clerk, Marta completed furnace o
 
 Question: May Marta access the heat bay?
 
-## case-028 | v2m-chain-004
+## case-028 | reasoning-messy-chain-004
 
 Reply with only one word:
 yes
@@ -377,7 +377,7 @@ Context: Operations note. If Talia completed crane prep, then Talia receives a r
 
 Question: May Talia inspect the hoist?
 
-## case-029 | v2m-amb-002
+## case-029 | reasoning-messy-amb-002
 
 Reply with only one word:
 yes
@@ -390,7 +390,7 @@ Context: Shift summary. Marcus completed freezer orientation. Jonah filed the re
 
 Question: Does Marcus receive a silver pass?
 
-## case-030 | v2m-disj-003
+## case-030 | reasoning-messy-disj-003
 
 Reply with only one word:
 yes

@@ -22,14 +22,16 @@ from .evaluate import evaluate_dataset
 from .explainer import explain_fol_reasoning, explain_reasoning
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
 from .translator import translate_text
-from .v2_eval import evaluate_v2_comparison, write_v2_report
+from .reasoning_eval import evaluate_reasoning_comparison, write_reasoning_report
 from .parser import parse_document, parse_text
 from .providers import ProviderError
-from .reporting import write_complexity_report_bundle, write_v2_report_bundle
+from .reporting import write_complexity_report_bundle, write_reasoning_report_bundle
 from .validation import validate_logical_form
 
 
 def main(argv: list[str] | None = None) -> int:
+    parsed_argv = sys.argv[1:] if argv is None else list(argv)
+
     parser = argparse.ArgumentParser(prog="dialectica", description="Dialectica logical-form tools")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -54,21 +56,8 @@ def main(argv: list[str] | None = None) -> int:
     compare_parser.add_argument("--document", action="store_true", help="Parse inputs as multi-sentence documents")
     compare_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
 
-    v2_parser = subparsers.add_parser("v2-run", help="Run the experimental V2 neuro-symbolic pipeline")
-    v2_parser.add_argument("text", nargs="?", help="Context text. If omitted, stdin is used.")
-    v2_parser.add_argument("--query", help="Optional separate query. If omitted, the last question in the text is used.")
-    v2_parser.add_argument(
-        "--targets",
-        default="horn,fol,smt",
-        help="Comma-separated export targets to compile, default: horn,fol,smt",
-    )
-    v2_parser.add_argument(
-        "--reasoner",
-        default="horn",
-        choices=("horn", "fol"),
-        help="Reasoning backend to run over the compiled outputs, default: horn",
-    )
-    v2_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+    reason_parser = subparsers.add_parser("reason", help="Run the neuro-symbolic reasoning pipeline")
+    _add_reason_run_arguments(reason_parser)
 
     serve_parser = subparsers.add_parser("serve", help="Run the local HTTP API")
     serve_parser.add_argument("--host", default="127.0.0.1")
@@ -172,37 +161,19 @@ def main(argv: list[str] | None = None) -> int:
     )
     complexity_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the complexity summary")
 
-    v2_eval_parser = subparsers.add_parser(
-        "evaluate-v2",
-        help="Compare direct prompting, V1 filtered encoding, and the experimental V2 Horn backend",
+    reasoning_eval_parser = subparsers.add_parser(
+        "evaluate-reasoning",
+        help="Compare direct prompting, encoded prompting, and symbolic reasoning backends",
     )
-    v2_eval_parser.add_argument(
-        "--dataset",
-        default=str(Path("benchmarks") / "v2_reasoning.sample.json"),
-        help="Path to a V2-compatible comparison benchmark JSON file",
-    )
-    v2_eval_parser.add_argument(
-        "--provider",
-        default="ollama",
-        choices=("oracle", "openai", "ollama"),
-        help="Model provider used for the direct and V1 filtered baselines",
-    )
-    v2_eval_parser.add_argument("--model", help="Model name for the selected provider")
-    v2_eval_parser.add_argument("--output", help="Optional path to write the full JSON comparison report")
-    v2_eval_parser.add_argument("--markdown-output", help="Optional path to write a markdown V2 report")
-    v2_eval_parser.add_argument("--charts-dir", help="Optional directory to write SVG charts for the V2 report")
-    v2_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the comparison report")
+    _add_reasoning_eval_arguments(reasoning_eval_parser)
 
-    v2_render_parser = subparsers.add_parser(
-        "render-v2-report",
-        help="Render charts and a markdown summary from an existing V2 comparison JSON report",
+    reasoning_render_parser = subparsers.add_parser(
+        "render-reasoning-report",
+        help="Render charts and a markdown summary from an existing reasoning comparison JSON report",
     )
-    v2_render_parser.add_argument("--report", required=True, help="Path to an existing V2 comparison JSON report")
-    v2_render_parser.add_argument("--markdown-output", help="Optional markdown output path")
-    v2_render_parser.add_argument("--charts-dir", help="Optional charts output directory")
-    v2_render_parser.add_argument("--pretty", action="store_true", help="Pretty-print the render manifest")
+    _add_reasoning_render_arguments(reasoning_render_parser)
 
-    args = parser.parse_args(argv)
+    args = parser.parse_args(parsed_argv)
 
     if args.command == "parse":
         text = args.text if args.text is not None else sys.stdin.read().strip()
@@ -243,7 +214,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(comparison, indent=indent))
         return 0
 
-    if args.command == "v2-run":
+    if args.command == "reason":
         text = args.text if args.text is not None else sys.stdin.read().strip()
         requested_targets = [part.strip() for part in args.targets.split(",") if part.strip()]
         if args.reasoner not in requested_targets:
@@ -370,9 +341,9 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(summary, indent=indent))
         return 0
 
-    if args.command == "evaluate-v2":
+    if args.command == "evaluate-reasoning":
         try:
-            report = evaluate_v2_comparison(
+            report = evaluate_reasoning_comparison(
                 args.dataset,
                 provider_name=args.provider,
                 model=args.model,
@@ -381,14 +352,14 @@ def main(argv: list[str] | None = None) -> int:
             print(str(exc), file=sys.stderr)
             return 2
         if args.output:
-            write_v2_report(report, args.output)
-            write_v2_report_bundle(
+            write_reasoning_report(report, args.output)
+            write_reasoning_report_bundle(
                 report=report,
                 markdown_path=args.markdown_output or _derive_markdown_path(args.output),
                 charts_dir=args.charts_dir or _derive_charts_dir(args.output),
             )
         elif args.markdown_output:
-            write_v2_report_bundle(
+            write_reasoning_report_bundle(
                 report=report,
                 markdown_path=args.markdown_output,
                 charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
@@ -397,10 +368,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=indent))
         return 0
 
-    if args.command == "render-v2-report":
+    if args.command == "render-reasoning-report":
         with Path(args.report).open("r", encoding="utf-8") as handle:
             report = json.load(handle)
-        bundle = write_v2_report_bundle(
+        bundle = write_reasoning_report_bundle(
             report=report,
             markdown_path=args.markdown_output or _derive_markdown_path(args.report),
             charts_dir=args.charts_dir or _derive_charts_dir(args.report),
@@ -410,6 +381,49 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     return 1
+
+
+def _add_reason_run_arguments(command_parser: argparse.ArgumentParser) -> None:
+    command_parser.add_argument("text", nargs="?", help="Context text. If omitted, stdin is used.")
+    command_parser.add_argument("--query", help="Optional separate query. If omitted, the last question in the text is used.")
+    command_parser.add_argument(
+        "--targets",
+        default="horn,fol,smt",
+        help="Comma-separated export targets to compile, default: horn,fol,smt",
+    )
+    command_parser.add_argument(
+        "--reasoner",
+        default="horn",
+        choices=("horn", "fol"),
+        help="Reasoning backend to run over the compiled outputs, default: horn",
+    )
+    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+
+
+def _add_reasoning_eval_arguments(command_parser: argparse.ArgumentParser) -> None:
+    command_parser.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "reasoning.sample.json"),
+        help="Path to a reasoning comparison benchmark JSON file",
+    )
+    command_parser.add_argument(
+        "--provider",
+        default="ollama",
+        choices=("oracle", "openai", "ollama"),
+        help="Model provider used for the direct and encoded baselines",
+    )
+    command_parser.add_argument("--model", help="Model name for the selected provider")
+    command_parser.add_argument("--output", help="Optional path to write the full JSON comparison report")
+    command_parser.add_argument("--markdown-output", help="Optional path to write a markdown reasoning report")
+    command_parser.add_argument("--charts-dir", help="Optional directory to write SVG charts for the reasoning report")
+    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print the comparison report")
+
+
+def _add_reasoning_render_arguments(command_parser: argparse.ArgumentParser) -> None:
+    command_parser.add_argument("--report", required=True, help="Path to an existing reasoning comparison JSON report")
+    command_parser.add_argument("--markdown-output", help="Optional markdown output path")
+    command_parser.add_argument("--charts-dir", help="Optional charts output directory")
+    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print the render manifest")
 
 
 def _derive_performance_path(output_path: str) -> str:

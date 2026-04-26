@@ -1,15 +1,15 @@
 # Full Manual ChatGPT Pack
 
-This pack mirrors the full expanded V2 benchmark in [v2_reasoning.expanded.json](../benchmarks/v2_reasoning.expanded.json).
+This pack mirrors the full expanded reasoning benchmark in [reasoning.expanded.json](../benchmarks/reasoning.expanded.json).
 
 Instructions:
 - Copy one full case block at a time into ChatGPT.
 - Start a fresh chat if the current one becomes flaky.
 - Each case is standalone.
 - Reply should be one word only: `yes`, `no`, or `unknown`.
-- When you have all answers, put them into `examples/v2/external-chat-expanded-response.template.json`.
+- When you have all answers, put them into `examples/reasoning/external-chat-expanded-response.template.json`.
 
-## case-001 | v2x-imp-001
+## case-001 | reasoning-expanded-imp-001
 
 Use only the context below.
 
@@ -28,7 +28,7 @@ Context: If Alice completed amber orientation, then Alice holds an amber badge. 
 
 Question: Does Alice hold an amber badge?
 
-## case-002 | v2x-imp-002
+## case-002 | reasoning-expanded-imp-002
 
 Use only the context below.
 
@@ -47,7 +47,7 @@ Context: If Alice completed the amber orientation, then Alice holds the amber ba
 
 Question: Does Alice hold the amber badge?
 
-## case-003 | v2x-imp-003
+## case-003 | reasoning-expanded-imp-003
 
 Use only the context below.
 
@@ -66,7 +66,7 @@ Context: If Alice completed amber orientation, then Alice holds an amber badge. 
 
 Question: Does Alice hold an amber badge?
 
-## case-004 | v2x-conj-001
+## case-004 | reasoning-expanded-conj-001
 
 Use only the context below.
 
@@ -85,7 +85,7 @@ Context: If Alice completed amber orientation and Alice holds an amber badge, th
 
 Question: May Alice enter the amber workshop?
 
-## case-005 | v2x-conj-002
+## case-005 | reasoning-expanded-conj-002
 
 Use only the context below.
 
@@ -104,7 +104,7 @@ Context: If Alice completed amber orientation and Alice holds an amber badge, th
 
 Question: May Alice enter the amber workshop?
 
-## case-006 | v2x-disj-001
+## case-006 | reasoning-expanded-disj-001
 
 Use only the context below.
 
@@ -123,7 +123,7 @@ Context: If Alice completed amber orientation or Alice holds an amber badge, the
 
 Question: May Alice enter the amber workshop?
 
-## case-007 | v2x-neg-001
+## case-007 | reasoning-expanded-neg-001
 
 Use only the context below.
 
@@ -142,7 +142,7 @@ Context: Alice does not hold an amber badge.
 
 Question: Does Alice hold an amber badge?
 
-## case-008 | v2x-neg-002
+## case-008 | reasoning-expanded-neg-002
 
 Use only the context below.
 
@@ -161,7 +161,7 @@ Context: If Alice completed amber orientation, then Alice may enter the amber wo
 
 Question: May Alice enter the amber workshop?
 
-## case-009 | v2x-ctr-001
+## case-009 | reasoning-expanded-ctr-001
 
 Use only the context below.
 
@@ -180,7 +180,7 @@ Context: Alice completed amber orientation. Alice did not complete amber orienta
 
 Question: Does Alice hold an amber badge?
 
-## case-010 | v2x-exc-001
+## case-010 | reasoning-expanded-exc-001
 
 Use only the context below.
 
@@ -199,7 +199,7 @@ Context: If Alice completed amber orientation, then Alice may enter the amber wo
 
 Question: May Alice enter the amber workshop?
 
-## case-011 | v2x-exc-002
+## case-011 | reasoning-expanded-exc-002
 
 Use only the context below.
 
@@ -218,7 +218,7 @@ Context: If Alice completed amber orientation, then Alice may enter the amber wo
 
 Question: May Alice enter the amber workshop?
 
-## case-012 | v2x-exc-003
+## case-012 | reasoning-expanded-exc-003
 
 Use only the context below.
 
@@ -237,7 +237,7 @@ Context: If Alice completed the amber orientation, then Alice may enter the ambe
 
 Question: May Alice enter the amber workshop?
 
-## case-013 | v2x-chain-001
+## case-013 | reasoning-expanded-chain-001
 
 Use only the context below.
 
@@ -256,7 +256,7 @@ Context: If Alice completed amber orientation, then Alice holds an amber badge. 
 
 Question: May Alice enter the amber workshop?
 
-## case-014 | v2x-chain-002
+## case-014 | reasoning-expanded-chain-002
 
 Use only the context below.
 
@@ -275,7 +275,7 @@ Context: If Greta completed amber orientation, then Greta holds an amber badge. 
 
 Question: May Greta enter the amber workshop?
 
-## case-015 | v2x-var-001
+## case-015 | reasoning-expanded-var-001
 
 Use only the context below.
 
@@ -294,7 +294,7 @@ Context: All certified operators may use the milling machine. Bruno is a certifi
 
 Question: May Bruno use the milling machine?
 
-## case-016 | v2x-var-002
+## case-016 | reasoning-expanded-var-002
 
 Use only the context below.
 
@@ -313,7 +313,7 @@ Context: All certified operators can use the milling machine. Bruno is a certifi
 
 Question: Can Bruno use the milling machine?
 
-## case-017 | v2x-var-003
+## case-017 | reasoning-expanded-var-003
 
 Use only the context below.
 
@@ -332,7 +332,7 @@ Context: All certified operators may use the milling machine. Bruno is a certifi
 
 Question: May Carla use the milling machine?
 
-## case-018 | v2x-att-001
+## case-018 | reasoning-expanded-att-001
 
 Use only the context below.
 
@@ -351,7 +351,7 @@ Context: According to the intern, Alice completed amber orientation. If Alice co
 
 Question: Does Alice hold an amber badge?
 
-## case-019 | v2x-att-002
+## case-019 | reasoning-expanded-att-002
 
 Use only the context below.
 
@@ -370,7 +370,7 @@ Context: According to the inspector, Bruno is a certified operator. All certifie
 
 Question: May Bruno use the milling machine?
 
-## case-020 | v2x-amb-001
+## case-020 | reasoning-expanded-amb-001
 
 Use only the context below.
 
@@ -389,7 +389,7 @@ Context: Alice completed amber orientation. She holds an amber badge.
 
 Question: Does Alice hold an amber badge?
 
-## case-021 | v2x-amb-002
+## case-021 | reasoning-expanded-amb-002
 
 Use only the context below.
 
@@ -408,7 +408,7 @@ Context: Maybe Alice completed amber orientation. If Alice completed amber orien
 
 Question: Does Alice hold an amber badge?
 
-## case-022 | v2x-amb-003
+## case-022 | reasoning-expanded-amb-003
 
 Use only the context below.
 
@@ -427,7 +427,7 @@ Context: Alice completed the amber orientation. She holds the amber badge.
 
 Question: Does Alice hold the amber badge?
 
-## case-023 | v2x-num-001
+## case-023 | reasoning-expanded-num-001
 
 Use only the context below.
 
@@ -446,7 +446,7 @@ Context: inventory count >= 3.
 
 Question: Is inventory count >= 3?
 
-## case-024 | v2x-num-002
+## case-024 | reasoning-expanded-num-002
 
 Use only the context below.
 
