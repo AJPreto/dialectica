@@ -86,18 +86,7 @@ def filter_logical_form(
 
     question_tokens = _question_tokens(canonical_question)
     if not question_tokens:
-        filtered = dict(canonical_context)
-        metadata = dict(filtered.get("metadata", {}))
-        metadata["filter"] = {
-            "strategy": "question-conditioned",
-            "fallback": "no_question_tokens",
-            "source_block_count": len(blocks),
-            "filtered_block_count": len(blocks),
-            "source_relation_count": len(relations),
-            "filtered_relation_count": len(relations),
-        }
-        filtered["metadata"] = metadata
-        return filtered
+        return _fallback_filtered_form(canonical_context, reason="no_question_tokens")
 
     token_map = {block["id"]: _informative_tokens(block.get("canonical_text", block.get("text", ""))) for block in blocks}
     score_map = {block["id"]: _block_score(block, token_map[block["id"]], question_tokens) for block in blocks}
@@ -173,8 +162,8 @@ def filter_logical_form(
     return canonicalize_logical_form(filtered_form)
 
 
-def _fallback_filtered_form(logical_form: dict[str, Any], *, reason: str) -> dict[str, Any]:
-    fallback = canonicalize_logical_form(logical_form)
+def _fallback_filtered_form(canonical: dict[str, Any], *, reason: str) -> dict[str, Any]:
+    fallback = dict(canonical)
     metadata = dict(fallback.get("metadata", {}))
     metadata["filter"] = {
         "strategy": "question-conditioned",

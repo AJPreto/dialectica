@@ -4,7 +4,45 @@ from __future__ import annotations
 
 from typing import Any
 
-from .constants import BLOCK_TYPES, PARSE_STATUSES, POLARITIES, RELATION_TYPES
+
+BLOCK_TYPES = (
+    "claim",
+    "goal",
+    "constraint",
+    "condition",
+    "outcome",
+    "evidence",
+    "definition",
+    "question",
+    "exception",
+    "unknown",
+    "ambiguity",
+)
+
+RELATION_TYPES = (
+    "supports",
+    "contradicts",
+    "implies",
+    "depends_on",
+    "defines",
+    "qualifies",
+    "unless",
+    "answers",
+)
+
+PARSE_STATUSES = (
+    "ok",
+    "ambiguous",
+    "underspecified",
+    "failed",
+)
+
+POLARITIES = (
+    "positive",
+    "negative",
+    "neutral",
+    "unknown",
+)
 
 
 def validate_logical_form(logical_form: dict[str, Any]) -> list[str]:

@@ -100,14 +100,14 @@ class FOLExporter(BaseExporter):
             },
             "signature": signature,
             "annotated_formulae": formulas,
-            "translation_notes": _dedupe(notes),
+            "translation_notes": list(dict.fromkeys(notes)),
             "program": program,
         }
         return CompilationResult(
             target=self.target,
             status=combine_status(list(records.values())),
             artifact=artifact,
-            notes=_dedupe(notes),
+            notes=list(dict.fromkeys(notes)),
             statement_records=records,
         )
 
@@ -165,12 +165,7 @@ def _program_entry(statement: HybridStatement) -> dict[str, Any] | None:
     core = statement.formal_core
     if core is None:
         return None
-    if statement.kind == "fact":
-        literal = _literal_program_node_from_formula(core)
-        if literal is None:
-            return None
-        return {"statement_id": statement.id, "literal": literal}
-    if statement.kind == "query":
+    if statement.kind in {"fact", "query"}:
         literal = _literal_program_node_from_formula(core)
         if literal is None:
             return None
@@ -451,17 +446,6 @@ def _requires_partial_export(statement: HybridStatement) -> bool:
             residue.ambiguity,
         )
     )
-
-
-def _dedupe(items: list[str]) -> list[str]:
-    seen: set[str] = set()
-    deduped: list[str] = []
-    for item in items:
-        if item in seen:
-            continue
-        seen.add(item)
-        deduped.append(item)
-    return deduped
 
 
 def _comparison_symbol(operator: str) -> str:

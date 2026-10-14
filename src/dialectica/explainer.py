@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .engine import FOLReasoningResult, ReasoningResult, SignedLiteral
+from .engine import FOLReasoningResult, ReasoningResult
 from .ir import HybridDocument
 
 
@@ -81,15 +81,15 @@ def explain_fol_reasoning(document: HybridDocument, reasoning: FOLReasoningResul
         lines.append("The query is not supported by the exact FOL-compilable core of the translated document.")
 
     if reasoning.query is not None:
-        lines.append(f"Query: `{_literal_text(reasoning.query)}`.")
+        lines.append(f"Query: `{reasoning.query.text()}`.")
 
     if reasoning.trace:
         lines.append("Proof trace:")
         for step in reasoning.trace:
             source = statement_lookup.get(step.statement_id)
-            premise_text = ", ".join(_literal_text(item) for item in step.premises) or "no premises"
+            premise_text = ", ".join(item.text() for item in step.premises) or "no premises"
             fragment = source.provenance.fragment if source is not None else step.statement_id
-            lines.append(f"- `{_literal_text(step.derived)}` from {premise_text} using: {fragment}")
+            lines.append(f"- `{step.derived.text()}` from {premise_text} using: {fragment}")
 
     if reasoning.blocked:
         lines.append("Blocked proof steps:")
@@ -97,16 +97,16 @@ def explain_fol_reasoning(document: HybridDocument, reasoning: FOLReasoningResul
             source = statement_lookup.get(step.statement_id)
             fragment = source.provenance.fragment if source is not None else step.statement_id
             if step.blocked_by:
-                blockers = ", ".join(_literal_text(item) for item in step.blocked_by)
-                lines.append(f"- `{_literal_text(step.derived)}` was blocked by {blockers} in: {fragment}")
+                blockers = ", ".join(item.text() for item in step.blocked_by)
+                lines.append(f"- `{step.derived.text()}` was blocked by {blockers} in: {fragment}")
             elif step.conflict_with:
-                conflicts = ", ".join(_literal_text(item) for item in step.conflict_with)
-                lines.append(f"- `{_literal_text(step.derived)}` was withheld because the premises are conflicted: {conflicts}")
+                conflicts = ", ".join(item.text() for item in step.conflict_with)
+                lines.append(f"- `{step.derived.text()}` was withheld because the premises are conflicted: {conflicts}")
 
     if reasoning.conflicts:
         lines.append("Detected conflicts:")
         for literal in reasoning.conflicts:
-            lines.append(f"- `{_literal_text(literal)}` conflicts with its negation.")
+            lines.append(f"- `{literal.text()}` conflicts with its negation.")
 
     residue_lines = []
     for statement in document.statements:
@@ -137,7 +137,3 @@ def explain_fol_reasoning(document: HybridDocument, reasoning: FOLReasoningResul
         lines.extend(f"- {note}" for note in reasoning.notes)
 
     return "\n".join(lines)
-
-
-def _literal_text(literal: SignedLiteral) -> str:
-    return literal.text()

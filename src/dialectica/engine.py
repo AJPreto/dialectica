@@ -372,13 +372,7 @@ def _match_comparison(
 
 def _apply_substitution_literal(literal: SignedLiteral, substitution: dict[str, str]) -> SignedLiteral:
     if isinstance(literal.atom, Atom):
-        grounded_arguments = []
-        for argument in literal.atom.arguments:
-            if isinstance(argument, Variable) and argument.name in substitution:
-                grounded_arguments.append(Constant(substitution[argument.name], sort=argument.sort))
-            else:
-                grounded_arguments.append(argument)
-        return SignedLiteral(sign=literal.sign, atom=Atom(predicate=literal.atom.predicate, arguments=tuple(grounded_arguments)))
+        return SignedLiteral(sign=literal.sign, atom=_apply_substitution(literal.atom, substitution))
     comparison = literal.atom
     return SignedLiteral(
         sign=literal.sign,

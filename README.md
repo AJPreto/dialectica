@@ -30,6 +30,41 @@ The parser is heuristic so the project can run locally with no external model
 dependency. That makes it useful for fast iteration on the intermediate
 representation before swapping in an LLM-backed parser later.
 
+## Use As A Library
+
+Dialectica has no runtime dependencies. Install it straight from GitHub:
+
+```bash
+uv add git+https://github.com/AJPreto/dialectica
+# or: pip install git+https://github.com/AJPreto/dialectica
+```
+
+Then:
+
+```python
+import dialectica
+
+# Parse prose into a canonical logical form (blocks + relations).
+form = dialectica.parse("If the battery is dead, the car will not start unless we jump it.")
+dialectica.validate_logical_form(form)       # [] when the form is well-formed
+dialectica.serialize_logical_form(form)      # stable text serialization
+
+# Run the full reasoning pipeline: translate -> compile -> reason -> explain.
+run = dialectica.reason(
+    "If Alice completed amber orientation, then Alice holds an amber badge. "
+    "Alice completed amber orientation. "
+    "Does Alice hold an amber badge?",
+    reasoner="fol",                          # or "horn" (default)
+)
+run.answer                                   # "entailed"
+print(run.explanation)
+run.to_dict()                                # JSON-safe payload, same as `dialectica reason`
+```
+
+Everything in `dialectica.__all__` is the supported surface; the benchmark
+harnesses (`answer_eval`, `reasoning_eval`, `complexity`, `reporting`) are
+importable but mainly back the CLI.
+
 ## Quick Start
 
 From the repo root, use `uv` as the default workflow:
@@ -153,6 +188,7 @@ If you want a step-by-step explanation of what happens during a run, see
 
 ## Repo Layout
 
+- `src/dialectica/pipeline.py`: one-call `reason()` entry point
 - `src/dialectica/ir.py`: hybrid reasoning AST
 - `src/dialectica/translator.py`: controlled natural-language translator
 - `src/dialectica/compiler.py`: export dispatcher

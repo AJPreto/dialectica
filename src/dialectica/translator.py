@@ -6,6 +6,7 @@ import re
 
 from .ir import (
     Atom,
+    FormalCore,
     Comparison,
     Conjunction,
     Constant,
@@ -18,6 +19,7 @@ from .ir import (
     Provenance,
     RuleCore,
     SemanticResidue,
+    SourceSpan,
     Variable,
 )
 
@@ -229,86 +231,37 @@ def _translate_sentence(
         sentence_id=sentence_id,
         source_text=source_text,
         fragment=sentence,
-        span=None if force_query else None if start < 0 else _span(start, end),
+        span=None if force_query or start < 0 else SourceSpan(start=start, end=end),
     )
     working = stripped.rstrip(".?!")
-
-    if force_query or sentence.rstrip().endswith("?"):
-        formal_core = _parse_query(working)
-        if formal_core is None:
-            residue.non_formalized_fragments.append(sentence)
-        return HybridStatement(
-            id=statement_id,
-            kind="query",
-            formal_core=formal_core,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-
-    rule = _parse_rule(working)
-    if rule is not None:
-        return HybridStatement(
-            id=statement_id,
-            kind="rule",
-            formal_core=rule,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-    if _looks_like_conditional_syntax(working):
+    kind, formal_core = _classify_sentence(working, is_query=force_query or sentence.rstrip().endswith("?"))
+    if formal_core is None:
         residue.non_formalized_fragments.append(sentence)
-        return HybridStatement(
-            id=statement_id,
-            kind="residue",
-            formal_core=None,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-
-    universal = _parse_universal_rule(working)
-    if universal is not None:
-        return HybridStatement(
-            id=statement_id,
-            kind="rule",
-            formal_core=universal,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-
-    comparison = _parse_comparison(working)
-    if comparison is not None:
-        return HybridStatement(
-            id=statement_id,
-            kind="fact",
-            formal_core=comparison,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-
-    atom_like = _parse_clause(working)
-    if atom_like is not None:
-        return HybridStatement(
-            id=statement_id,
-            kind="fact",
-            formal_core=atom_like,
-            semantic_residue=residue,
-            provenance=provenance,
-            exportability={},
-        )
-
-    residue.non_formalized_fragments.append(sentence)
     return HybridStatement(
         id=statement_id,
-        kind="residue",
-        formal_core=None,
+        kind=kind,
+        formal_core=formal_core,
         semantic_residue=residue,
         provenance=provenance,
-        exportability={},
     )
+
+
+def _classify_sentence(working: str, *, is_query: bool) -> tuple[str, FormalCore | None]:
+    if is_query:
+        return "query", _parse_query(working)
+    rule = _parse_rule(working)
+    if rule is not None:
+        return "rule", rule
+    if _looks_like_conditional_syntax(working):
+        # A conditional we could not formalize must not degrade into a fake fact.
+        return "residue", None
+    universal = _parse_universal_rule(working)
+    if universal is not None:
+        return "rule", universal
+    fact = _parse_comparison(working) or _parse_clause(working)
+    if fact is not None:
+        return "fact", fact
+    return "residue", None
 
 
 def _parse_rule(sentence: str) -> RuleCore | None:
@@ -317,7 +270,7 @@ def _parse_rule(sentence: str) -> RuleCore | None:
         return None
     head = _parse_clause(match.group("head"))
     exception_text = match.group("exception")
-    exceptions = tuple(filter(None, (_parse_clause(part) for part in _split_conjuncts(exception_text or ""))))
+    exceptions = tuple(filter(None, (_parse_clause(part) for part in _split_on_keyword(_normalize(exception_text or ""), "and"))))
     if head is None:
         return None
     antecedent = _parse_rule_antecedent(match.group("body"))
@@ -357,13 +310,7 @@ def _parse_query(sentence: str):
         comparison = _parse_comparison(normalized[3:])
         if comparison is not None:
             return comparison
-    query_matchers = (
-        (re.compile(r"^(?:may|can) (?P<subject>.+?) (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _query_modal_atom),
-        (re.compile(r"^does (?P<subject>.+?) (?P<lemma>\w+)(?: (?P<object>.+))?$", re.I), _query_verb_atom),
-        (re.compile(r"^is (?P<subject>.+?) (?P<state>.+)$", re.I), _query_state_atom),
-        (re.compile(r"^has (?P<subject>.+?) (?P<object>.+)$", re.I), _query_has_atom),
-    )
-    for pattern, builder in query_matchers:
+    for pattern, builder in _QUERY_MATCHERS:
         match = pattern.match(normalized)
         if match:
             return builder(match)
@@ -375,20 +322,7 @@ def _parse_clause(text: str):
     if not normalized:
         return None
 
-    for pattern, builder in (
-        (re.compile(r"^(?P<subject>.+?) did not complete (?P<object>.+)$", re.I), _negative_completed_atom),
-        (re.compile(r"^(?P<subject>.+?) completed (?P<object>.+)$", re.I), _completed_atom),
-        (re.compile(r"^(?P<subject>.+?) does not hold (?P<object>.+)$", re.I), _negative_holds_atom),
-        (re.compile(r"^(?P<subject>.+?) holds (?P<object>.+)$", re.I), _holds_atom),
-        (re.compile(r"^(?P<subject>.+?) does not have (?P<object>.+)$", re.I), _negative_has_atom),
-        (re.compile(r"^(?P<subject>.+?) has (?P<object>.+)$", re.I), _has_atom),
-        (re.compile(r"^(?P<subject>.+?) may not (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _negative_modal_atom),
-        (re.compile(r"^(?P<subject>.+?) may (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _modal_atom),
-        (re.compile(r"^(?P<subject>.+?) can (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _can_atom),
-        (re.compile(r"^(?P<subject>.+?) is not (?P<object>.+)$", re.I), _negative_state_atom),
-        (re.compile(r"^(?P<subject>.+?) is (?P<object>.+)$", re.I), _state_from_match),
-        (_GENERIC_VERB_PATTERN, _generic_verb_atom),
-    ):
+    for pattern, builder in _CLAUSE_MATCHERS:
         match = pattern.match(normalized)
         if match:
             parsed = builder(match)
@@ -412,28 +346,12 @@ def _class_membership_atom(class_phrase: str, variable: Variable) -> Atom:
     return Atom(predicate=_class_predicate(class_phrase), arguments=(variable,))
 
 
-def _completed_atom(match: re.Match[str]) -> Atom:
-    return _unary_atom(match.group("subject"), f"completed {match.group('object')}")
+def _unary_builder(prefix: str, *, negated: bool = False):
+    def build(match: re.Match[str]) -> Atom | Negation:
+        atom = _unary_atom(match.group("subject"), f"{prefix} {match.group('object')}")
+        return Negation(atom) if negated else atom
 
-
-def _negative_completed_atom(match: re.Match[str]) -> Negation:
-    return Negation(_unary_atom(match.group("subject"), f"completed {match.group('object')}"))
-
-
-def _holds_atom(match: re.Match[str]) -> Atom:
-    return _unary_atom(match.group("subject"), f"holds {match.group('object')}")
-
-
-def _negative_holds_atom(match: re.Match[str]) -> Negation:
-    return Negation(_unary_atom(match.group("subject"), f"holds {match.group('object')}"))
-
-
-def _has_atom(match: re.Match[str]) -> Atom:
-    return _unary_atom(match.group("subject"), f"has {match.group('object')}")
-
-
-def _negative_has_atom(match: re.Match[str]) -> Negation:
-    return Negation(_unary_atom(match.group("subject"), f"has {match.group('object')}"))
+    return build
 
 
 def _modal_atom(match: re.Match[str]) -> Atom:
@@ -456,10 +374,6 @@ def _negative_state_atom(match: re.Match[str]) -> Negation:
     return Negation(_state_atom(_subject_term(match.group("subject")), match.group("object")))
 
 
-def _query_modal_atom(match: re.Match[str]) -> Atom:
-    return _action_atom(_subject_term(match.group("subject")), "may", _action_phrase(match))
-
-
 def _query_verb_atom(match: re.Match[str]) -> Atom:
     lemma = match.group("lemma")
     normalized_lemma = {
@@ -477,10 +391,6 @@ def _query_state_atom(match: re.Match[str]) -> Atom:
     return _state_atom(_subject_term(match.group("subject")), match.group("state"))
 
 
-def _query_has_atom(match: re.Match[str]) -> Atom:
-    return _unary_atom(match.group("subject"), f"has {match.group('object')}")
-
-
 def _generic_verb_atom(match: re.Match[str]) -> Atom | None:
     subject = match.group("subject")
     if subject.casefold() in {"a", "an", "the", "if"}:
@@ -488,10 +398,36 @@ def _generic_verb_atom(match: re.Match[str]) -> Atom | None:
     verb = _normalize_verb(match.group("verb"))
     if verb not in _GENERIC_VERB_CANONICALS:
         return None
-    if verb in {"is", "are", "was", "were", "am", "be", "been", "being"}:
-        return None
     predicate_text = " ".join(part for part in (verb, match.group("object")) if part)
     return _unary_atom(subject, predicate_text)
+
+
+def _clause_pattern(verb: str, *, action: bool = False) -> re.Pattern[str]:
+    tail = r"(?P<action>\w+)(?: (?P<object>.+))?" if action else r"(?P<object>.+)"
+    return re.compile(rf"^(?P<subject>.+?) {verb} {tail}$", re.I)
+
+
+# Order matters: negated forms must be tried before their positive counterparts.
+_CLAUSE_MATCHERS = (
+    (_clause_pattern("did not complete"), _unary_builder("completed", negated=True)),
+    (_clause_pattern("completed"), _unary_builder("completed")),
+    (_clause_pattern("does not hold"), _unary_builder("holds", negated=True)),
+    (_clause_pattern("holds"), _unary_builder("holds")),
+    (_clause_pattern("does not have"), _unary_builder("has", negated=True)),
+    (_clause_pattern("has"), _unary_builder("has")),
+    (_clause_pattern("may not", action=True), _negative_modal_atom),
+    (_clause_pattern("may", action=True), _modal_atom),
+    (_clause_pattern("can", action=True), _can_atom),
+    (_clause_pattern("is not"), _negative_state_atom),
+    (_clause_pattern("is"), _state_from_match),
+    (_GENERIC_VERB_PATTERN, _generic_verb_atom),
+)
+_QUERY_MATCHERS = (
+    (re.compile(r"^(?:may|can) (?P<subject>.+?) (?P<action>\w+)(?: (?P<object>.+))?$", re.I), _modal_atom),
+    (re.compile(r"^does (?P<subject>.+?) (?P<lemma>\w+)(?: (?P<object>.+))?$", re.I), _query_verb_atom),
+    (re.compile(r"^is (?P<subject>.+?) (?P<state>.+)$", re.I), _query_state_atom),
+    (re.compile(r"^has (?P<subject>.+?) (?P<object>.+)$", re.I), _unary_builder("has")),
+)
 
 
 def _action_atom(subject_term, modal: str, action_text: str) -> Atom:
@@ -685,13 +621,6 @@ def _redundancy_key(fragment: str) -> str:
     return f"{kind}:{normalized.casefold().rstrip('.?!')}"
 
 
-def _split_conjuncts(text: str) -> list[str]:
-    normalized = _normalize(text)
-    if not normalized:
-        return []
-    return [part.strip() for part in re.split(r"\band\b", normalized, flags=re.I) if part.strip()]
-
-
 def _parse_rule_antecedent(text: str):
     normalized = _normalize(text)
     if not normalized:
@@ -766,9 +695,3 @@ def _normalize(text: str) -> str:
 
 def _to_number(text: str) -> int | float:
     return float(text) if "." in text else int(text)
-
-
-def _span(start: int, end: int):
-    from .ir import SourceSpan
-
-    return SourceSpan(start=start, end=end)

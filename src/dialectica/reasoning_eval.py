@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
-import json
 import time
+from collections.abc import Callable
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from .canonical import canonicalize_logical_form
-from .compiler import compile_hybrid_document, compiled_document_to_dict
-from .engine import ReasoningResult, reason_over_fol_program, reason_over_horn_program
-from .explainer import explain_fol_reasoning, explain_reasoning
+from ._io import load_cases
+from .compiler import SUPPORTED_EXPORT_TARGETS, compile_hybrid_document
+from .engine import ReasoningResult, _atom_key
 from .filtering import filter_logical_form
 from .fingerprint import fingerprint_logical_form
-from .ir import Atom, HybridDocument, Negation
-from .parser import parse_document, parse_text
+from .ir import Atom, HybridDocument, Negation, ir_to_dict
+from .parser import parse
+from .pipeline import ReasoningRun, run_reasoner
 from .prompting import (
     build_dialectica_compact_prompt,
     build_dialectica_structural_compact_prompt,
     build_direct_prompt,
 )
-from .providers import build_provider
+from .providers import build_provider, token_counts
 from .reporting import DISPLAY_LABELS
 from .scoring import extract_answer_payload, score_answer
 from .translator import translate_text
@@ -34,7 +34,7 @@ MODEL_MODES = (
     "dialectica_filtered_structural",
 )
 DEFAULT_MODE_ORDER = [*MODEL_MODES, "horn_reasoner", "fol_reasoner"]
-EXPORT_TARGETS = ("horn", "fol", "smt")
+EXPORT_TARGETS = SUPPORTED_EXPORT_TARGETS
 DIAGNOSTIC_CATEGORY_MAP = {
     "contradiction_sensitivity": "contradiction_detection",
     "negation_handling_score": "negation",
@@ -47,15 +47,15 @@ def evaluate_reasoning_comparison(
     provider_name: str,
     model: str | None = None,
 ) -> dict[str, Any]:
-    dataset = _load_dataset(path)
+    dataset = load_cases(path)
     provider = build_provider(provider_name, model=model)
     cases: list[dict[str, Any]] = []
     condition_buckets: dict[str, list[dict[str, Any]]] = {mode: [] for mode in DEFAULT_MODE_ORDER}
 
     for raw_case in dataset:
         case = _normalize_case(raw_case)
-        context_form = canonicalize_logical_form(parse_document(case["context"], language=case["language"]))
-        question_form = canonicalize_logical_form(parse_text(case["question"], language=case["language"]))
+        context_form = parse(case["context"], language=case["language"], document=True)
+        question_form = parse(case["question"], language=case["language"])
         filtered_context_form = filter_logical_form(context_form, question_form)
         filtered_context_fingerprint = fingerprint_logical_form(filtered_context_form)
         question_fingerprint = fingerprint_logical_form(question_form)
@@ -91,8 +91,7 @@ def evaluate_reasoning_comparison(
                     question_fingerprint,
                 ),
             ),
-            _run_horn_reasoner_condition(case),
-            _run_fol_reasoner_condition(case),
+            *_run_reasoner_conditions(case),
         ]
         for result in conditions:
             result["expected_reasoning_depth"] = case["expected_reasoning_depth"]
@@ -153,29 +152,6 @@ def evaluate_reasoning_comparison(
         "error_report": error_report,
         "cases": cases,
     }
-
-
-def write_reasoning_report(report: dict[str, Any], output_path: str | Path) -> None:
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
-
-
-def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
-    dataset_path = Path(path)
-    try:
-        with dataset_path.open("r", encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON in reasoning benchmark dataset {dataset_path}: {exc.msg}") from exc
-    if not isinstance(payload, list):
-        raise ValueError(f"Reasoning benchmark dataset {dataset_path} must be a JSON array of case objects.")
-    for index, case in enumerate(payload, start=1):
-        if not isinstance(case, dict):
-            raise ValueError(f"Reasoning benchmark dataset {dataset_path} case {index} must be an object.")
-        if "id" not in case:
-            raise ValueError(f"Reasoning benchmark dataset {dataset_path} case {index} is missing required field 'id'.")
-    return payload
 
 
 def _normalize_case(raw_case: dict[str, Any]) -> dict[str, Any]:
@@ -242,7 +218,6 @@ def _run_model_condition(
     )
     payload = extract_answer_payload(response.text)
     score = score_answer(payload["answer"], case["gold_answer"], case["answer_type"], choices=case.get("choices"))
-    usage = response.usage or {}
     return {
         "name": name,
         "label": DISPLAY_LABELS.get(name, name.replace("_", " ").title()),
@@ -253,13 +228,7 @@ def _run_model_condition(
         "gold": score["gold"],
         "latency_seconds": float(response.latency_seconds),
         "iterations": int(response.iterations),
-        "token_counts": {
-            "input_tokens": int(usage.get("input_tokens", 0) or 0),
-            "output_tokens": int(usage.get("output_tokens", 0) or 0),
-            "total_tokens": int(usage.get("total_tokens", 0) or 0),
-            "cached_tokens": int(usage.get("cached_tokens", 0) or 0),
-            "reasoning_tokens": int(usage.get("reasoning_tokens", 0) or 0),
-        },
+        "token_counts": token_counts(response.usage),
         "prompt_characters": len(prompt),
         "prompt_words": len(prompt.split()),
         "instructions_characters": len(instructions),
@@ -267,92 +236,74 @@ def _run_model_condition(
     }
 
 
-def _run_horn_reasoner_condition(case: dict[str, Any]) -> dict[str, Any]:
+def _run_reasoner_conditions(case: dict[str, Any]) -> list[dict[str, Any]]:
     started_at = time.perf_counter()
-    document = translate_text(case["context"], query=case["question"])
-    compiled_document, compiled = compile_hybrid_document(document)
-    reasoning = reason_over_horn_program(compiled["horn"]["artifact"])
-    explanation = explain_reasoning(compiled_document, reasoning)
-    normalized_answer = _normalize_reasoner_answer(reasoning.answer, answer_type=case["answer_type"])
-    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
+    document, compiled = compile_hybrid_document(translate_text(case["context"], query=case["question"]))
+    shared_seconds = time.perf_counter() - started_at
     compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
-    contradiction = _detect_contradictions(compiled_document)
-    explanation_proxy = _score_explanation_proxy(
-        compiled_document=compiled_document,
-        reasoning=reasoning,
-        explanation=explanation,
-        horn_status=compiled_statuses["horn"],
-    )
-    exportability_match = {
-        target: (
-            compiled_statuses[target] == case["expected_exportability"].get(target)
-            if case["expected_exportability"].get(target) is not None
-            else None
+    contradiction = _detect_contradictions(document)
+
+    results = []
+    for reasoner in ("horn", "fol"):
+        started_at = time.perf_counter()
+        run = run_reasoner(document, compiled, reasoner)
+        result = _reasoner_condition(case, run, compiled_statuses, contradiction)
+        result["latency_seconds"] = round(shared_seconds + time.perf_counter() - started_at, 6)
+        results.append(result)
+    return results
+
+
+def _reasoner_condition(
+    case: dict[str, Any],
+    run: ReasoningRun,
+    compiled_statuses: dict[str, str],
+    contradiction: dict[str, Any],
+) -> dict[str, Any]:
+    name = f"{run.reasoner}_reasoner"
+    normalized_answer = _normalize_reasoner_answer(run.answer, answer_type=case["answer_type"])
+    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
+    result = {
+        "name": name,
+        "label": DISPLAY_LABELS[name],
+        "answer": normalized_answer,
+        "raw_reasoning_answer": run.answer,
+        "correct": bool(score["correct"]),
+        "predicted": score["predicted"],
+        "gold": score["gold"],
+        "latency_seconds": 0.0,
+        "iterations": 1,
+        "token_counts": token_counts(None),
+        "reasoning_depth_observed": len(run.result.trace),
+        "reasoning": run.result.to_dict(),
+        "compiled": {
+            "statuses": compiled_statuses,
+            "notes": {target: run.compiled.get(target, {}).get("notes", []) for target in EXPORT_TARGETS},
+            "statement_exportability": _summarize_statement_exportability(run.document),
+        },
+        "contradiction": contradiction,
+        "explanation": run.explanation,
+    }
+    if run.reasoner == "horn":
+        result["explanation_proxy"] = _score_explanation_proxy(
+            compiled_document=run.document,
+            reasoning=run.result,
+            explanation=run.explanation,
+            horn_status=compiled_statuses["horn"],
         )
-        for target in EXPORT_TARGETS
-    }
-    return {
-        "name": "horn_reasoner",
-        "label": DISPLAY_LABELS.get("horn_reasoner", "Horn Reasoner"),
-        "answer": normalized_answer,
-        "raw_reasoning_answer": reasoning.answer,
-        "correct": bool(score["correct"]),
-        "predicted": score["predicted"],
-        "gold": score["gold"],
-        "latency_seconds": round(time.perf_counter() - started_at, 6),
-        "iterations": 1,
-        "token_counts": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "cached_tokens": 0, "reasoning_tokens": 0},
-        "reasoning_depth_observed": len(reasoning.trace),
-        "reasoning": reasoning.to_dict(),
-        "compiled": {
-            "statuses": compiled_statuses,
-            "notes": {target: compiled.get(target, {}).get("notes", []) for target in EXPORT_TARGETS},
-            "statement_exportability": _summarize_statement_exportability(compiled_document),
-        },
-        "contradiction": contradiction,
-        "explanation": explanation,
-        "explanation_proxy": explanation_proxy,
-        "expected_match": {
-            "horn_answer": reasoning.answer == case["expected_horn_answer"],
+        result["expected_match"] = {
+            "horn_answer": run.answer == case["expected_horn_answer"],
             "contradiction_flag": contradiction["flag"] == case["expected_contradiction_flag"],
-            "exportability": exportability_match,
-        },
-        "hybrid_document": compiled_document_to_dict(compiled_document),
-    }
-
-
-def _run_fol_reasoner_condition(case: dict[str, Any]) -> dict[str, Any]:
-    started_at = time.perf_counter()
-    document = translate_text(case["context"], query=case["question"])
-    compiled_document, compiled = compile_hybrid_document(document)
-    reasoning = reason_over_fol_program(compiled["fol"]["artifact"].get("program", {}))
-    explanation = explain_fol_reasoning(compiled_document, reasoning)
-    normalized_answer = _normalize_reasoner_answer(reasoning.answer, answer_type=case["answer_type"])
-    score = score_answer(normalized_answer, case["gold_answer"], case["answer_type"], choices=case.get("choices"))
-    compiled_statuses = {target: str(compiled.get(target, {}).get("status", "unsupported")) for target in EXPORT_TARGETS}
-    contradiction = _detect_contradictions(compiled_document)
-    return {
-        "name": "fol_reasoner",
-        "label": DISPLAY_LABELS.get("fol_reasoner", "FOL Reasoner"),
-        "answer": normalized_answer,
-        "raw_reasoning_answer": reasoning.answer,
-        "correct": bool(score["correct"]),
-        "predicted": score["predicted"],
-        "gold": score["gold"],
-        "latency_seconds": round(time.perf_counter() - started_at, 6),
-        "iterations": 1,
-        "token_counts": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "cached_tokens": 0, "reasoning_tokens": 0},
-        "reasoning_depth_observed": len(reasoning.trace),
-        "reasoning": reasoning.to_dict(),
-        "compiled": {
-            "statuses": compiled_statuses,
-            "notes": {target: compiled.get(target, {}).get("notes", []) for target in EXPORT_TARGETS},
-            "statement_exportability": _summarize_statement_exportability(compiled_document),
-        },
-        "contradiction": contradiction,
-        "explanation": explanation,
-        "hybrid_document": compiled_document_to_dict(compiled_document),
-    }
+            "exportability": {
+                target: (
+                    compiled_statuses[target] == case["expected_exportability"][target]
+                    if case["expected_exportability"].get(target) is not None
+                    else None
+                )
+                for target in EXPORT_TARGETS
+            },
+        }
+    result["hybrid_document"] = ir_to_dict(run.document)
+    return result
 
 
 def _normalize_reasoner_answer(answer: str, *, answer_type: str) -> str:
@@ -452,8 +403,8 @@ def _finalize_group_bucket(bucket: dict[str, Any]) -> dict[str, Any]:
 
 def _build_diagnostics(cases: list[dict[str, Any]], aggregate: dict[str, Any]) -> dict[str, Any]:
     diagnostics = {
-        "category_wise_accuracy": _category_accuracy_snapshot(cases),
-        "difficulty_wise_accuracy": _difficulty_accuracy_snapshot(cases),
+        "category_wise_accuracy": _accuracy_snapshot(cases, lambda case: case.get("categories", [])),
+        "difficulty_wise_accuracy": _accuracy_snapshot(cases, lambda case: [str(case.get("difficulty", "unspecified"))]),
         "paraphrase_stability": _paraphrase_stability(cases),
         "export_success_rate": _export_success_rate(cases),
         "explanation_faithfulness_proxy": _explanation_faithfulness_proxy(cases),
@@ -467,34 +418,19 @@ def _build_diagnostics(cases: list[dict[str, Any]], aggregate: dict[str, Any]) -
     return diagnostics
 
 
-def _category_accuracy_snapshot(cases: list[dict[str, Any]]) -> dict[str, Any]:
+def _accuracy_snapshot(cases: list[dict[str, Any]], group_keys: Callable[[dict[str, Any]], list[str]]) -> dict[str, Any]:
     snapshot: dict[str, dict[str, list[float]]] = {}
     for case in cases:
-        for category in case.get("categories", []):
-            bucket = snapshot.setdefault(category, {})
+        for key in group_keys(case):
+            bucket = snapshot.setdefault(key, {})
             for condition in case.get("conditions", []):
                 bucket.setdefault(condition["name"], []).append(1.0 if condition.get("correct") else 0.0)
     return {
-        category: {
+        key: {
             mode: _safe_mean(values)
             for mode, values in sorted(mode_buckets.items(), key=lambda item: _mode_sort_key(item[0]))
         }
-        for category, mode_buckets in sorted(snapshot.items())
-    }
-
-
-def _difficulty_accuracy_snapshot(cases: list[dict[str, Any]]) -> dict[str, Any]:
-    snapshot: dict[str, dict[str, list[float]]] = {}
-    for case in cases:
-        bucket = snapshot.setdefault(str(case.get("difficulty", "unspecified")), {})
-        for condition in case.get("conditions", []):
-            bucket.setdefault(condition["name"], []).append(1.0 if condition.get("correct") else 0.0)
-    return {
-        difficulty: {
-            mode: _safe_mean(values)
-            for mode, values in sorted(mode_buckets.items(), key=lambda item: _mode_sort_key(item[0]))
-        }
-        for difficulty, mode_buckets in sorted(snapshot.items())
+        for key, mode_buckets in sorted(snapshot.items())
     }
 
 
@@ -848,18 +784,6 @@ def _score_explanation_proxy(
 
 def _condition_map(case: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {condition["name"]: condition for condition in case.get("conditions", [])}
-
-
-def _atom_key(atom: Atom) -> tuple[str, tuple[str, ...]]:
-    return atom.predicate, tuple(_term_value(argument) for argument in atom.arguments)
-
-
-def _term_value(term: Any) -> str:
-    if hasattr(term, "name"):
-        return str(term.name)
-    if hasattr(term, "value"):
-        return str(term.value)
-    return str(term)
 
 
 def _atom_key_to_text(key: tuple[str, tuple[str, ...]]) -> str:

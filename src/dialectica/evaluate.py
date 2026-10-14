@@ -2,29 +2,24 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from .canonical import canonicalize_logical_form, serialize_logical_form
-from .parser import parse_text
+from ._io import load_cases
+from .canonical import serialize_logical_form
+from .parser import parse
 from .validation import validate_logical_form
 
 
-def load_dataset(path: str | Path) -> list[dict[str, Any]]:
-    with Path(path).open("r", encoding="utf-8") as handle:
-        return json.load(handle)
-
-
 def evaluate_dataset(path: str | Path) -> dict[str, Any]:
-    dataset = load_dataset(path)
+    dataset = load_cases(path)
     results: list[dict[str, Any]] = []
     valid_count = 0
     exact_block_type_match = 0
     exact_relation_type_match = 0
 
     for case in dataset:
-        parsed = canonicalize_logical_form(parse_text(case["text"], language=case.get("language", "en")))
+        parsed = parse(case["text"], language=case.get("language", "en"))
         validation_errors = validate_logical_form(parsed)
         if not validation_errors:
             valid_count += 1
@@ -60,4 +55,3 @@ def evaluate_dataset(path: str | Path) -> dict[str, Any]:
         "exact_relation_type_match_ratio": exact_relation_type_match / total,
         "results": results,
     }
-

@@ -7,9 +7,9 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
-from .canonical import canonicalize_logical_form, serialize_logical_form
+from .canonical import serialize_logical_form
 from .fingerprint import fingerprint_logical_form
-from .parser import parse_document, parse_text
+from .parser import parse
 from .validation import validate_logical_form
 
 
@@ -34,17 +34,20 @@ class DialecticaHandler(BaseHTTPRequestHandler):
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "Expected JSON body with a non-empty 'text' field"})
             return
 
-        parse_fn = parse_document if bool(payload.get("document")) else parse_text
-        parsed = parse_fn(str(payload["text"]), language=str(payload.get("language", "en")))
-        canonical = canonicalize_logical_form(parsed)
-        errors = validate_logical_form(canonical)
-        response: dict[str, Any] = {
-            "logical_form": canonical,
-            "canonical_text": serialize_logical_form(canonical),
-            "structural_fingerprint": fingerprint_logical_form(canonical),
-            "validation_errors": errors,
-        }
-        self._write_json(HTTPStatus.OK, response)
+        canonical = parse(
+            str(payload["text"]),
+            language=str(payload.get("language", "en")),
+            document=bool(payload.get("document")),
+        )
+        self._write_json(
+            HTTPStatus.OK,
+            {
+                "logical_form": canonical,
+                "canonical_text": serialize_logical_form(canonical),
+                "structural_fingerprint": fingerprint_logical_form(canonical),
+                "validation_errors": validate_logical_form(canonical),
+            },
+        )
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
         return

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from .base import BaseExporter, CompilationResult, combine_status
-from ..ir import Comparison, ExportRecord, HybridDocument
+from ..ir import Comparison, ExportRecord, HybridDocument, NumberLiteral
+
+_SMT_OPERATORS = {"=": "=", "!=": "distinct", ">": ">", "<": "<", ">=": ">=", "<=": "<="}
 
 
 class SMTExporter(BaseExporter):
@@ -17,8 +19,8 @@ class SMTExporter(BaseExporter):
         for statement in document.statements:
             core = statement.formal_core
             if isinstance(core, Comparison):
-                assertion = f"(assert ({_smt_operator(core.operator)} {core.left.name if hasattr(core.left, 'name') else core.left.value} {core.right.value if hasattr(core.right, 'value') else core.right}))"
-                assertions.append(assertion)
+                operator = _SMT_OPERATORS.get(core.operator, "=")
+                assertions.append(f"(assert ({operator} {_smt_value(core.left)} {_smt_value(core.right)}))")
                 records[statement.id] = ExportRecord(target=self.target, status="exact", notes=[])
                 continue
             records[statement.id] = ExportRecord(
@@ -36,21 +38,12 @@ class SMTExporter(BaseExporter):
             target=self.target,
             status=combine_status(list(records.values())),
             artifact=artifact,
-            notes=_dedupe(notes),
+            notes=list(dict.fromkeys(notes)),
             statement_records=records,
         )
 
 
-def _smt_operator(operator: str) -> str:
-    return {"=": "=", "!=": "distinct", ">": ">", "<": "<", ">=": ">=", "<=": "<="}.get(operator, "=")
-
-
-def _dedupe(items: list[str]) -> list[str]:
-    seen: set[str] = set()
-    deduped: list[str] = []
-    for item in items:
-        if item in seen:
-            continue
-        seen.add(item)
-        deduped.append(item)
-    return deduped
+def _smt_value(value) -> str:
+    if isinstance(value, NumberLiteral):
+        return str(value.value)
+    return str(getattr(value, "name", value))

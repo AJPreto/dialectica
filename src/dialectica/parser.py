@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .canonical import canonicalize_logical_form
+
 
 NEGATIVE_CUES = (
     " not ",
@@ -16,6 +18,16 @@ NEGATIVE_CUES = (
     " without ",
     " fail",
 )
+
+
+def parse(text: str, *, language: str = "en", document: bool = False) -> dict[str, Any]:
+    """Parse text into a canonical logical form.
+
+    This is the recommended entry point: it picks the sentence or document
+    parser and returns the canonicalized result.
+    """
+    parse_fn = parse_document if document else parse_text
+    return canonicalize_logical_form(parse_fn(text, language=language))
 
 
 def parse_text(text: str, language: str = "en") -> dict[str, Any]:
@@ -141,9 +153,7 @@ def parse_text(text: str, language: str = "en") -> dict[str, Any]:
                 }
             )
 
-    if len(logical_form["blocks"]) > 1:
-        logical_form["blocks"] = _dedupe_blocks(logical_form["blocks"])
-
+    _dedupe_blocks(logical_form)
     return logical_form
 
 
@@ -268,7 +278,6 @@ def _looks_like_goal(text: str) -> bool:
             "goal is ",
             "aim is ",
             "must ",
-            "we should ",
             "i want ",
         )
     )
@@ -285,8 +294,6 @@ def _looks_like_constraint(text: str) -> bool:
             "should not ",
             "only if ",
             "requires ",
-            "required to ",
-            "is required ",
             "at most ",
             "no more than ",
             "required ",
@@ -346,13 +353,29 @@ def _might_be_ambiguous(lowered: str) -> bool:
     return any(cue in lowered for cue in (" maybe ", " perhaps ", " probably ", " but ", " however "))
 
 
-def _dedupe_blocks(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    seen: set[tuple[str, str]] = set()
-    deduped: list[dict[str, Any]] = []
-    for block in blocks:
+def _dedupe_blocks(logical_form: dict[str, Any]) -> None:
+    """Merge blocks with the same type and text, repointing references to the kept block."""
+    kept: dict[tuple[str, str], str] = {}
+    replacements: dict[str, str] = {}
+    blocks: list[dict[str, Any]] = []
+    for block in logical_form["blocks"]:
         key = (block["type"], block["canonical_text"])
-        if key in seen:
+        if key in kept:
+            replacements[block["id"]] = kept[key]
             continue
-        seen.add(key)
-        deduped.append(block)
-    return deduped
+        kept[key] = block["id"]
+        blocks.append(block)
+    if not replacements:
+        return
+
+    logical_form["blocks"] = blocks
+    relations = []
+    for relation in logical_form["relations"]:
+        relation["source"] = replacements.get(relation["source"], relation["source"])
+        relation["target"] = replacements.get(relation["target"], relation["target"])
+        if relation["source"] != relation["target"]:
+            relations.append(relation)
+    logical_form["relations"] = relations
+    for ambiguity in logical_form["ambiguities"]:
+        affected = (replacements.get(block_id, block_id) for block_id in ambiguity["affected_blocks"])
+        ambiguity["affected_blocks"] = list(dict.fromkeys(affected))
