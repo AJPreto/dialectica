@@ -2,22 +2,22 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from ._io import load_cases
 from .canonical import canonicalize_logical_form
 from .filtering import filter_logical_form
 from .fingerprint import fingerprint_logical_form
-from .parser import parse_document, parse_text
+from .parser import parse
 from .prompting import (
     build_dialectica_compact_prompt,
     build_dialectica_structural_compact_prompt,
     build_direct_prompt,
 )
-from .providers import build_provider
+from .providers import build_provider, token_counts
 from .scoring import extract_answer_payload, score_answer
 from .validation import validate_logical_form
 
@@ -50,7 +50,7 @@ def evaluate_answer_dataset(
     model: str | None = None,
     include_gold_dialectica: bool = False,
 ) -> dict[str, Any]:
-    dataset = _load_dataset(path)
+    dataset = load_cases(path)
     provider = build_provider(provider_name, model=model)
     cases: list[dict[str, Any]] = []
 
@@ -63,8 +63,8 @@ def evaluate_answer_dataset(
         context_text = str(case.get("context", ""))
         question_text = str(case.get("question", ""))
         language = str(case.get("language", "en"))
-        context_form = canonicalize_logical_form(parse_document(context_text, language=language))
-        question_form = canonicalize_logical_form(parse_text(question_text, language=language))
+        context_form = parse(context_text, language=language, document=True)
+        question_form = parse(question_text, language=language)
         filtered_context_form = filter_logical_form(context_form, question_form)
         context_fingerprint = fingerprint_logical_form(context_form)
         filtered_context_fingerprint = fingerprint_logical_form(filtered_context_form)
@@ -72,92 +72,31 @@ def evaluate_answer_dataset(
         parser_errors = validate_logical_form(context_form) + validate_logical_form(question_form)
         filtered_parser_errors = validate_logical_form(filtered_context_form) + validate_logical_form(question_form)
 
-        condition_specs: list[tuple[str, str, str, list[str]]] = []
         direct_instructions, direct_prompt = build_direct_prompt(case)
-        condition_specs.append(("direct", direct_instructions, direct_prompt, []))
-        compact_instructions, compact_prompt = build_dialectica_compact_prompt(case, context_form, question_form)
-        condition_specs.append(("dialectica_compact", compact_instructions, compact_prompt, parser_errors))
-        filtered_instructions, filtered_prompt = build_dialectica_compact_prompt(case, filtered_context_form, question_form)
-        condition_specs.append(("dialectica_filtered", filtered_instructions, filtered_prompt, filtered_parser_errors))
-        structural_compact_instructions, structural_compact_prompt = build_dialectica_structural_compact_prompt(
-            case,
-            context_form,
-            question_form,
-            context_fingerprint,
-            question_fingerprint,
-        )
-        condition_specs.append(
-            ("dialectica_structural_compact", structural_compact_instructions, structural_compact_prompt, parser_errors)
-        )
-        filtered_structural_instructions, filtered_structural_prompt = build_dialectica_structural_compact_prompt(
-            case,
-            filtered_context_form,
-            question_form,
-            filtered_context_fingerprint,
-            question_fingerprint,
-        )
-        condition_specs.append(
-            (
-                "dialectica_filtered_structural",
-                filtered_structural_instructions,
-                filtered_structural_prompt,
-                filtered_parser_errors,
+        condition_specs: list[tuple[str, str, str, list[str]]] = [("direct", direct_instructions, direct_prompt, [])]
+        condition_specs.extend(
+            _dialectica_condition_specs(
+                case,
+                prefix="dialectica",
+                context_form=context_form,
+                filtered_context_form=filtered_context_form,
+                question_form=question_form,
+                errors=parser_errors,
+                filtered_errors=filtered_parser_errors,
             )
         )
 
         gold_context_form = _maybe_get_gold_logical_form(case, "gold_logical_form")
         gold_question_form = _maybe_get_gold_logical_form(case, "gold_question_logical_form")
         if include_gold_dialectica and gold_context_form and gold_question_form:
-            gold_filtered_context_form = filter_logical_form(gold_context_form, gold_question_form)
-            gold_compact_instructions, gold_compact_prompt = build_dialectica_compact_prompt(
-                case,
-                gold_context_form,
-                gold_question_form,
-                use_gold=True,
-            )
-            condition_specs.append(("dialectica_gold_compact", gold_compact_instructions, gold_compact_prompt, []))
-            gold_filtered_compact_instructions, gold_filtered_compact_prompt = build_dialectica_compact_prompt(
-                case,
-                gold_filtered_context_form,
-                gold_question_form,
-                use_gold=True,
-            )
-            condition_specs.append(
-                ("dialectica_gold_filtered", gold_filtered_compact_instructions, gold_filtered_compact_prompt, [])
-            )
-            gold_context_fingerprint = fingerprint_logical_form(gold_context_form)
-            gold_filtered_context_fingerprint = fingerprint_logical_form(gold_filtered_context_form)
-            gold_question_fingerprint = fingerprint_logical_form(gold_question_form)
-            gold_structural_compact_instructions, gold_structural_compact_prompt = build_dialectica_structural_compact_prompt(
-                case,
-                gold_context_form,
-                gold_question_form,
-                gold_context_fingerprint,
-                gold_question_fingerprint,
-                use_gold=True,
-            )
-            condition_specs.append(
-                (
-                    "dialectica_gold_structural_compact",
-                    gold_structural_compact_instructions,
-                    gold_structural_compact_prompt,
-                    [],
-                )
-            )
-            gold_filtered_structural_instructions, gold_filtered_structural_prompt = build_dialectica_structural_compact_prompt(
-                case,
-                gold_filtered_context_form,
-                gold_question_form,
-                gold_filtered_context_fingerprint,
-                gold_question_fingerprint,
-                use_gold=True,
-            )
-            condition_specs.append(
-                (
-                    "dialectica_gold_filtered_structural",
-                    gold_filtered_structural_instructions,
-                    gold_filtered_structural_prompt,
-                    [],
+            condition_specs.extend(
+                _dialectica_condition_specs(
+                    case,
+                    prefix="dialectica_gold",
+                    context_form=gold_context_form,
+                    filtered_context_form=filter_logical_form(gold_context_form, gold_question_form),
+                    question_form=gold_question_form,
+                    use_gold=True,
                 )
             )
 
@@ -175,12 +114,12 @@ def evaluate_answer_dataset(
                 case.get("answer_type", "exact"),
                 choices=case.get("choices"),
             )
-            token_counts = _normalize_token_counts(response.usage)
+            counts = token_counts(response.usage)
             aggregate_correct.setdefault(name, []).append(bool(score["correct"]))
             aggregate_latency.setdefault(name, []).append(response.latency_seconds)
             aggregate_iterations.setdefault(name, []).append(response.iterations)
-            token_bucket = aggregate_tokens.setdefault(name, _empty_token_counts())
-            for key, value in token_counts.items():
+            token_bucket = aggregate_tokens.setdefault(name, token_counts(None))
+            for key, value in counts.items():
                 token_bucket[key] += value
             condition_results.append(
                 ConditionResult(
@@ -192,7 +131,7 @@ def evaluate_answer_dataset(
                     gold=score["gold"],
                     latency_seconds=response.latency_seconds,
                     usage=response.usage,
-                    token_counts=token_counts,
+                    token_counts=counts,
                     iterations=response.iterations,
                     prompt=prompt,
                     instructions=instructions,
@@ -228,7 +167,7 @@ def evaluate_answer_dataset(
     aggregates = {}
     for name, flags in aggregate_correct.items():
         case_count = len(flags)
-        token_totals = aggregate_tokens.get(name, _empty_token_counts())
+        token_totals = aggregate_tokens.get(name, token_counts(None))
         aggregates[name] = {
             "accuracy": mean(1.0 if flag else 0.0 for flag in flags) if flags else 0.0,
             "case_count": case_count,
@@ -259,18 +198,6 @@ def evaluate_answer_dataset(
         ),
         "cases": cases,
     }
-
-
-def write_report(report: dict[str, Any], output_path: str | Path) -> None:
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
-
-
-def write_performance_summary(summary: dict[str, Any], output_path: str | Path) -> None:
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
 
 def build_performance_summary(
@@ -315,46 +242,43 @@ def build_performance_summary(
     }
 
 
-def _load_dataset(path: str | Path) -> list[dict[str, Any]]:
-    dataset_path = Path(path)
-    try:
-        with dataset_path.open("r", encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON in benchmark dataset {dataset_path}: {exc.msg}") from exc
-    if not isinstance(payload, list):
-        raise ValueError(f"Benchmark dataset {dataset_path} must be a JSON array of case objects.")
-    for index, case in enumerate(payload, start=1):
-        if not isinstance(case, dict):
-            raise ValueError(f"Benchmark dataset {dataset_path} case {index} must be an object.")
-        if "id" not in case:
-            raise ValueError(f"Benchmark dataset {dataset_path} case {index} is missing required field 'id'.")
-    return payload
+def _dialectica_condition_specs(
+    case: dict[str, Any],
+    *,
+    prefix: str,
+    context_form: dict[str, Any],
+    filtered_context_form: dict[str, Any],
+    question_form: dict[str, Any],
+    errors: list[str] | None = None,
+    filtered_errors: list[str] | None = None,
+    use_gold: bool = False,
+) -> list[tuple[str, str, str, list[str]]]:
+    """Build the four encoded-prompt conditions (compact/filtered, with/without fingerprint)."""
+    question_fingerprint = fingerprint_logical_form(question_form)
+    specs = []
+    for suffix, form, form_errors in (
+        ("compact", context_form, errors),
+        ("filtered", filtered_context_form, filtered_errors),
+    ):
+        instructions, prompt = build_dialectica_compact_prompt(case, form, question_form, use_gold=use_gold)
+        specs.append((f"{prefix}_{suffix}", instructions, prompt, list(form_errors or [])))
+    for suffix, form, form_errors in (
+        ("structural_compact", context_form, errors),
+        ("filtered_structural", filtered_context_form, filtered_errors),
+    ):
+        instructions, prompt = build_dialectica_structural_compact_prompt(
+            case,
+            form,
+            question_form,
+            fingerprint_logical_form(form),
+            question_fingerprint,
+            use_gold=use_gold,
+        )
+        specs.append((f"{prefix}_{suffix}", instructions, prompt, list(form_errors or [])))
+    return specs
 
 
 def _maybe_get_gold_logical_form(case: dict[str, Any], field: str) -> dict[str, Any] | None:
     if field not in case:
         return None
     return canonicalize_logical_form(case[field])
-
-
-def _normalize_token_counts(usage: dict[str, Any] | None) -> dict[str, int]:
-    if not isinstance(usage, dict):
-        return _empty_token_counts()
-    return {
-        "input_tokens": int(usage.get("input_tokens", 0) or 0),
-        "output_tokens": int(usage.get("output_tokens", 0) or 0),
-        "total_tokens": int(usage.get("total_tokens", 0) or 0),
-        "cached_tokens": int(usage.get("cached_tokens", 0) or 0),
-        "reasoning_tokens": int(usage.get("reasoning_tokens", 0) or 0),
-    }
-
-
-def _empty_token_counts() -> dict[str, int]:
-    return {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cached_tokens": 0,
-        "reasoning_tokens": 0,
-    }

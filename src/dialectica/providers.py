@@ -13,6 +13,24 @@ from typing import Any
 from urllib.parse import urlparse
 
 
+TOKEN_KEYS = ("input_tokens", "output_tokens", "total_tokens", "cached_tokens", "reasoning_tokens")
+ANSWER_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["answer", "justification"],
+    "properties": {
+        "answer": {"type": "string"},
+        "justification": {"type": "string"},
+    },
+}
+
+
+def token_counts(usage: dict[str, Any] | None) -> dict[str, int]:
+    """Return all token counters as ints, defaulting missing ones to zero."""
+    usage = usage if isinstance(usage, dict) else {}
+    return {key: int(usage.get(key, 0) or 0) for key in TOKEN_KEYS}
+
+
 @dataclass
 class ProviderResponse:
     text: str
@@ -70,15 +88,7 @@ class OpenAIResponsesProvider(BaseProvider):
                 "format": {
                     "type": "json_schema",
                     "name": "dialectica_eval_answer",
-                    "schema": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": ["answer", "justification"],
-                        "properties": {
-                            "answer": {"type": "string"},
-                            "justification": {"type": "string"},
-                        },
-                    },
+                    "schema": ANSWER_SCHEMA,
                     "strict": True,
                 }
             },
@@ -123,15 +133,6 @@ class OllamaProvider(BaseProvider):
 
     def generate(self, instructions: str, prompt: str, metadata: dict[str, Any] | None = None) -> ProviderResponse:
         url = f"{self.base_url}/chat"
-        schema = {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["answer", "justification"],
-            "properties": {
-                "answer": {"type": "string"},
-                "justification": {"type": "string"},
-            },
-        }
         body = {
             "model": self.model,
             "messages": [
@@ -141,12 +142,12 @@ class OllamaProvider(BaseProvider):
                     "content": (
                         f"{prompt}\n\n"
                         "Return a JSON object that matches this schema exactly:\n"
-                        f"{json.dumps(schema, indent=2)}"
+                        f"{json.dumps(ANSWER_SCHEMA, indent=2)}"
                     ),
                 },
             ],
             "stream": False,
-            "format": schema,
+            "format": ANSWER_SCHEMA,
             "options": {
                 "temperature": 0,
             },

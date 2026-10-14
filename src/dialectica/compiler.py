@@ -6,7 +6,7 @@ from copy import deepcopy
 from typing import Any
 
 from .encodings import FOLExporter, HornExporter, SMTExporter
-from .ir import HybridDocument, ir_to_dict
+from .ir import HybridDocument
 
 
 EXPORTERS = {
@@ -17,7 +17,11 @@ EXPORTERS = {
 SUPPORTED_EXPORT_TARGETS = tuple(EXPORTERS)
 
 
-def compile_hybrid_document(document: HybridDocument, targets: tuple[str, ...] = ("horn", "fol", "smt")) -> tuple[HybridDocument, dict[str, Any]]:
+def compile_hybrid_document(
+    document: HybridDocument,
+    targets: tuple[str, ...] = SUPPORTED_EXPORT_TARGETS,
+) -> tuple[HybridDocument, dict[str, Any]]:
+    """Compile a document to each target, returning an annotated copy and the per-target outputs."""
     compiled_document = deepcopy(document)
     compiled_outputs: dict[str, Any] = {}
 
@@ -38,7 +42,3 @@ def compile_hybrid_document(document: HybridDocument, targets: tuple[str, ...] =
                 statement.exportability[target] = record
 
     return compiled_document, compiled_outputs
-
-
-def compiled_document_to_dict(document: HybridDocument) -> dict[str, Any]:
-    return ir_to_dict(document)

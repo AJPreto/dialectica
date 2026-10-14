@@ -6,443 +6,322 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
+from ._io import load_json, write_json
+from .answer_eval import evaluate_answer_dataset
 from .api import run_server
-from .answer_eval import evaluate_answer_dataset, write_performance_summary, write_report
-from .canonical import canonicalize_logical_form, serialize_logical_form
-from .compiler import SUPPORTED_EXPORT_TARGETS, compile_hybrid_document, compiled_document_to_dict
-from .complexity import (
-    generate_complexity_dataset,
-    summarize_complexity_report,
-    write_complexity_dataset,
-    write_complexity_summary,
-)
-from .engine import reason_over_fol_program, reason_over_horn_program
+from .canonical import serialize_logical_form
+from .compiler import SUPPORTED_EXPORT_TARGETS
+from .complexity import generate_complexity_dataset, summarize_complexity_report
 from .evaluate import evaluate_dataset
-from .explainer import explain_fol_reasoning, explain_reasoning
 from .fingerprint import compare_fingerprints, fingerprint_logical_form, summarize_fingerprint
-from .translator import translate_text
-from .reasoning_eval import evaluate_reasoning_comparison, write_reasoning_report
-from .parser import parse_document, parse_text
+from .parser import parse
+from .pipeline import reason
 from .providers import ProviderError
+from .reasoning_eval import evaluate_reasoning_comparison
 from .reporting import write_complexity_report_bundle, write_reasoning_report_bundle
 from .validation import validate_logical_form
 
+PROVIDERS = ("oracle", "openai", "ollama")
+
 
 def main(argv: list[str] | None = None) -> int:
-    parsed_argv = sys.argv[1:] if argv is None else list(argv)
+    args = _build_parser().parse_args(argv)
+    try:
+        return args.handler(args)
+    except (ProviderError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
 
+
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dialectica", description="Dialectica logical-form tools")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    parse_parser = subparsers.add_parser("parse", help="Parse text into a logical form")
-    parse_parser.add_argument("text", nargs="?", help="Text to parse. If omitted, stdin is used.")
-    parse_parser.add_argument("--language", default="en")
-    parse_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
-    parse_parser.add_argument("--canonical", action="store_true", help="Print canonical serialization instead of JSON")
-    parse_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
+    def command(name: str, handler, help_text: str, *, pretty: str = "Pretty-print JSON output") -> argparse.ArgumentParser:
+        sub = subparsers.add_parser(name, help=help_text)
+        sub.set_defaults(handler=handler)
+        if pretty:
+            sub.add_argument("--pretty", action="store_true", help=pretty)
+        return sub
 
-    fingerprint_parser = subparsers.add_parser("fingerprint", help="Build a structural fingerprint from text")
-    fingerprint_parser.add_argument("text", nargs="?", help="Text to fingerprint. If omitted, stdin is used.")
-    fingerprint_parser.add_argument("--language", default="en")
-    fingerprint_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
-    fingerprint_parser.add_argument("--summary", action="store_true", help="Print a concise fingerprint summary")
-    fingerprint_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+    sub = command("parse", _cmd_parse, "Parse text into a logical form")
+    _add_text_arguments(sub, "Text to parse")
+    sub.add_argument("--canonical", action="store_true", help="Print canonical serialization instead of JSON")
 
-    compare_parser = subparsers.add_parser("compare-fingerprints", help="Compare structural fingerprints for two texts")
-    compare_parser.add_argument("left", help="First text input")
-    compare_parser.add_argument("right", help="Second text input")
-    compare_parser.add_argument("--language", default="en")
-    compare_parser.add_argument("--document", action="store_true", help="Parse inputs as multi-sentence documents")
-    compare_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
+    sub = command("fingerprint", _cmd_fingerprint, "Build a structural fingerprint from text")
+    _add_text_arguments(sub, "Text to fingerprint")
+    sub.add_argument("--summary", action="store_true", help="Print a concise fingerprint summary")
 
-    reason_parser = subparsers.add_parser("reason", help="Run the neuro-symbolic reasoning pipeline")
-    _add_reason_run_arguments(reason_parser)
+    sub = command("compare-fingerprints", _cmd_compare_fingerprints, "Compare structural fingerprints for two texts")
+    sub.add_argument("left", help="First text input")
+    sub.add_argument("right", help="Second text input")
+    sub.add_argument("--language", default="en")
+    sub.add_argument("--document", action="store_true", help="Parse inputs as multi-sentence documents")
 
-    serve_parser = subparsers.add_parser("serve", help="Run the local HTTP API")
-    serve_parser.add_argument("--host", default="127.0.0.1")
-    serve_parser.add_argument("--port", type=int, default=8000)
-
-    eval_parser = subparsers.add_parser("evaluate", help="Run the benchmark harness")
-    eval_parser.add_argument(
-        "--dataset",
-        default=str(Path("benchmarks") / "core.json"),
-        help="Path to benchmark dataset JSON",
-    )
-    eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
-
-    answer_eval_parser = subparsers.add_parser("evaluate-answers", help="Run end-to-end answer evaluation")
-    answer_eval_parser.add_argument(
-        "--dataset",
-        default=str(Path("benchmarks") / "objective_qa.sample.json"),
-        help="Path to objective QA benchmark dataset JSON",
-    )
-    answer_eval_parser.add_argument(
-        "--provider",
-        default="oracle",
-        choices=("oracle", "openai", "ollama"),
-        help="Model provider used to answer benchmark questions",
-    )
-    answer_eval_parser.add_argument("--model", help="Model name for the selected provider")
-    answer_eval_parser.add_argument(
-        "--include-gold-dialectica",
-        action="store_true",
-        help="Also run a Dialectica condition using gold logical forms when present in the dataset",
-    )
-    answer_eval_parser.add_argument("--output", help="Optional path to write the full JSON report")
-    answer_eval_parser.add_argument(
-        "--performance-output",
-        help="Optional path to write a compact performance summary JSON file",
-    )
-    answer_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the evaluation result")
-
-    complexity_generate_parser = subparsers.add_parser(
-        "generate-complexity-benchmark",
-        help="Generate a synthetic complexity-sweep objective QA benchmark",
-    )
-    complexity_generate_parser.add_argument("--levels", type=int, default=6, help="Number of difficulty levels to generate")
-    complexity_generate_parser.add_argument(
-        "--scenarios-per-level",
-        type=int,
-        default=3,
-        help="Number of scenarios to generate at each level",
-    )
-    complexity_generate_parser.add_argument(
-        "--followups",
-        type=int,
-        default=3,
-        help="Number of follow-up questions to derive from each scenario",
-    )
-    complexity_generate_parser.add_argument("--seed", type=int, default=7, help="Deterministic random seed")
-    complexity_generate_parser.add_argument(
-        "--output",
-        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
-        help="Path to write the generated benchmark dataset",
-    )
-    complexity_generate_parser.add_argument("--pretty", action="store_true", help="Pretty-print the generated dataset")
-
-    complexity_eval_parser = subparsers.add_parser(
-        "evaluate-complexity-sweep",
-        help="Run answer evaluation and summarize results by complexity level",
-    )
-    complexity_eval_parser.add_argument(
-        "--dataset",
-        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
-        help="Path to a generated complexity-sweep benchmark dataset JSON file",
-    )
-    complexity_eval_parser.add_argument(
-        "--provider",
-        default="oracle",
-        choices=("oracle", "openai", "ollama"),
-        help="Model provider used to answer benchmark questions",
-    )
-    complexity_eval_parser.add_argument("--model", help="Model name for the selected provider")
-    complexity_eval_parser.add_argument(
-        "--include-gold-dialectica",
-        action="store_true",
-        help="Also run Dialectica conditions using gold logical forms when present in the dataset",
-    )
-    complexity_eval_parser.add_argument("--output", help="Optional path to write the full JSON report")
-    complexity_eval_parser.add_argument(
-        "--performance-output",
-        help="Optional path to write a compact performance summary JSON file",
-    )
-    complexity_eval_parser.add_argument(
-        "--summary-output",
-        help="Optional path to write the level-by-level complexity summary JSON file",
-    )
-    complexity_eval_parser.add_argument(
-        "--markdown-output",
-        help="Optional path to write a markdown report that embeds generated charts",
-    )
-    complexity_eval_parser.add_argument(
-        "--charts-dir",
-        help="Optional directory to write SVG charts for the markdown report",
-    )
-    complexity_eval_parser.add_argument("--pretty", action="store_true", help="Pretty-print the complexity summary")
-
-    reasoning_eval_parser = subparsers.add_parser(
-        "evaluate-reasoning",
-        help="Compare direct prompting, encoded prompting, and symbolic reasoning backends",
-    )
-    _add_reasoning_eval_arguments(reasoning_eval_parser)
-
-    reasoning_render_parser = subparsers.add_parser(
-        "render-reasoning-report",
-        help="Render charts and a markdown summary from an existing reasoning comparison JSON report",
-    )
-    _add_reasoning_render_arguments(reasoning_render_parser)
-
-    args = parser.parse_args(parsed_argv)
-
-    if args.command == "parse":
-        text = args.text if args.text is not None else sys.stdin.read().strip()
-        parsed = parse_document(text, language=args.language) if args.document else parse_text(text, language=args.language)
-        logical_form = canonicalize_logical_form(parsed)
-        errors = validate_logical_form(logical_form)
-        if args.canonical:
-            print(serialize_logical_form(logical_form))
-        else:
-            payload = {"logical_form": logical_form, "validation_errors": errors}
-            indent = 2 if args.pretty else None
-            print(json.dumps(payload, indent=indent))
-        return 0
-
-    if args.command == "serve":
-        run_server(host=args.host, port=args.port)
-        return 0
-
-    if args.command == "fingerprint":
-        text = args.text if args.text is not None else sys.stdin.read().strip()
-        parsed = parse_document(text, language=args.language) if args.document else parse_text(text, language=args.language)
-        logical_form = canonicalize_logical_form(parsed)
-        fingerprint = fingerprint_logical_form(logical_form)
-        payload = summarize_fingerprint(fingerprint) if args.summary else fingerprint
-        indent = 2 if args.pretty else None
-        print(json.dumps(payload, indent=indent))
-        return 0
-
-    if args.command == "compare-fingerprints":
-        parse_fn = parse_document if args.document else parse_text
-        left_form = canonicalize_logical_form(parse_fn(args.left, language=args.language))
-        right_form = canonicalize_logical_form(parse_fn(args.right, language=args.language))
-        comparison = compare_fingerprints(
-            fingerprint_logical_form(left_form),
-            fingerprint_logical_form(right_form),
-        )
-        indent = 2 if args.pretty else None
-        print(json.dumps(comparison, indent=indent))
-        return 0
-
-    if args.command == "reason":
-        text = args.text if args.text is not None else sys.stdin.read().strip()
-        requested_targets = [part.strip() for part in args.targets.split(",") if part.strip()]
-        if args.reasoner not in requested_targets:
-            requested_targets.append(args.reasoner)
-        unsupported_targets = [target for target in requested_targets if target not in SUPPORTED_EXPORT_TARGETS]
-        if unsupported_targets:
-            print(
-                "Unsupported export target(s): "
-                f"{', '.join(unsupported_targets)}. Supported targets: {', '.join(SUPPORTED_EXPORT_TARGETS)}.",
-                file=sys.stderr,
-            )
-            return 2
-        targets = tuple(requested_targets)
-        document = translate_text(text, query=args.query)
-        compiled_document, compiled_outputs = compile_hybrid_document(document, targets=targets)
-        if args.reasoner == "fol":
-            reasoning = reason_over_fol_program(compiled_outputs.get("fol", {}).get("artifact", {}).get("program", {}))
-            explanation = explain_fol_reasoning(compiled_document, reasoning)
-        else:
-            reasoning = reason_over_horn_program(compiled_outputs.get("horn", {}).get("artifact", {}))
-            explanation = explain_reasoning(compiled_document, reasoning)
-        payload = {
-            "reasoner": args.reasoner,
-            "hybrid_document": compiled_document_to_dict(compiled_document),
-            "compiled": compiled_outputs,
-            "reasoning": reasoning.to_dict(),
-            "explanation": explanation,
-        }
-        indent = 2 if args.pretty else None
-        print(json.dumps(payload, indent=indent))
-        return 0
-
-    if args.command == "evaluate":
-        report = evaluate_dataset(args.dataset)
-        indent = 2 if args.pretty else None
-        print(json.dumps(report, indent=indent))
-        return 0
-
-    if args.command == "evaluate-answers":
-        try:
-            report = evaluate_answer_dataset(
-                args.dataset,
-                provider_name=args.provider,
-                model=args.model,
-                include_gold_dialectica=args.include_gold_dialectica,
-            )
-        except (ProviderError, ValueError) as exc:
-            print(str(exc), file=sys.stderr)
-            return 2
-        if args.output:
-            write_report(report, args.output)
-            performance_output = args.performance_output or _derive_performance_path(args.output)
-            write_performance_summary(report["performance_summary"], performance_output)
-        elif args.performance_output:
-            write_performance_summary(report["performance_summary"], args.performance_output)
-        indent = 2 if args.pretty else None
-        print(json.dumps(report, indent=indent))
-        return 0
-
-    if args.command == "generate-complexity-benchmark":
-        dataset = generate_complexity_dataset(
-            levels=args.levels,
-            scenarios_per_level=args.scenarios_per_level,
-            followups=args.followups,
-            seed=args.seed,
-        )
-        write_complexity_dataset(dataset, args.output)
-        indent = 2 if args.pretty else None
-        print(json.dumps(dataset, indent=indent))
-        return 0
-
-    if args.command == "evaluate-complexity-sweep":
-        try:
-            report = evaluate_answer_dataset(
-                args.dataset,
-                provider_name=args.provider,
-                model=args.model,
-                include_gold_dialectica=args.include_gold_dialectica,
-            )
-        except (ProviderError, ValueError) as exc:
-            print(str(exc), file=sys.stderr)
-            return 2
-        summary = summarize_complexity_report(report)
-        if args.output:
-            write_report(report, args.output)
-            performance_output = args.performance_output or _derive_performance_path(args.output)
-            write_performance_summary(report["performance_summary"], performance_output)
-            summary_output = args.summary_output or _derive_summary_path(args.output)
-            write_complexity_summary(summary, summary_output)
-            markdown_output = args.markdown_output or _derive_markdown_path(args.output)
-            charts_dir = args.charts_dir or _derive_charts_dir(args.output)
-            write_complexity_report_bundle(
-                performance_summary=report["performance_summary"],
-                sweep_summary=summary,
-                markdown_path=markdown_output,
-                charts_dir=charts_dir,
-            )
-        elif args.performance_output:
-            write_performance_summary(report["performance_summary"], args.performance_output)
-            if args.markdown_output:
-                write_complexity_report_bundle(
-                    performance_summary=report["performance_summary"],
-                    sweep_summary=summary,
-                    markdown_path=args.markdown_output,
-                    charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
-                )
-        elif args.summary_output:
-            write_complexity_summary(summary, args.summary_output)
-            if args.markdown_output:
-                write_complexity_report_bundle(
-                    performance_summary=report["performance_summary"],
-                    sweep_summary=summary,
-                    markdown_path=args.markdown_output,
-                    charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
-                )
-        elif args.markdown_output:
-            write_complexity_report_bundle(
-                performance_summary=report["performance_summary"],
-                sweep_summary=summary,
-                markdown_path=args.markdown_output,
-                charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
-            )
-        indent = 2 if args.pretty else None
-        print(json.dumps(summary, indent=indent))
-        return 0
-
-    if args.command == "evaluate-reasoning":
-        try:
-            report = evaluate_reasoning_comparison(
-                args.dataset,
-                provider_name=args.provider,
-                model=args.model,
-            )
-        except (ProviderError, ValueError) as exc:
-            print(str(exc), file=sys.stderr)
-            return 2
-        if args.output:
-            write_reasoning_report(report, args.output)
-            write_reasoning_report_bundle(
-                report=report,
-                markdown_path=args.markdown_output or _derive_markdown_path(args.output),
-                charts_dir=args.charts_dir or _derive_charts_dir(args.output),
-            )
-        elif args.markdown_output:
-            write_reasoning_report_bundle(
-                report=report,
-                markdown_path=args.markdown_output,
-                charts_dir=args.charts_dir or _derive_charts_dir(args.markdown_output),
-            )
-        indent = 2 if args.pretty else None
-        print(json.dumps(report, indent=indent))
-        return 0
-
-    if args.command == "render-reasoning-report":
-        with Path(args.report).open("r", encoding="utf-8") as handle:
-            report = json.load(handle)
-        bundle = write_reasoning_report_bundle(
-            report=report,
-            markdown_path=args.markdown_output or _derive_markdown_path(args.report),
-            charts_dir=args.charts_dir or _derive_charts_dir(args.report),
-        )
-        indent = 2 if args.pretty else None
-        print(json.dumps(bundle, indent=indent))
-        return 0
-
-    return 1
-
-
-def _add_reason_run_arguments(command_parser: argparse.ArgumentParser) -> None:
-    command_parser.add_argument("text", nargs="?", help="Context text. If omitted, stdin is used.")
-    command_parser.add_argument("--query", help="Optional separate query. If omitted, the last question in the text is used.")
-    command_parser.add_argument(
+    sub = command("reason", _cmd_reason, "Run the neuro-symbolic reasoning pipeline")
+    sub.add_argument("text", nargs="?", help="Context text. If omitted, stdin is used.")
+    sub.add_argument("--query", help="Optional separate query. If omitted, the last question in the text is used.")
+    sub.add_argument(
         "--targets",
-        default="horn,fol,smt",
+        default=",".join(SUPPORTED_EXPORT_TARGETS),
         help="Comma-separated export targets to compile, default: horn,fol,smt",
     )
-    command_parser.add_argument(
+    sub.add_argument(
         "--reasoner",
         default="horn",
         choices=("horn", "fol"),
         help="Reasoning backend to run over the compiled outputs, default: horn",
     )
-    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
 
+    sub = command("serve", _cmd_serve, "Run the local HTTP API", pretty="")
+    sub.add_argument("--host", default="127.0.0.1")
+    sub.add_argument("--port", type=int, default=8000)
 
-def _add_reasoning_eval_arguments(command_parser: argparse.ArgumentParser) -> None:
-    command_parser.add_argument(
+    sub = command("evaluate", _cmd_evaluate, "Run the benchmark harness", pretty="Pretty-print the evaluation result")
+    sub.add_argument("--dataset", default=str(Path("benchmarks") / "core.json"), help="Path to benchmark dataset JSON")
+
+    sub = command(
+        "evaluate-answers",
+        _cmd_evaluate_answers,
+        "Run end-to-end answer evaluation",
+        pretty="Pretty-print the evaluation result",
+    )
+    sub.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "objective_qa.sample.json"),
+        help="Path to objective QA benchmark dataset JSON",
+    )
+    _add_provider_arguments(sub, default="oracle", help_text="Model provider used to answer benchmark questions")
+    sub.add_argument(
+        "--include-gold-dialectica",
+        action="store_true",
+        help="Also run a Dialectica condition using gold logical forms when present in the dataset",
+    )
+    sub.add_argument("--output", help="Optional path to write the full JSON report")
+    sub.add_argument("--performance-output", help="Optional path to write a compact performance summary JSON file")
+
+    sub = command(
+        "generate-complexity-benchmark",
+        _cmd_generate_complexity,
+        "Generate a synthetic complexity-sweep objective QA benchmark",
+        pretty="Pretty-print the generated dataset",
+    )
+    sub.add_argument("--levels", type=int, default=6, help="Number of difficulty levels to generate")
+    sub.add_argument("--scenarios-per-level", type=int, default=3, help="Number of scenarios to generate at each level")
+    sub.add_argument("--followups", type=int, default=3, help="Number of follow-up questions to derive from each scenario")
+    sub.add_argument("--seed", type=int, default=7, help="Deterministic random seed")
+    sub.add_argument(
+        "--output",
+        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
+        help="Path to write the generated benchmark dataset",
+    )
+
+    sub = command(
+        "evaluate-complexity-sweep",
+        _cmd_evaluate_complexity,
+        "Run answer evaluation and summarize results by complexity level",
+        pretty="Pretty-print the complexity summary",
+    )
+    sub.add_argument(
+        "--dataset",
+        default=str(Path("benchmarks") / "complexity_sweep.generated.json"),
+        help="Path to a generated complexity-sweep benchmark dataset JSON file",
+    )
+    _add_provider_arguments(sub, default="oracle", help_text="Model provider used to answer benchmark questions")
+    sub.add_argument(
+        "--include-gold-dialectica",
+        action="store_true",
+        help="Also run Dialectica conditions using gold logical forms when present in the dataset",
+    )
+    sub.add_argument("--output", help="Optional path to write the full JSON report")
+    sub.add_argument("--performance-output", help="Optional path to write a compact performance summary JSON file")
+    sub.add_argument("--summary-output", help="Optional path to write the level-by-level complexity summary JSON file")
+    sub.add_argument("--markdown-output", help="Optional path to write a markdown report that embeds generated charts")
+    sub.add_argument("--charts-dir", help="Optional directory to write SVG charts for the markdown report")
+
+    sub = command(
+        "evaluate-reasoning",
+        _cmd_evaluate_reasoning,
+        "Compare direct prompting, encoded prompting, and symbolic reasoning backends",
+        pretty="Pretty-print the comparison report",
+    )
+    sub.add_argument(
         "--dataset",
         default=str(Path("benchmarks") / "reasoning.messy.json"),
         help="Path to a reasoning comparison benchmark JSON file",
     )
-    command_parser.add_argument(
-        "--provider",
-        default="ollama",
-        choices=("oracle", "openai", "ollama"),
-        help="Model provider used for the direct and encoded baselines",
+    _add_provider_arguments(sub, default="ollama", help_text="Model provider used for the direct and encoded baselines")
+    sub.add_argument("--output", help="Optional path to write the full JSON comparison report")
+    sub.add_argument("--markdown-output", help="Optional path to write a markdown reasoning report")
+    sub.add_argument("--charts-dir", help="Optional directory to write SVG charts for the reasoning report")
+
+    sub = command(
+        "render-reasoning-report",
+        _cmd_render_reasoning,
+        "Render charts and a markdown summary from an existing reasoning comparison JSON report",
+        pretty="Pretty-print the render manifest",
     )
+    sub.add_argument("--report", required=True, help="Path to an existing reasoning comparison JSON report")
+    sub.add_argument("--markdown-output", help="Optional markdown output path")
+    sub.add_argument("--charts-dir", help="Optional charts output directory")
+
+    return parser
+
+
+def _add_text_arguments(command_parser: argparse.ArgumentParser, help_text: str) -> None:
+    command_parser.add_argument("text", nargs="?", help=f"{help_text}. If omitted, stdin is used.")
+    command_parser.add_argument("--language", default="en")
+    command_parser.add_argument("--document", action="store_true", help="Parse input as a multi-sentence document")
+
+
+def _add_provider_arguments(command_parser: argparse.ArgumentParser, *, default: str, help_text: str) -> None:
+    command_parser.add_argument("--provider", default=default, choices=PROVIDERS, help=help_text)
     command_parser.add_argument("--model", help="Model name for the selected provider")
-    command_parser.add_argument("--output", help="Optional path to write the full JSON comparison report")
-    command_parser.add_argument("--markdown-output", help="Optional path to write a markdown reasoning report")
-    command_parser.add_argument("--charts-dir", help="Optional directory to write SVG charts for the reasoning report")
-    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print the comparison report")
 
 
-def _add_reasoning_render_arguments(command_parser: argparse.ArgumentParser) -> None:
-    command_parser.add_argument("--report", required=True, help="Path to an existing reasoning comparison JSON report")
-    command_parser.add_argument("--markdown-output", help="Optional markdown output path")
-    command_parser.add_argument("--charts-dir", help="Optional charts output directory")
-    command_parser.add_argument("--pretty", action="store_true", help="Pretty-print the render manifest")
+def _cmd_parse(args: argparse.Namespace) -> int:
+    logical_form = parse(_read_text(args), language=args.language, document=args.document)
+    if args.canonical:
+        print(serialize_logical_form(logical_form))
+        return 0
+    _print_json({"logical_form": logical_form, "validation_errors": validate_logical_form(logical_form)}, args)
+    return 0
 
 
-def _derive_performance_path(output_path: str) -> str:
-    path = Path(output_path)
-    suffix = path.suffix or ".json"
-    return str(path.with_name(f"{path.stem}.performance{suffix}"))
+def _cmd_fingerprint(args: argparse.Namespace) -> int:
+    fingerprint = fingerprint_logical_form(parse(_read_text(args), language=args.language, document=args.document))
+    _print_json(summarize_fingerprint(fingerprint) if args.summary else fingerprint, args)
+    return 0
 
 
-def _derive_summary_path(output_path: str) -> str:
-    path = Path(output_path)
-    suffix = path.suffix or ".json"
-    return str(path.with_name(f"{path.stem}.sweep{suffix}"))
+def _cmd_compare_fingerprints(args: argparse.Namespace) -> int:
+    left, right = (
+        fingerprint_logical_form(parse(text, language=args.language, document=args.document))
+        for text in (args.left, args.right)
+    )
+    _print_json(compare_fingerprints(left, right), args)
+    return 0
 
 
-def _derive_markdown_path(output_path: str) -> str:
-    path = Path(output_path)
-    return str(path.with_name(f"{path.stem}.report.md"))
+def _cmd_reason(args: argparse.Namespace) -> int:
+    targets = tuple(part.strip() for part in args.targets.split(",") if part.strip())
+    unsupported = [target for target in targets if target not in SUPPORTED_EXPORT_TARGETS]
+    if unsupported:
+        raise ValueError(
+            f"Unsupported export target(s): {', '.join(unsupported)}. "
+            f"Supported targets: {', '.join(SUPPORTED_EXPORT_TARGETS)}."
+        )
+    run = reason(_read_text(args), query=args.query, reasoner=args.reasoner, targets=targets)
+    _print_json(run.to_dict(), args)
+    return 0
 
 
-def _derive_charts_dir(output_path: str) -> str:
-    path = Path(output_path)
-    return str(path.with_name(f"{path.stem}.charts"))
+def _cmd_serve(args: argparse.Namespace) -> int:
+    run_server(host=args.host, port=args.port)
+    return 0
+
+
+def _cmd_evaluate(args: argparse.Namespace) -> int:
+    _print_json(evaluate_dataset(args.dataset), args)
+    return 0
+
+
+def _cmd_evaluate_answers(args: argparse.Namespace) -> int:
+    report = _run_answer_evaluation(args)
+    if args.output:
+        write_json(report, args.output)
+    performance_output = args.performance_output or _derived_path(args.output, ".performance")
+    if performance_output:
+        write_json(report["performance_summary"], performance_output)
+    _print_json(report, args)
+    return 0
+
+
+def _cmd_generate_complexity(args: argparse.Namespace) -> int:
+    dataset = generate_complexity_dataset(
+        levels=args.levels,
+        scenarios_per_level=args.scenarios_per_level,
+        followups=args.followups,
+        seed=args.seed,
+    )
+    write_json(dataset, args.output)
+    _print_json(dataset, args)
+    return 0
+
+
+def _cmd_evaluate_complexity(args: argparse.Namespace) -> int:
+    report = _run_answer_evaluation(args)
+    summary = summarize_complexity_report(report)
+    # Explicit paths always win; --output additionally derives every sibling artifact.
+    if args.output:
+        write_json(report, args.output)
+    performance_output = args.performance_output or _derived_path(args.output, ".performance")
+    if performance_output:
+        write_json(report["performance_summary"], performance_output)
+    summary_output = args.summary_output or _derived_path(args.output, ".sweep")
+    if summary_output:
+        write_json(summary, summary_output)
+    markdown_output = args.markdown_output or _derived_path(args.output, ".report", suffix=".md")
+    if markdown_output:
+        write_complexity_report_bundle(
+            performance_summary=report["performance_summary"],
+            sweep_summary=summary,
+            markdown_path=markdown_output,
+            charts_dir=args.charts_dir or _derived_path(args.output or markdown_output, ".charts", suffix=""),
+        )
+    _print_json(summary, args)
+    return 0
+
+
+def _cmd_evaluate_reasoning(args: argparse.Namespace) -> int:
+    report = evaluate_reasoning_comparison(args.dataset, provider_name=args.provider, model=args.model)
+    if args.output:
+        write_json(report, args.output)
+    markdown_output = args.markdown_output or _derived_path(args.output, ".report", suffix=".md")
+    if markdown_output:
+        write_reasoning_report_bundle(
+            report=report,
+            markdown_path=markdown_output,
+            charts_dir=args.charts_dir or _derived_path(args.output or markdown_output, ".charts", suffix=""),
+        )
+    _print_json(report, args)
+    return 0
+
+
+def _cmd_render_reasoning(args: argparse.Namespace) -> int:
+    bundle = write_reasoning_report_bundle(
+        report=load_json(args.report),
+        markdown_path=args.markdown_output or _derived_path(args.report, ".report", suffix=".md"),
+        charts_dir=args.charts_dir or _derived_path(args.report, ".charts", suffix=""),
+    )
+    _print_json(bundle, args)
+    return 0
+
+
+def _run_answer_evaluation(args: argparse.Namespace) -> dict[str, Any]:
+    return evaluate_answer_dataset(
+        args.dataset,
+        provider_name=args.provider,
+        model=args.model,
+        include_gold_dialectica=args.include_gold_dialectica,
+    )
+
+
+def _read_text(args: argparse.Namespace) -> str:
+    return args.text if args.text is not None else sys.stdin.read().strip()
+
+
+def _print_json(payload: Any, args: argparse.Namespace) -> None:
+    print(json.dumps(payload, indent=2 if args.pretty else None))
+
+
+def _derived_path(base: str | None, tag: str, *, suffix: str | None = None) -> str | None:
+    """Return a sibling path such as ``out.performance.json`` for ``out.json``; ``None`` without a base."""
+    if not base:
+        return None
+    path = Path(base)
+    if suffix is None:
+        suffix = path.suffix or ".json"
+    return str(path.with_name(f"{path.stem}{tag}{suffix}"))

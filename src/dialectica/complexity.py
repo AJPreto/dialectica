@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import random
-import re
-from pathlib import Path
 from statistics import mean
 from typing import Any
 
 from .canonical import serialize_compact_logical_form, serialize_logical_form
+from .parser import _canonical_text, _infer_polarity
+from .providers import token_counts
 
 
 PERSONS = [
@@ -61,15 +60,11 @@ STEP_TEMPLATES = [
     "may authorize the {theme} sequence",
 ]
 
-NEGATIVE_CUES = (
-    " not ",
-    " never ",
-    " no ",
-    " cannot ",
-    " can't ",
-    " won't ",
-    " without ",
-    " fail",
+COMPARED_CONDITIONS = (
+    "dialectica_compact",
+    "dialectica_filtered",
+    "dialectica_structural_compact",
+    "dialectica_filtered_structural",
 )
 
 
@@ -96,12 +91,6 @@ def generate_complexity_dataset(
                 )
             )
     return cases
-
-
-def write_complexity_dataset(dataset: list[dict[str, Any]], output_path: str | Path) -> None:
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(dataset, indent=2), encoding="utf-8")
 
 
 def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
@@ -146,13 +135,8 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
             condition_bucket["accuracy"].append(1.0 if condition["correct"] else 0.0)
             condition_bucket["latency_seconds"].append(float(condition.get("latency_seconds", 0.0) or 0.0))
             condition_bucket["iterations"].append(int(condition.get("iterations", 0) or 0))
-            condition_bucket["input_tokens"].append(int(condition.get("token_counts", {}).get("input_tokens", 0) or 0))
-            condition_bucket["output_tokens"].append(int(condition.get("token_counts", {}).get("output_tokens", 0) or 0))
-            condition_bucket["total_tokens"].append(int(condition.get("token_counts", {}).get("total_tokens", 0) or 0))
-            condition_bucket["cached_tokens"].append(int(condition.get("token_counts", {}).get("cached_tokens", 0) or 0))
-            condition_bucket["reasoning_tokens"].append(
-                int(condition.get("token_counts", {}).get("reasoning_tokens", 0) or 0)
-            )
+            for key, value in token_counts(condition.get("token_counts")).items():
+                condition_bucket[key].append(value)
             condition_bucket["prompt_characters"].append(_prompt_size(condition))
             condition_bucket["prompt_words"].append(
                 int(condition.get("prompt_words", 0) or 0) + int(condition.get("instructions_words", 0) or 0)
@@ -160,10 +144,7 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
 
     finalized_levels: dict[str, Any] = {}
     representation_crossover_levels: list[int] = []
-    compact_inflection_levels: list[int] = []
-    filtered_inflection_levels: list[int] = []
-    structural_compact_inflection_levels: list[int] = []
-    filtered_structural_inflection_levels: list[int] = []
+    inflection_levels: dict[str, list[int]] = {name: [] for name in COMPARED_CONDITIONS}
 
     for level in sorted(levels):
         bucket = levels[level]
@@ -193,100 +174,32 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
         }
 
         direct_summary = level_summary["conditions"].get("direct")
-        compact_summary = level_summary["conditions"].get("dialectica_compact")
-        filtered_summary = level_summary["conditions"].get("dialectica_filtered")
-        structural_compact_summary = level_summary["conditions"].get("dialectica_structural_compact")
-        filtered_structural_summary = level_summary["conditions"].get("dialectica_filtered_structural")
-
-        if direct_summary and compact_summary:
-            level_summary["direct_vs_dialectica_compact"] = {
-                "accuracy_delta": round(
-                    compact_summary["accuracy"] - direct_summary["accuracy"],
-                    6,
-                ),
-                "representation_character_delta": round(
+        for name in COMPARED_CONDITIONS:
+            summary = level_summary["conditions"].get(name)
+            if not direct_summary or not summary:
+                continue
+            delta = {"accuracy_delta": round(summary["accuracy"] - direct_summary["accuracy"], 6)}
+            if name == "dialectica_compact":
+                delta["representation_character_delta"] = round(
                     level_summary["average_compact_characters"] - level_summary["average_context_characters"],
                     6,
-                ),
-                "average_total_token_delta": round(
-                    compact_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
-                    6,
-                ),
-                "average_prompt_character_delta": round(
-                    compact_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
-                    6,
-                ),
-            }
-            if level_summary["average_compact_characters"] <= level_summary["average_context_characters"]:
-                representation_crossover_levels.append(level)
+                )
+                if level_summary["average_compact_characters"] <= level_summary["average_context_characters"]:
+                    representation_crossover_levels.append(level)
+            delta["average_total_token_delta"] = round(
+                summary["average_total_tokens"] - direct_summary["average_total_tokens"],
+                6,
+            )
+            delta["average_prompt_character_delta"] = round(
+                summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
+                6,
+            )
+            level_summary[f"direct_vs_{name}"] = delta
             if (
-                compact_summary["accuracy"] >= direct_summary["accuracy"]
-                and compact_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
+                summary["accuracy"] >= direct_summary["accuracy"]
+                and summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
             ):
-                compact_inflection_levels.append(level)
-
-        if direct_summary and filtered_summary:
-            level_summary["direct_vs_dialectica_filtered"] = {
-                "accuracy_delta": round(
-                    filtered_summary["accuracy"] - direct_summary["accuracy"],
-                    6,
-                ),
-                "average_total_token_delta": round(
-                    filtered_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
-                    6,
-                ),
-                "average_prompt_character_delta": round(
-                    filtered_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
-                    6,
-                ),
-            }
-            if (
-                filtered_summary["accuracy"] >= direct_summary["accuracy"]
-                and filtered_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
-            ):
-                filtered_inflection_levels.append(level)
-
-        if direct_summary and structural_compact_summary:
-            level_summary["direct_vs_dialectica_structural_compact"] = {
-                "accuracy_delta": round(
-                    structural_compact_summary["accuracy"] - direct_summary["accuracy"],
-                    6,
-                ),
-                "average_total_token_delta": round(
-                    structural_compact_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
-                    6,
-                ),
-                "average_prompt_character_delta": round(
-                    structural_compact_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
-                    6,
-                ),
-            }
-            if (
-                structural_compact_summary["accuracy"] >= direct_summary["accuracy"]
-                and structural_compact_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
-            ):
-                structural_compact_inflection_levels.append(level)
-
-        if direct_summary and filtered_structural_summary:
-            level_summary["direct_vs_dialectica_filtered_structural"] = {
-                "accuracy_delta": round(
-                    filtered_structural_summary["accuracy"] - direct_summary["accuracy"],
-                    6,
-                ),
-                "average_total_token_delta": round(
-                    filtered_structural_summary["average_total_tokens"] - direct_summary["average_total_tokens"],
-                    6,
-                ),
-                "average_prompt_character_delta": round(
-                    filtered_structural_summary["average_prompt_characters"] - direct_summary["average_prompt_characters"],
-                    6,
-                ),
-            }
-            if (
-                filtered_structural_summary["accuracy"] >= direct_summary["accuracy"]
-                and filtered_structural_summary["average_prompt_characters"] <= direct_summary["average_prompt_characters"]
-            ):
-                filtered_structural_inflection_levels.append(level)
+                inflection_levels[name].append(level)
 
         finalized_levels[str(level)] = level_summary
 
@@ -296,19 +209,8 @@ def summarize_complexity_report(report: dict[str, Any]) -> dict[str, Any]:
         "model": report.get("model"),
         "levels": finalized_levels,
         "candidate_representation_crossover_levels": representation_crossover_levels,
-        "candidate_prompt_inflection_levels": {
-            "dialectica_compact": compact_inflection_levels,
-            "dialectica_filtered": filtered_inflection_levels,
-            "dialectica_structural_compact": structural_compact_inflection_levels,
-            "dialectica_filtered_structural": filtered_structural_inflection_levels,
-        },
+        "candidate_prompt_inflection_levels": inflection_levels,
     }
-
-
-def write_complexity_summary(summary: dict[str, Any], output_path: str | Path) -> None:
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
 
 def _generate_scenario_cases(
@@ -678,15 +580,6 @@ def _build_question_logical_form(question: str) -> dict[str, Any]:
         "ambiguities": [],
         "metadata": {"generator": "complexity-sweep"},
     }
-
-
-def _canonical_text(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower()).strip(".,;:!?")
-
-
-def _infer_polarity(text: str) -> str:
-    lowered = f" {_canonical_text(text)} "
-    return "negative" if any(cue in lowered for cue in NEGATIVE_CUES) else "positive"
 
 
 def _new_level_bucket() -> dict[str, Any]:

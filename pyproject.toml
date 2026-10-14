@@ -12,7 +12,17 @@ license = { file = "LICENSE" }
 authors = [
   { name = "A. J. Preto" }
 ]
+keywords = ["logic", "reasoning", "nlp", "llm", "knowledge-representation"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: MIT License",
+  "Typing :: Typed",
+]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/AJPreto/dialectica"
 
 [project.scripts]
 dialectica = "dialectica.cli:main"
@@ -20,11 +30,11 @@ dialectica = "dialectica.cli:main"
 [tool.uv]
 package = true
 
-[dependency-groups]
-dev = []
-
 [tool.setuptools]
 package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+dialectica = ["py.typed"]

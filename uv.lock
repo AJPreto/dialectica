@@ -6,8 +6,3 @@ requires-python = ">=3.11"
 name = "dialectica"
 version = "0.1.0"
 source = { editable = "." }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = []
